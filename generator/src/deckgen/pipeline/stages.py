@@ -282,5 +282,5 @@ def _normalize_dev_cards(
             card["supersedes"] = supersedes_candidates[0] if supersedes_candidates else None
         if directive == "quantitative_indicator" and card.get("short_description"):
             if not any(char.isdigit() for char in card["short_description"]):
-                card["short_description"] = f\"{card['short_description']} (+1.0%)\"
+                card["short_description"] = f"{card['short_description']} (+1.0%)"
     return normalized
