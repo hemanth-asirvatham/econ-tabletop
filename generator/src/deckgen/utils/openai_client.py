@@ -77,6 +77,37 @@ class OpenAIClient:
             raise
         return resp.json()
 
+    def images_edit(self, payload: dict[str, Any], image_paths: list[Path]) -> dict[str, Any]:
+        if self.use_dummy or not self.api_key:
+            if self.use_dummy:
+                console.print("[yellow]ECON_TABLETOP_DUMMY_OPENAI enabled. Returning dummy image response.[/yellow]")
+            else:
+                console.print("[yellow]OPENAI_API_KEY not set. Returning dummy image response.[/yellow]")
+            return {"data": [{"b64_json": ""}]}
+        if not image_paths:
+            raise ValueError("images_edit requires at least one reference image path.")
+        image_path = image_paths[0]
+        files = {"image": (image_path.name, image_path.read_bytes(), "image/png")}
+        resp = self.client.post(
+            f"{self.base_url}/images/edits",
+            headers={k: v for k, v in self._headers().items() if k != "Content-Type"},
+            data={k: v for k, v in payload.items() if v is not None},
+            files=files,
+        )
+        try:
+            resp.raise_for_status()
+        except httpx.HTTPStatusError:
+            console.print(
+                "[red]OpenAI image edit request failed.[/red]"
+                f" Status: {resp.status_code}. Body: {resp.text}"
+            )
+            console.print(
+                "[yellow]Check that your API key has image access and that the model name is available in "
+                "your project/organization.[/yellow]"
+            )
+            raise
+        return resp.json()
+
     def save_payload(self, cache_dir: Path, name: str, payload: dict[str, Any], response: dict[str, Any]) -> None:
         cache_dir.mkdir(parents=True, exist_ok=True)
         (cache_dir / f"{name}.request.json").write_text(json.dumps(payload, indent=2), encoding="utf-8")

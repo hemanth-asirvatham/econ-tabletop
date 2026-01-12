@@ -64,12 +64,16 @@ DEFAULT_CONFIG = {
             "model": "gpt-4.1-mini",
             "reasoning_effort": "high",
             "max_output_tokens": 2000,
+            "temperature": 0.7,
+            "top_p": 0.9,
             "store": False,
         },
         "image": {
             "model": "gpt-image-1.5",
             "size": "1536x1024",
             "background": "transparent",
+            "reference_policy_image": None,
+            "reference_development_image": None,
         },
     },
     "runtime": {
@@ -78,6 +82,7 @@ DEFAULT_CONFIG = {
         "image_batch_size": 150,
         "resume": True,
         "cache_requests": True,
+        "prompt_path": None,
     },
 }
 

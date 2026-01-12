@@ -1,21 +1,25 @@
-You are writing an image prompt for a horizontal policy card illustration.
+You are writing an image prompt for a horizontal policy card illustration where text is baked into the image.
 
 Scenario Context:
 {{ scenario_injection or "(none)" }}
 
-Locale visuals:
+Locale visuals (optional motifs):
 {{ locale_visuals | join(", ") }}
 
 Card:
 {{ card | tojson }}
 
 Requirements:
-- Horizontal composition, 3:2 aspect ratio.
-- Clean negative space in top-left for text overlay.
-- No readable text in the illustration.
+- Render a 3:2 horizontal game card with a subtle border/frame and a title area.
+- The card must include the exact title text: "{{ card.title }}".
+- The card must include the exact short description text: "{{ card.short_description }}".
+- Include a small label reading "POLICY" in a corner.
+- Provide tasteful background artwork that reinforces the policy theme; keep text legible.
+- No extra readable text beyond the provided title/description/label.
+- Avoid photorealistic faces; use illustrative or iconographic style.
 - Use scenario motifs when provided.
 
 Output: One concise prompt sentence.
 
 Example:
-"Horizontal illustration of a modern policy briefing room with holographic charts, subtle Gulf architecture accents, clear negative space in the top-left, no readable text."
+"Horizontal 3:2 policy game card with a thin frame, title text 'Reskilling Vouchers for Mid-Career Workers' and subtitle 'Targeted vouchers to rapidly retrain workers displaced by AI tools.' plus a small 'POLICY' label. Background shows a modern training lab with stylized tools and holographic charts, subtle Gulf architecture accents, clean readable typography, no other text."

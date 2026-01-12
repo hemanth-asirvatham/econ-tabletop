@@ -15,6 +15,8 @@ Allowed tags:
 Mix targets:
 {{ mix_targets | tojson }}
 
+Target card count: {{ target_count }}
+
 Output JSON schema:
 {
   "threads": [
@@ -37,6 +39,7 @@ Constraints:
 - Progress gradually from Stage 0 realism toward later stages.
 - Ensure a mix of quantitative indicators, institutional shifts, geopolitics, labor, and safety/security.
 - Avoid duplicate beats across threads.
+- Produce thread target_counts that sum to {{ target_count }} (or as close as possible).
 
 Example:
 {

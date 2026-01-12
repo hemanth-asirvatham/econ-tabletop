@@ -41,14 +41,19 @@ models:
     model: "gpt-4.1-mini"
     reasoning_effort: "high"
     max_output_tokens: 2000
+    temperature: 0.7
+    top_p: 0.9
     store: false
   image:
     model: "gpt-image-1.5"
     size: "1536x1024"
     background: "transparent"
+    reference_policy_image: null
+    reference_development_image: null
 runtime:
   concurrency_text: 8
   concurrency_image: 4
   image_batch_size: 150
   resume: true
   cache_requests: true
+  prompt_path: null

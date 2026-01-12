@@ -1,21 +1,26 @@
-You are writing an image prompt for a horizontal development card illustration.
+You are writing an image prompt for a horizontal development card illustration where text is baked into the image.
 
 Scenario Context:
 {{ scenario_injection or "(none)" }}
 
-Locale visuals:
+Locale visuals (optional motifs):
 {{ locale_visuals | join(", ") }}
 
 Card:
 {{ card | tojson }}
 
 Requirements:
-- Horizontal composition, 3:2 aspect ratio.
-- Clean negative space in top-left for text overlay.
-- No readable text in the illustration.
+- Render a 3:2 horizontal game card with a subtle border/frame and a title area.
+- The card must include the exact title text: "{{ card.title }}".
+- The card must include the exact short description text: "{{ card.short_description }}".
+- Include a small label reading "OUTCOME" (or "DEVELOPMENT") in a corner.
+- Include small up/down arrow icons matching arrows_up={{ card.arrows_up }} and arrows_down={{ card.arrows_down }}.
+- Provide tasteful background artwork that reinforces the development theme; keep text legible.
+- No extra readable text beyond the provided title/description/label.
+- Avoid photorealistic faces; use illustrative or iconographic style.
 - Use scenario motifs when provided.
 
 Output: One concise prompt sentence.
 
 Example:
-"Horizontal illustration of a future-forward city skyline with AI network lights, subtle desert infrastructure motifs, clear negative space top-left, no readable text."
+"Horizontal 3:2 development game card with a thin frame, title text 'Copilots Spread Across Office Work' and subtitle 'Early productivity gains (+1.2%) appear in high-income service roles.' plus a small 'OUTCOME' label and two green up arrows + one red down arrow. Background shows a stylized office skyline with glowing AI overlays, subtle Gulf architecture accents, clean readable typography, no other text."

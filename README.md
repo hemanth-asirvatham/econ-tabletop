@@ -126,9 +126,9 @@ et.run_all(config_dst, deck_dir)
 
 Key configurable parameters in the YAML:
 
-- `models.text`: `model`, `reasoning_effort`, `max_output_tokens`, `store`.
-- `models.image`: `model`, `size`, `background`.
-- `runtime`: `concurrency_text`, `concurrency_image`, `image_batch_size`, `resume`, `cache_requests`.
+- `models.text`: `model`, `reasoning_effort`, `max_output_tokens`, `temperature`, `top_p`, `store`.
+- `models.image`: `model`, `size`, `background`, `reference_policy_image`, `reference_development_image`.
+- `runtime`: `concurrency_text`, `concurrency_image`, `image_batch_size`, `resume`, `cache_requests`, `prompt_path`.
 - `deck_sizes`: total policies and per-stage developments.
 - `mix_targets`: balance of positive/negative/conditional/supersedes/powerups/quant indicators.
 - `gameplay_defaults`: parameters surfaced to the UI for play setup.
@@ -142,7 +142,7 @@ Key configurable parameters in the YAML:
 - **Printable PDF**: `deck_dir/print/cards_letter.pdf`.
 - **Resolved config & metadata**: `deck_dir/meta/`.
 - **Validation reports**: `deck_dir/validation/`.
-- **OpenAI request/response cache**: `cache/` at the repo root when `runtime.cache_requests` is true.
+- **OpenAI request/response cache**: `deck_dir/cache/` when `runtime.cache_requests` is true.
 
 Launch the GUI from a notebook cell:
 
@@ -190,6 +190,60 @@ Key knobs:
 - `gameplay_defaults`: defaults surfaced to the UI (override in the UI setup).
 - `models.text` and `models.image`: model slugs and generation parameters.
 - `runtime`: concurrency and batching for text/image generation.
+
+## OpenAI API usage (structured outputs + images)
+
+The generator uses the OpenAI Responses API for structured JSON outputs and the Images API for card art.
+
+### Structured text calls
+
+All text generation is routed through `POST /v1/responses` with JSON schema validation:
+
+```json
+{
+  "model": "gpt-5.2",
+  "input": "<rendered prompt text>",
+  "response_format": {
+    "type": "json_schema",
+    "json_schema": {
+      "name": "policy_cards",
+      "schema": { "type": "object", "properties": { "cards": { "type": "array" } } },
+      "strict": true
+    }
+  },
+  "max_output_tokens": 2000,
+  "temperature": 0.7,
+  "top_p": 0.9,
+  "reasoning": { "effort": "high" },
+  "store": false
+}
+```
+
+Key notes:
+- `response_format` with `json_schema` forces valid JSON output matching the schema.
+- `reasoning.effort` is only applied for models that support it.
+- All prompts are rendered from Jinja templates under `generator/src/deckgen/prompts/`.
+
+### Image generation calls
+
+Art is generated via `POST /v1/images/generations`:
+
+```json
+{
+  "model": "gpt-image-1.5",
+  "prompt": "<image prompt>",
+  "size": "1536x1024",
+  "background": "transparent"
+}
+```
+
+If a reference image is supplied (or auto-generated from the first card), the pipeline uses the edits endpoint to preserve layout:
+
+```
+POST /v1/images/edits (multipart/form-data)
+```
+
+Form fields include `model`, `prompt`, `size`, `background`, plus one or more `image` files. The reference is used to keep a consistent horizontal card layout while still applying card-specific text and art.
 
 Example configs:
 - `generator/examples/configs/baseline.yaml`
