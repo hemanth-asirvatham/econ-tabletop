@@ -84,6 +84,19 @@ import os
 os.environ["OPENAI_API_KEY"] = "sk-..."
 ```
 
+If your organization or project require scoped credentials, also set:
+
+```python
+os.environ["OPENAI_ORG"] = "org_..."
+os.environ["OPENAI_PROJECT"] = "proj_..."
+```
+
+If you are using a different OpenAI-compatible base URL, set it explicitly:
+
+```python
+os.environ["OPENAI_BASE_URL"] = "https://api.openai.com/v1"
+```
+
 ### Advanced: YAML config (optional)
 
 For full control, you can still use the YAML config workflow. A common notebook pattern is to copy the
