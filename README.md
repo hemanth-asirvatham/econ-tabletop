@@ -37,6 +37,53 @@ npm run dev
 
 Open the Vite URL shown in the terminal. The UI connects to the local server (default `http://localhost:8787`).
 
+## Python / Jupyter usage
+
+Install from Git and use the notebook helpers:
+
+```python
+%pip install --force-reinstall --no-deps git+https://github.com/hemanth-asirvatham/econ-tabletop.git@main
+
+import econ_tabletop as et
+from pathlib import Path
+
+# Use a packaged example config
+config_path = et.get_example_config("baseline")
+deck_dir = Path("decks/baseline")
+
+# Generate the full deck pipeline (generate -> render -> images -> print)
+et.run_all(config_path, deck_dir)
+```
+
+Launch the GUI from a notebook cell:
+
+```python
+import econ_tabletop as et
+
+# If you installed from a repo checkout, this will auto-detect ui/
+session = et.launch_ui(deck_dir="decks/baseline", npm_install=True)
+
+# When done:
+# session.stop()
+```
+
+If you installed the package without a local repo checkout, pass the UI directory explicitly:
+
+```python
+session = et.launch_ui(
+    deck_dir="decks/baseline",
+    ui_dir="/path/to/econ-tabletop/ui",
+    npm_install=True,
+)
+```
+
+You can also start only the deck API server:
+
+```python
+server = et.start_deck_server(deck_dir="decks/baseline", port=8787)
+# server.terminate()
+```
+
 ## Configuration
 
 All generator behavior is controlled by a YAML config.

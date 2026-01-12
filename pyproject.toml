@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "econ-tabletop"
+version = "0.1.0"
+description = "AI/AGI economy tabletop deck generator and UI helpers"
+requires-python = ">=3.10"
+dependencies = [
+  "PyYAML>=6.0",
+  "jinja2>=3.1",
+  "pydantic>=2.6",
+  "jsonschema>=4.21",
+  "rich>=13.7",
+  "pillow>=10.2",
+  "reportlab>=4.0",
+  "tqdm>=4.66",
+  "httpx>=0.26",
+]
+
+[project.scripts]
+deckgen = "deckgen.cli:main"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["generator/src"]
+
+[tool.setuptools.package-data]
+"econ_tabletop.data.configs" = ["*.yaml"]
