@@ -17,7 +17,7 @@ from deckgen.schemas import (
 )
 from deckgen.utils.cache import cache_dir_for
 from deckgen.utils.io import write_json, write_jsonl
-from deckgen.utils.openai_client import OpenAIClient
+from deckgen.utils.openai_client import OpenAIClient, format_text_input
 from deckgen.utils.prompts import render_prompt
 from deckgen.utils.utility_functions import (
     dummy_development_cards,
@@ -161,7 +161,7 @@ def generate_stage_cards(config: dict[str, Any], taxonomy: dict[str, Any], out_d
 def _build_text_payload(prompt: str, model_cfg: dict[str, Any], schema: dict[str, Any], name: str) -> dict[str, Any]:
     payload: dict[str, Any] = {
         "model": model_cfg.get("model"),
-        "input": prompt,
+        "input": format_text_input(model_cfg.get("model"), prompt),
         "response_format": {"type": "json_schema", "json_schema": {"name": name, "schema": schema, "strict": True}},
         "store": model_cfg.get("store", False),
     }
