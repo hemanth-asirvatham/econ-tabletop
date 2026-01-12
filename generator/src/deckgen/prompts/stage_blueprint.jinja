@@ -1,0 +1,57 @@
+You are generating a stage blueprint for development cards.
+
+Scenario Context:
+{{ scenario_injection or "(none)" }}
+
+Stage:
+{{ stage | tojson }}
+
+Prior summaries:
+{{ prior_summaries | tojson }}
+
+Allowed tags:
+{{ tags | join(", ") }}
+
+Mix targets:
+{{ mix_targets | tojson }}
+
+Output JSON schema:
+{
+  "threads": [
+    {
+      "thread_id": "string",
+      "beat_plan": ["string"],
+      "target_count": 1,
+      "valence_target": "positive|negative|mixed"
+    }
+  ],
+  "special_counts": {
+    "supersedes": 1,
+    "conditional": 1,
+    "powerups": 1,
+    "quantitative_indicators": 1
+  }
+}
+
+Constraints:
+- Progress gradually from Stage 0 realism toward later stages.
+- Ensure a mix of quantitative indicators, institutional shifts, geopolitics, labor, and safety/security.
+- Avoid duplicate beats across threads.
+
+Example:
+{
+  "threads": [
+    {
+      "thread_id": "labor_market_polarization",
+      "beat_plan": ["AI copilots raise top-tier productivity", "mid-skill squeeze intensifies"],
+      "target_count": 2,
+      "valence_target": "mixed"
+    }
+  ],
+  "special_counts": {
+    "supersedes": 1,
+    "conditional": 1,
+    "powerups": 1,
+    "quantitative_indicators": 1
+  }
+}

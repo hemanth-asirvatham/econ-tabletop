@@ -1,0 +1,25 @@
+You are generating a taxonomy for an AI economy tabletop card game.
+
+Scenario Context:
+{{ scenario_injection or "(none)" }}
+
+Tone: {{ scenario_tone }}
+
+Output JSON schema:
+{
+  "categories": ["string"],
+  "tags": ["string"],
+  "roles": ["string"]
+}
+
+Requirements:
+- Include categories: macro, labor, firm dynamics, inequality/welfare, education, geopolitics, infra/energy, trust/misinfo, governance capacity, frontier R&D, safety/security.
+- Tags must be concise, consistent, and usable by both Policy and Development cards.
+- Keep tags grounded in real-world AI economy impacts.
+
+Example (abbreviated):
+{
+  "categories": ["macro", "labor"],
+  "tags": ["productivity_growth", "wage_dispersion"],
+  "roles": ["finance_minister", "labor_minister"]
+}

@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.venv/
+.env
+.cache/
+cache/
+.dist/
+node_modules/
+dist/
+.DS_Store
+*.log
+.decks/

@@ -1,0 +1,32 @@
+You are summarizing a stage of development cards into compact state facts.
+
+Scenario Context:
+{{ scenario_injection or "(none)" }}
+
+Stage:
+{{ stage | tojson }}
+
+Cards:
+{{ cards | tojson }}
+
+Prior summary:
+{{ prior_summary | tojson }}
+
+Output JSON schema:
+{
+  "stage": 0,
+  "facts": ["string"],
+  "changes_vs_prior": ["string"]
+}
+
+Constraints:
+- 10 to 25 bullet facts.
+- Highlight macro, labor, geopolitics, and safety/security.
+- Use grounded language; avoid speculative sci-fi.
+
+Example:
+{
+  "stage": 0,
+  "facts": ["Copilots widely adopted in finance and legal departments."],
+  "changes_vs_prior": ["Automation pressures begin appearing in mid-skill roles."]
+}
