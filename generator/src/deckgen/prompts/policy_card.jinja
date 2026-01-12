@@ -1,0 +1,69 @@
+You are generating a single PolicyCard JSON object using structured outputs.
+
+Scenario Context:
+{{ scenario_injection or "(none)" }}
+
+Tone: {{ scenario_tone }}
+
+Allowed categories:
+{{ categories | join(", ") }}
+
+Allowed tags:
+{{ tags | join(", ") }}
+
+Blueprint slot:
+{{ slot | tojson }}
+
+Output JSON schema:
+{
+  "id": "string",
+  "title": "string",
+  "short_description": "string",
+  "description": "string",
+  "category": "string",
+  "cost": {
+    "budget_level": 1,
+    "implementation_complexity": 1,
+    "notes": "string"
+  },
+  "timeline": {
+    "time_to_launch": "immediate|weeks|months|1-2y|3-5y",
+    "time_to_impact": "immediate|weeks|months|1-2y|3-5y"
+  },
+  "impact_score": 1,
+  "tags": ["string"],
+  "addresses_tags": ["string"],
+  "side_effect_tags": ["string"],
+  "prerequisites_policy_tags": ["string"],
+  "synergy_policy_tags": ["string"],
+  "role_restrictions": ["string"],
+  "art_prompt": "string",
+  "flavor_quote": "string"
+}
+
+Example:
+{
+  "id": "policy_labor_reskill_vouchers",
+  "title": "Reskilling Vouchers for Mid-Career Workers",
+  "short_description": "Targeted vouchers to rapidly retrain workers displaced by AI tools.",
+  "description": "Provide vouchers for accredited short programs aligned with AI-affected occupations. Employers and unions co-design eligible curricula to meet local labor demand. Programs focus on practical credentialing and job placement." ,
+  "category": "labor",
+  "cost": {
+    "budget_level": 3,
+    "implementation_complexity": 3,
+    "notes": "Public-private partnerships reduce fiscal burden."
+  },
+  "timeline": {
+    "time_to_launch": "months",
+    "time_to_impact": "1-2y"
+  },
+  "impact_score": 3,
+  "tags": ["workforce_reskilling", "employment_transition"],
+  "addresses_tags": ["job_displacement", "skills_mismatch"],
+  "side_effect_tags": ["fiscal_burden"],
+  "prerequisites_policy_tags": [],
+  "synergy_policy_tags": ["apprenticeship_expansion"],
+  "role_restrictions": [],
+  "art_prompt": "Horizontal illustration of diverse adults in a modern training lab, laptops and tools, clear space top-left for text, no readable text.",
+  "flavor_quote": "“A fast bridge to the next job is the best safety net.”"
+}

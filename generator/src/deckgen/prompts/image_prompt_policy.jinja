@@ -1,0 +1,21 @@
+You are writing an image prompt for a horizontal policy card illustration.
+
+Scenario Context:
+{{ scenario_injection or "(none)" }}
+
+Locale visuals:
+{{ locale_visuals | join(", ") }}
+
+Card:
+{{ card | tojson }}
+
+Requirements:
+- Horizontal composition, 3:2 aspect ratio.
+- Clean negative space in top-left for text overlay.
+- No readable text in the illustration.
+- Use scenario motifs when provided.
+
+Output: One concise prompt sentence.
+
+Example:
+"Horizontal illustration of a modern policy briefing room with holographic charts, subtle Gulf architecture accents, clear negative space in the top-left, no readable text."

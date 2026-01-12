@@ -1,0 +1,37 @@
+You are producing a blueprint for policy cards.
+
+Scenario Context:
+{{ scenario_injection or "(none)" }}
+
+Tone: {{ scenario_tone }}
+
+Output JSON schema:
+{
+  "slots": [
+    {
+      "slot_id": "string",
+      "category": "string",
+      "theme": "string",
+      "required_tags": ["string"],
+      "anti_duplicate_notes": "string"
+    }
+  ]
+}
+
+Constraints:
+- MECE coverage across categories.
+- Ensure diversity of themes and tags.
+- Avoid vague "AI changes everything" slots.
+
+Example:
+{
+  "slots": [
+    {
+      "slot_id": "policy_slot_001",
+      "category": "labor",
+      "theme": "reskilling vouchers for mid-career workers",
+      "required_tags": ["workforce_reskilling"],
+      "anti_duplicate_notes": "Avoid general education subsidies; focus on mid-career reskilling"
+    }
+  ]
+}

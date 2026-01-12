@@ -1,0 +1,61 @@
+You are generating a single DevelopmentCard JSON object using structured outputs.
+
+Scenario Context:
+{{ scenario_injection or "(none)" }}
+
+Stage:
+{{ stage | tojson }}
+
+Thread beat:
+{{ beat | tojson }}
+
+Prior summary:
+{{ prior_summary | tojson }}
+
+Allowed tags:
+{{ tags | join(", ") }}
+
+Output JSON schema:
+{
+  "id": "string",
+  "stage": 0,
+  "title": "string",
+  "short_description": "string",
+  "description": "string",
+  "valence": "positive|negative|mixed",
+  "arrows_up": 0,
+  "arrows_down": 0,
+  "severity": 1,
+  "tags": ["string"],
+  "thread_id": "string",
+  "supersedes": "string or null",
+  "activation": {
+    "type": "immediate|conditional",
+    "required_policy_tags": ["string"]
+  },
+  "effects": [
+    {"type": "DRAW_DEV_NOW", "params": {"count": 2, "stage_offset": 0}}
+  ],
+  "art_prompt": "string",
+  "suggested_visibility": "faceup|facedown|either"
+}
+
+Example:
+{
+  "id": "dev_stage0_local_office_ai_copilots",
+  "stage": 0,
+  "title": "Copilots Spread Across Office Work",
+  "short_description": "Early productivity gains appear in high-income service roles.",
+  "description": "AI copilots become standard in finance and legal workflows, raising output per worker. Firms reinvest savings into new AI tooling rather than hiring. Wage gaps widen between AI-augmented and non-augmented roles.",
+  "valence": "mixed",
+  "arrows_up": 2,
+  "arrows_down": 1,
+  "severity": 3,
+  "tags": ["productivity_growth", "wage_dispersion"],
+  "thread_id": "office_copilots",
+  "supersedes": null,
+  "activation": {"type": "immediate", "required_policy_tags": []},
+  "effects": [],
+  "art_prompt": "Horizontal illustration of an office skyline with glowing AI overlays, clear space top-left for text, no readable text.",
+  "suggested_visibility": "faceup"
+}
