@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import tempfile
 import unittest
+import os
 from pathlib import Path
 
 import importlib.util
@@ -37,11 +38,36 @@ class TestPipelineSmoke(unittest.TestCase):
 
             from econ_tabletop.notebook import run_pipeline
 
+            os.environ["ECON_TABLETOP_DUMMY_OPENAI"] = "1"
             run_pipeline(config_path, deck_dir, render=True, images=True, print_pdf=False)
 
             self.assertTrue((deck_dir / "manifest.json").exists())
             self.assertTrue((deck_dir / "cards" / "policies.jsonl").exists())
             self.assertTrue((deck_dir / "render" / "thumbs").exists())
+
+    def test_deck_builder_expands_user_path(self) -> None:
+        if not YAML_AVAILABLE:
+            self.skipTest("PyYAML is not installed in the test environment.")
+        if importlib.util.find_spec("rich") is None:
+            self.skipTest("rich is not installed in the test environment.")
+        if importlib.util.find_spec("PIL") is None:
+            self.skipTest("Pillow is not installed in the test environment.")
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            os.environ["HOME"] = tmp_dir
+            os.environ["ECON_TABLETOP_DUMMY_OPENAI"] = "1"
+            deck_path = Path(tmp_dir) / "expanded_deck"
+
+            from econ_tabletop.notebook import deck_builder
+
+            deck_builder(
+                "~/expanded_deck",
+                deck_sizes={"policies_total": 1, "developments_per_stage": [1]},
+                render=True,
+                images=True,
+                print_pdf=False,
+            )
+
+            self.assertTrue(deck_path.exists())
 
     def test_openai_client_dummy_response(self) -> None:
         if importlib.util.find_spec("httpx") is None:

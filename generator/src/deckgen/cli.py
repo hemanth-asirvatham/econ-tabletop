@@ -44,18 +44,19 @@ def main() -> None:
     args = parser.parse_args()
 
     if args.command == "generate":
-        run_generate(args.config, args.out)
+        run_generate(_resolve_path(args.config), _resolve_path(args.out))
     elif args.command == "render":
-        run_render(args.deck)
+        run_render(_resolve_path(args.deck))
     elif args.command == "images":
-        run_images(args.deck)
+        run_images(_resolve_path(args.deck))
     elif args.command == "print":
-        run_print(args.deck)
+        run_print(_resolve_path(args.deck))
     elif args.command == "all":
-        run_generate(args.config, args.out)
-        run_render(args.out)
-        run_images(args.out)
-        run_print(args.out)
+        out_dir = _resolve_path(args.out)
+        run_generate(_resolve_path(args.config), out_dir)
+        run_render(out_dir)
+        run_images(out_dir)
+        run_print(out_dir)
 
 
 def run_generate(config_path: Path, out_dir: Path) -> None:
@@ -107,7 +108,8 @@ def run_render(deck_dir: Path) -> None:
 def run_images(deck_dir: Path) -> None:
     policies = _read_cards(deck_dir / "cards" / "policies.jsonl")
     developments = _read_cards_multi(deck_dir / "cards")
-    generate_images({}, policies, developments, deck_dir)
+    config = _read_config(deck_dir)
+    generate_images(config, policies, developments, deck_dir)
 
 
 def run_print(deck_dir: Path) -> None:
@@ -129,6 +131,17 @@ def _read_cards_multi(cards_dir: Path) -> list[dict[str, str]]:
     for file in cards_dir.glob("developments.stage*.jsonl"):
         cards.extend(_read_cards(file))
     return cards
+
+
+def _resolve_path(path: Path) -> Path:
+    return path.expanduser().resolve()
+
+
+def _read_config(deck_dir: Path) -> dict[str, Any]:
+    config_path = deck_dir / "meta" / "config_resolved.yaml"
+    if config_path.exists():
+        return load_config(config_path).data
+    return {}
 
 
 if __name__ == "__main__":

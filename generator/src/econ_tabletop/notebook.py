@@ -61,29 +61,29 @@ def get_example_config(name: str = "baseline") -> Path:
 
 def generate_deck(config_path: Path | str, out_dir: Path | str) -> None:
     """Generate deck JSON and manifests."""
-    config_path = Path(config_path)
-    out_dir = Path(out_dir)
+    config_path = _resolve_path(config_path)
+    out_dir = _resolve_path(out_dir)
     print(f"Generating deck using {config_path} -> {out_dir}")
     run_generate(config_path, out_dir)
 
 
 def render_deck(deck_dir: Path | str) -> None:
     """Render deck card PNGs."""
-    deck_dir = Path(deck_dir)
+    deck_dir = _resolve_path(deck_dir)
     print(f"Rendering cards for deck at {deck_dir}")
     run_render(deck_dir)
 
 
 def generate_images(deck_dir: Path | str) -> None:
     """Generate new art for a deck."""
-    deck_dir = Path(deck_dir)
+    deck_dir = _resolve_path(deck_dir)
     print(f"Generating art for deck at {deck_dir}")
     run_images(deck_dir)
 
 
 def print_deck(deck_dir: Path | str) -> None:
     """Export printable PDFs for a deck."""
-    deck_dir = Path(deck_dir)
+    deck_dir = _resolve_path(deck_dir)
     print(f"Exporting printable PDFs for deck at {deck_dir}")
     run_print(deck_dir)
 
@@ -179,7 +179,7 @@ def deck_builder(
         print_pdf: When True, exports printable PDFs for the deck.
         reuse_existing: When True, skip generation if deck artifacts already exist.
     """
-    deck_path = Path(deck_dir)
+    deck_path = _resolve_path(deck_dir)
     reuse_existing = resume if reuse_existing is None else reuse_existing
     config = _build_config(
         model_text=model_text,
@@ -245,7 +245,7 @@ def start_deck_server(
     env: dict[str, str] | None = None,
 ) -> subprocess.Popen:
     """Start the deck API server and return the Popen handle."""
-    deck_dir = Path(deck_dir).resolve()
+    deck_dir = _resolve_path(deck_dir)
     resolved_ui_dir = _resolve_ui_dir(ui_dir)
     environment = _merge_env(env)
     environment["PORT"] = str(port)
@@ -297,7 +297,7 @@ def launch_ui(
 
 def _resolve_ui_dir(ui_dir: Path | str | None) -> Path:
     if ui_dir is not None:
-        resolved = Path(ui_dir).resolve()
+        resolved = _resolve_path(ui_dir)
     else:
         repo_root = find_repo_root()
         if repo_root is None:
@@ -316,6 +316,10 @@ def _merge_env(env: dict[str, str] | None) -> dict[str, str]:
     if env:
         merged.update(env)
     return merged
+
+
+def _resolve_path(path: Path | str) -> Path:
+    return Path(path).expanduser().resolve()
 
 
 def _build_config(

@@ -89,6 +89,7 @@ class ResolvedConfig:
 
 
 def load_config(path: Path) -> ResolvedConfig:
+    path = path.expanduser().resolve()
     with path.open("r", encoding="utf-8") as handle:
         user_cfg = yaml.safe_load(handle) or {}
     merged = _deep_merge(DEFAULT_CONFIG, user_cfg)
