@@ -94,6 +94,32 @@ def run_all(config_path: Path | str, out_dir: Path | str) -> None:
     print_deck(out_dir)
 
 
+def run_pipeline(
+    config_path: Path | str,
+    out_dir: Path | str,
+    *,
+    render: bool = True,
+    images: bool = True,
+    print_pdf: bool = True,
+) -> None:
+    """Run the deck pipeline with configurable steps.
+
+    Args:
+        config_path: Path to the YAML configuration file.
+        out_dir: Output directory for the generated deck.
+        render: When True, renders placeholder card PNGs after generation.
+        images: When True, runs the (placeholder) image generation step.
+        print_pdf: When True, exports printable PDFs for the deck.
+    """
+    generate_deck(config_path, out_dir)
+    if render:
+        render_deck(out_dir)
+    if images:
+        generate_images(out_dir)
+    if print_pdf:
+        print_deck(out_dir)
+
+
 def start_deck_server(
     deck_dir: Path | str,
     ui_dir: Path | str | None = None,

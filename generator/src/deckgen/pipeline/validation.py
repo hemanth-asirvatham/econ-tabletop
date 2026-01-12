@@ -15,6 +15,7 @@ def validate_deck(policies: list[dict[str, Any]], developments: list[dict[str, A
     development_validator = Draft202012Validator(DEVELOPMENT_CARD_SCHEMA)
 
     errors: list[str] = []
+    warnings: list[str] = []
     for policy in policies:
         for err in policy_validator.iter_errors(policy):
             errors.append(f"Policy {policy.get('id')}: {err.message}")
@@ -25,12 +26,14 @@ def validate_deck(policies: list[dict[str, Any]], developments: list[dict[str, A
 
     duplicate_titles = _find_duplicate_titles([p["title"] for p in policies] + [d["title"] for d in developments])
     for title in duplicate_titles:
-        errors.append(f"Potential duplicate title: {title}")
+        warnings.append(f"Potential duplicate title: {title}")
 
     report = {
         "valid": len(errors) == 0,
         "error_count": len(errors),
         "errors": errors,
+        "warning_count": len(warnings),
+        "warnings": warnings,
     }
     write_json(out_dir / "validation" / "report.json", report)
     if errors:

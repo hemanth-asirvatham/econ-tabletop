@@ -10,6 +10,7 @@ from econ_tabletop.notebook import (
     print_deck,
     render_deck,
     run_all,
+    run_pipeline,
     start_deck_server,
 )
 
@@ -23,5 +24,6 @@ __all__ = [
     "print_deck",
     "render_deck",
     "run_all",
+    "run_pipeline",
     "start_deck_server",
 ]
