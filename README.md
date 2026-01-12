@@ -45,29 +45,28 @@ Install from Git and use the notebook helpers:
 %pip install --force-reinstall git+https://github.com/hemanth-asirvatham/econ-tabletop.git@main
 
 import econ_tabletop as et
-from pathlib import Path
 
-# Use a packaged example config
-config_path = et.get_example_config("baseline")
-deck_dir = Path("decks/baseline")
+deck_dir = "decks/my_run"
 
 # Generate the full deck pipeline (generate -> render -> images -> print)
-et.run_all(config_path, deck_dir)
-
-# Or use the configurable pipeline helper with defaults
-et.run_pipeline(
-    config_path,
+et.deck_builder(
     deck_dir,
-    render=True,
-    images=True,
-    print_pdf=True,
+    model_text="gpt-5.2",
+    model_image="gpt-image-1.5",
+    concurrency_text=6,
+    resume=True,
+    scenario_injection="Add UAE-specific policy context and examples.",
 )
+
+# Launch the local GUI for play/testing
+session = et.run_simulation(deck_dir, npm_install=True)
+# session.stop()
 ```
 
 If you only want to generate without printable PDFs, you can skip the print step:
 
 ```python
-et.run_pipeline(config_path, deck_dir, print_pdf=False)
+et.deck_builder(deck_dir, print_pdf=False)
 ```
 
 If you see `ModuleNotFoundError: No module named 'reportlab'`, install the print dependency:
@@ -85,7 +84,9 @@ import os
 os.environ["OPENAI_API_KEY"] = "sk-..."
 ```
 
-You can control most behavior through the YAML config. A common notebook pattern is to copy the
+### Advanced: YAML config (optional)
+
+For full control, you can still use the YAML config workflow. A common notebook pattern is to copy the
 example config to a working directory, edit it, and then run the pipeline:
 
 ```python

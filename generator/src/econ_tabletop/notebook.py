@@ -5,8 +5,10 @@ import subprocess
 from dataclasses import dataclass
 from importlib.resources import files
 from pathlib import Path
+from typing import Any
 
-from deckgen.cli import run_generate, run_images, run_print, run_render
+from deckgen.cli import run_generate, run_generate_from_config, run_images, run_print, run_render
+from deckgen.config import resolve_config
 
 
 @dataclass
@@ -120,6 +122,122 @@ def run_pipeline(
         print_deck(out_dir)
 
 
+def deck_builder(
+    deck_dir: Path | str,
+    *,
+    model_text: str | None = None,
+    model_image: str | None = None,
+    reasoning_effort: str | None = None,
+    max_output_tokens: int | None = None,
+    store: bool | None = None,
+    image_size: str | None = None,
+    image_background: str | None = None,
+    concurrency_text: int | None = None,
+    concurrency_image: int | None = None,
+    image_batch_size: int | None = None,
+    resume: bool = True,
+    cache_requests: bool | None = None,
+    scenario_name: str | None = None,
+    scenario_injection: str | None = None,
+    scenario_tone: str | None = None,
+    locale_visuals: list[str] | None = None,
+    deck_sizes: dict[str, Any] | None = None,
+    mix_targets: dict[str, Any] | None = None,
+    gameplay_defaults: dict[str, Any] | None = None,
+    stages: dict[str, Any] | None = None,
+    render: bool = True,
+    images: bool = True,
+    print_pdf: bool = True,
+    reuse_existing: bool | None = None,
+) -> Path:
+    """Generate a deck with direct parameters (no config file required).
+
+    Args:
+        deck_dir: Output directory where deck artifacts are written.
+        model_text: Text model identifier.
+        model_image: Image model identifier.
+        reasoning_effort: Reasoning effort setting for text model.
+        max_output_tokens: Max output tokens for text model.
+        store: Whether to store text responses.
+        image_size: Image generation size.
+        image_background: Image background setting.
+        concurrency_text: Text generation concurrency.
+        concurrency_image: Image generation concurrency.
+        image_batch_size: Batch size for image generation.
+        resume: Whether to resume/cache requests and reuse data.
+        cache_requests: Whether to store OpenAI request/response cache.
+        scenario_name: Scenario label used in manifests.
+        scenario_injection: Additional prompt instruction injected into prompts.
+        scenario_tone: Style/tone guidance.
+        locale_visuals: Locale/region visual motifs for art prompts.
+        deck_sizes: Override deck sizes.
+        mix_targets: Override deck mix targets.
+        gameplay_defaults: Override gameplay defaults surfaced to the UI.
+        stages: Override stage definitions.
+        render: When True, renders card PNGs after generation.
+        images: When True, runs the image generation step.
+        print_pdf: When True, exports printable PDFs for the deck.
+        reuse_existing: When True, skip generation if deck artifacts already exist.
+    """
+    deck_path = Path(deck_dir)
+    reuse_existing = resume if reuse_existing is None else reuse_existing
+    config = _build_config(
+        model_text=model_text,
+        model_image=model_image,
+        reasoning_effort=reasoning_effort,
+        max_output_tokens=max_output_tokens,
+        store=store,
+        image_size=image_size,
+        image_background=image_background,
+        concurrency_text=concurrency_text,
+        concurrency_image=concurrency_image,
+        image_batch_size=image_batch_size,
+        resume=resume,
+        cache_requests=cache_requests,
+        scenario_name=scenario_name,
+        scenario_injection=scenario_injection,
+        scenario_tone=scenario_tone,
+        locale_visuals=locale_visuals,
+        deck_sizes=deck_sizes,
+        mix_targets=mix_targets,
+        gameplay_defaults=gameplay_defaults,
+        stages=stages,
+    )
+
+    if reuse_existing and _deck_has_cards(deck_path):
+        print(f"Deck already exists at {deck_path}; reusing existing cards.")
+    else:
+        run_generate_from_config(config, deck_path)
+
+    if render:
+        run_render(deck_path)
+    if images:
+        run_images(deck_path)
+    if print_pdf:
+        run_print(deck_path)
+    return deck_path
+
+
+def run_simulation(
+    deck_dir: Path | str,
+    *,
+    ui_dir: Path | str | None = None,
+    deck_port: int = 8787,
+    vite_port: int | None = None,
+    npm_install: bool = False,
+    env: dict[str, str] | None = None,
+) -> UISession:
+    """Launch the local UI simulation with a deck directory."""
+    return launch_ui(
+        deck_dir=deck_dir,
+        ui_dir=ui_dir,
+        deck_port=deck_port,
+        vite_port=vite_port,
+        npm_install=npm_install,
+        env=env,
+    )
+
+
 def start_deck_server(
     deck_dir: Path | str,
     ui_dir: Path | str | None = None,
@@ -198,3 +316,95 @@ def _merge_env(env: dict[str, str] | None) -> dict[str, str]:
     if env:
         merged.update(env)
     return merged
+
+
+def _build_config(
+    *,
+    model_text: str | None = None,
+    model_image: str | None = None,
+    reasoning_effort: str | None = None,
+    max_output_tokens: int | None = None,
+    store: bool | None = None,
+    image_size: str | None = None,
+    image_background: str | None = None,
+    concurrency_text: int | None = None,
+    concurrency_image: int | None = None,
+    image_batch_size: int | None = None,
+    resume: bool | None = None,
+    cache_requests: bool | None = None,
+    scenario_name: str | None = None,
+    scenario_injection: str | None = None,
+    scenario_tone: str | None = None,
+    locale_visuals: list[str] | None = None,
+    deck_sizes: dict[str, Any] | None = None,
+    mix_targets: dict[str, Any] | None = None,
+    gameplay_defaults: dict[str, Any] | None = None,
+    stages: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    overrides: dict[str, Any] = {}
+
+    scenario: dict[str, Any] = {}
+    if scenario_name is not None:
+        scenario["name"] = scenario_name
+    if scenario_injection is not None:
+        scenario["injection"] = scenario_injection
+    if scenario_tone is not None:
+        scenario["tone"] = scenario_tone
+    if locale_visuals is not None:
+        scenario["locale_visuals"] = locale_visuals
+    if scenario:
+        overrides["scenario"] = scenario
+
+    models: dict[str, Any] = {}
+    text_model: dict[str, Any] = {}
+    if model_text is not None:
+        text_model["model"] = model_text
+    if reasoning_effort is not None:
+        text_model["reasoning_effort"] = reasoning_effort
+    if max_output_tokens is not None:
+        text_model["max_output_tokens"] = max_output_tokens
+    if store is not None:
+        text_model["store"] = store
+    if text_model:
+        models["text"] = text_model
+
+    image_model: dict[str, Any] = {}
+    if model_image is not None:
+        image_model["model"] = model_image
+    if image_size is not None:
+        image_model["size"] = image_size
+    if image_background is not None:
+        image_model["background"] = image_background
+    if image_model:
+        models["image"] = image_model
+    if models:
+        overrides["models"] = models
+
+    runtime: dict[str, Any] = {}
+    if concurrency_text is not None:
+        runtime["concurrency_text"] = concurrency_text
+    if concurrency_image is not None:
+        runtime["concurrency_image"] = concurrency_image
+    if image_batch_size is not None:
+        runtime["image_batch_size"] = image_batch_size
+    if resume is not None:
+        runtime["resume"] = resume
+    if cache_requests is not None:
+        runtime["cache_requests"] = cache_requests
+    if runtime:
+        overrides["runtime"] = runtime
+
+    if deck_sizes is not None:
+        overrides["deck_sizes"] = deck_sizes
+    if mix_targets is not None:
+        overrides["mix_targets"] = mix_targets
+    if gameplay_defaults is not None:
+        overrides["gameplay_defaults"] = gameplay_defaults
+    if stages is not None:
+        overrides["stages"] = stages
+
+    return resolve_config(overrides)
+
+
+def _deck_has_cards(deck_dir: Path) -> bool:
+    return (deck_dir / "cards" / "policies.jsonl").exists()

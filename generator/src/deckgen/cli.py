@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+from typing import Any
 
 from rich.console import Console
 
@@ -71,6 +72,25 @@ def run_generate(config_path: Path, out_dir: Path) -> None:
         "scenario": config.data.get("scenario", {}),
         "gameplay_defaults": config.data.get("gameplay_defaults", {}),
         "stages": config.data.get("stages", {}),
+    }
+    write_json(out_dir / "manifest.json", manifest)
+    validate_deck(policies, developments, out_dir)
+    console.print(f"[green]Generated deck at {out_dir}[/green]")
+
+
+def run_generate_from_config(config_data: dict[str, Any], out_dir: Path) -> None:
+    out_dir.mkdir(parents=True, exist_ok=True)
+    write_yaml(out_dir / "meta" / "config_resolved.yaml", config_data)
+
+    taxonomy = generate_taxonomy(config_data, out_dir)
+    policies = generate_policies(config_data, taxonomy, out_dir)
+    developments = generate_stage_cards(config_data, taxonomy, out_dir)
+
+    manifest = {
+        "deck_id": out_dir.name,
+        "scenario": config_data.get("scenario", {}),
+        "gameplay_defaults": config_data.get("gameplay_defaults", {}),
+        "stages": config_data.get("stages", {}),
     }
     write_json(out_dir / "manifest.json", manifest)
     validate_deck(policies, developments, out_dir)
