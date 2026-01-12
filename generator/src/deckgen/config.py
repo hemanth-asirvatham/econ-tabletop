@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from copy import deepcopy
 from pathlib import Path
 from typing import Any
 
@@ -92,6 +93,14 @@ def load_config(path: Path) -> ResolvedConfig:
         user_cfg = yaml.safe_load(handle) or {}
     merged = _deep_merge(DEFAULT_CONFIG, user_cfg)
     return ResolvedConfig(data=merged, source_path=path)
+
+
+def resolve_config(overrides: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Resolve a config dict by applying overrides to defaults."""
+    base = deepcopy(DEFAULT_CONFIG)
+    if overrides:
+        return _deep_merge(base, overrides)
+    return base
 
 
 def _deep_merge(base: dict[str, Any], override: dict[str, Any]) -> dict[str, Any]:
