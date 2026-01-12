@@ -11,6 +11,12 @@ from rich.console import Console
 console = Console()
 
 
+def format_text_input(model: str | None, prompt: str) -> str | list[dict[str, str]]:
+    if model and (model.startswith("gpt-5") or model.startswith("o")):
+        return [{"role": "user", "content": prompt}]
+    return prompt
+
+
 class OpenAIClient:
     def __init__(
         self,

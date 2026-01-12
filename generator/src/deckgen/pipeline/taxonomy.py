@@ -10,7 +10,7 @@ from deckgen.config import resolve_config
 from deckgen.schemas import TAXONOMY_SCHEMA
 from deckgen.utils.cache import cache_dir_for
 from deckgen.utils.io import write_json
-from deckgen.utils.openai_client import OpenAIClient
+from deckgen.utils.openai_client import OpenAIClient, format_text_input
 from deckgen.utils.prompts import render_prompt
 from deckgen.utils.utility_functions import dummy_taxonomy
 
@@ -80,7 +80,7 @@ def generate_taxonomy(config: dict[str, Any], out_dir: Path) -> dict[str, Any]:
         )
         payload: dict[str, Any] = {
             "model": model_cfg.get("model"),
-            "input": prompt,
+            "input": format_text_input(model_cfg.get("model"), prompt),
             "response_format": {
                 "type": "json_schema",
                 "json_schema": {"name": "taxonomy", "schema": TAXONOMY_SCHEMA, "strict": True},

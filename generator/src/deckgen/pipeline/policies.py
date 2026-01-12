@@ -11,7 +11,7 @@ from deckgen.config import resolve_config
 from deckgen.schemas import POLICY_BLUEPRINT_SCHEMA, POLICY_CARD_SCHEMA, POLICY_CARDS_SCHEMA
 from deckgen.utils.cache import cache_dir_for
 from deckgen.utils.io import write_jsonl
-from deckgen.utils.openai_client import OpenAIClient
+from deckgen.utils.openai_client import OpenAIClient, format_text_input
 from deckgen.utils.prompts import render_prompt
 from deckgen.utils.utility_functions import dummy_policy_blueprint, dummy_policy_cards
 
@@ -100,7 +100,7 @@ def generate_policies(config: dict[str, Any], taxonomy: dict[str, Any], out_dir:
 def _build_text_payload(prompt: str, model_cfg: dict[str, Any], schema: dict[str, Any], name: str) -> dict[str, Any]:
     payload: dict[str, Any] = {
         "model": model_cfg.get("model"),
-        "input": prompt,
+        "input": format_text_input(model_cfg.get("model"), prompt),
         "response_format": {"type": "json_schema", "json_schema": {"name": name, "schema": schema, "strict": True}},
         "store": model_cfg.get("store", False),
     }
