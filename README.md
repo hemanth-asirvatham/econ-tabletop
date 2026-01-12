@@ -42,7 +42,7 @@ Open the Vite URL shown in the terminal. The UI connects to the local server (de
 Install from Git and use the notebook helpers:
 
 ```python
-%pip install --force-reinstall --no-deps git+https://github.com/hemanth-asirvatham/econ-tabletop.git@main
+%pip install --force-reinstall git+https://github.com/hemanth-asirvatham/econ-tabletop.git@main
 
 import econ_tabletop as et
 from pathlib import Path
@@ -54,6 +54,74 @@ deck_dir = Path("decks/baseline")
 # Generate the full deck pipeline (generate -> render -> images -> print)
 et.run_all(config_path, deck_dir)
 ```
+
+If you only want to generate without printable PDFs, you can skip the print step:
+
+```python
+et.generate_deck(config_path, deck_dir)
+et.render_deck(deck_dir)
+et.generate_images(deck_dir)
+```
+
+If you see `ModuleNotFoundError: No module named 'reportlab'`, install the print dependency:
+
+```bash
+pip install reportlab
+```
+
+### Notebook setup, API key, and parameters
+
+The generator uses the OpenAI API. Set your API key in the notebook (or your shell) before running:
+
+```python
+import os
+os.environ["OPENAI_API_KEY"] = "sk-..."
+```
+
+You can control most behavior through the YAML config. A common notebook pattern is to copy the
+example config to a working directory, edit it, and then run the pipeline:
+
+```python
+import shutil
+from pathlib import Path
+import yaml
+import econ_tabletop as et
+
+config_src = Path(et.get_example_config("baseline"))
+config_dst = Path("configs/my_run.yaml")
+config_dst.parent.mkdir(parents=True, exist_ok=True)
+shutil.copy(config_src, config_dst)
+
+config = yaml.safe_load(config_dst.read_text())
+config["models"]["text"]["model"] = "gpt-4.1-mini"
+config["models"]["image"]["model"] = "gpt-image-1.5"
+config["runtime"]["concurrency_text"] = 6
+config["runtime"]["resume"] = True
+config_dst.write_text(yaml.safe_dump(config, sort_keys=False))
+
+deck_dir = Path("decks/my_run")
+et.run_all(config_dst, deck_dir)
+```
+
+Key configurable parameters in the YAML:
+
+- `models.text`: `model`, `reasoning_effort`, `max_output_tokens`, `store`.
+- `models.image`: `model`, `size`, `background`.
+- `runtime`: `concurrency_text`, `concurrency_image`, `image_batch_size`, `resume`, `cache_requests`.
+- `deck_sizes`: total policies and per-stage developments.
+- `mix_targets`: balance of positive/negative/conditional/supersedes/powerups/quant indicators.
+- `gameplay_defaults`: parameters surfaced to the UI for play setup.
+- `scenario`: tone, locale visuals, and any scenario injection context.
+
+### Output locations and saved artifacts
+
+- **Deck output root**: whatever `deck_dir` you pass (e.g. `decks/baseline`).
+- **Rendered cards**: `deck_dir/render/` (PNGs for cards and thumbnails).
+- **Generated art**: `deck_dir/images/`.
+- **Printable PDF**: `deck_dir/print/cards_letter.pdf`.
+- **Resolved config & metadata**: `deck_dir/meta/`.
+- **Validation reports**: `deck_dir/validation/`.
+- **OpenAI request/response cache**: `cache/` at the repo root when `runtime.cache_requests` is true.
 
 Launch the GUI from a notebook cell:
 
