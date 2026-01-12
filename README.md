@@ -53,14 +53,21 @@ deck_dir = Path("decks/baseline")
 
 # Generate the full deck pipeline (generate -> render -> images -> print)
 et.run_all(config_path, deck_dir)
+
+# Or use the configurable pipeline helper with defaults
+et.run_pipeline(
+    config_path,
+    deck_dir,
+    render=True,
+    images=True,
+    print_pdf=True,
+)
 ```
 
 If you only want to generate without printable PDFs, you can skip the print step:
 
 ```python
-et.generate_deck(config_path, deck_dir)
-et.render_deck(deck_dir)
-et.generate_images(deck_dir)
+et.run_pipeline(config_path, deck_dir, print_pdf=False)
 ```
 
 If you see `ModuleNotFoundError: No module named 'reportlab'`, install the print dependency:
@@ -93,7 +100,7 @@ config_dst.parent.mkdir(parents=True, exist_ok=True)
 shutil.copy(config_src, config_dst)
 
 config = yaml.safe_load(config_dst.read_text())
-config["models"]["text"]["model"] = "gpt-4.1-mini"
+config["models"]["text"]["model"] = "gpt-5.2"
 config["models"]["image"]["model"] = "gpt-image-1.5"
 config["runtime"]["concurrency_text"] = 6
 config["runtime"]["resume"] = True

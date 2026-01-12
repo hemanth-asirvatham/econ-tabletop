@@ -38,9 +38,9 @@ gameplay_defaults:
   players_default: 4
 models:
   text:
-    model: "gpt-4.1-mini"
+    model: "gpt-5.2"
     reasoning_effort: "high"
-    max_output_tokens: 2000
+    max_output_tokens: null
     store: false
   image:
     model: "gpt-image-1.5"
