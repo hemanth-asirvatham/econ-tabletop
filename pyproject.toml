@@ -30,3 +30,4 @@ where = ["generator/src"]
 
 [tool.setuptools.package-data]
 "econ_tabletop.data.configs" = ["*.yaml"]
+deckgen = ["prompts/*.jinja"]
