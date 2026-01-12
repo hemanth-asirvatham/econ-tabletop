@@ -1,0 +1,89 @@
+You are generating a list of PolicyCard JSON objects using structured outputs.
+
+Scenario Context:
+{{ scenario_injection or "(none)" }}
+
+Tone: {{ scenario_tone }}
+
+Allowed categories:
+{{ categories | join(", ") }}
+
+Allowed tags:
+{{ tags | join(", ") }}
+
+Policy slots (one card per slot):
+{{ slots | tojson }}
+
+Required card ids (use these verbatim, in order):
+{{ card_ids | tojson }}
+
+Output JSON schema:
+{
+  "cards": [
+    {
+      "id": "string",
+      "title": "string",
+      "short_description": "string",
+      "description": "string",
+      "category": "string",
+      "cost": {
+        "budget_level": 1,
+        "implementation_complexity": 1,
+        "notes": "string"
+      },
+      "timeline": {
+        "time_to_launch": "immediate|weeks|months|1-2y|3-5y",
+        "time_to_impact": "immediate|weeks|months|1-2y|3-5y"
+      },
+      "impact_score": 1,
+      "tags": ["string"],
+      "addresses_tags": ["string"],
+      "side_effect_tags": ["string"],
+      "prerequisites_policy_tags": ["string"],
+      "synergy_policy_tags": ["string"],
+      "role_restrictions": ["string"],
+      "art_prompt": "string",
+      "flavor_quote": "string"
+    }
+  ]
+}
+
+Constraints:
+- Produce exactly one card per slot, in the same order as card_ids.
+- Categories and tags must come from the allowed lists.
+- Use 1-3 tags per card; addresses_tags must overlap with the card tags.
+- Use grounded, policy-relevant language; avoid sci-fi or sensationalism.
+- Ensure MECE coverage across categories and themes from the slots.
+- art_prompt should be a concise instruction for a horizontal card illustration (no need to include title text here; it will be added later).
+- Keep descriptions under ~400 characters.
+
+Example (single card shown):
+{
+  "cards": [
+    {
+      "id": "policy_labor_reskill_vouchers",
+      "title": "Reskilling Vouchers for Mid-Career Workers",
+      "short_description": "Targeted vouchers to rapidly retrain workers displaced by AI tools.",
+      "description": "Provide vouchers for accredited short programs aligned with AI-affected occupations. Employers and unions co-design eligible curricula to meet local labor demand. Programs focus on practical credentialing and job placement.",
+      "category": "labor",
+      "cost": {
+        "budget_level": 3,
+        "implementation_complexity": 3,
+        "notes": "Public-private partnerships reduce fiscal burden."
+      },
+      "timeline": {
+        "time_to_launch": "months",
+        "time_to_impact": "1-2y"
+      },
+      "impact_score": 3,
+      "tags": ["workforce_reskilling", "employment_transition"],
+      "addresses_tags": ["job_displacement", "skills_mismatch"],
+      "side_effect_tags": ["fiscal_burden"],
+      "prerequisites_policy_tags": [],
+      "synergy_policy_tags": ["apprenticeship_expansion"],
+      "role_restrictions": [],
+      "art_prompt": "Horizontal illustration of a modern training lab with diverse adult learners, no readable text.",
+      "flavor_quote": "\"A fast bridge to the next job is the best safety net.\""
+    }
+  ]
+}

@@ -1,0 +1,83 @@
+You are generating a list of DevelopmentCard JSON objects using structured outputs.
+
+Scenario Context:
+{{ scenario_injection or "(none)" }}
+
+Stage:
+{{ stage | tojson }}
+
+Prior summary:
+{{ prior_summary | tojson }}
+
+Allowed tags:
+{{ tags | join(", ") }}
+
+Beat plan (one card per beat, in order):
+{{ beats | tojson }}
+
+Required card ids (use these verbatim, in order):
+{{ card_ids | tojson }}
+
+Output JSON schema:
+{
+  "cards": [
+    {
+      "id": "string",
+      "stage": 0,
+      "title": "string",
+      "short_description": "string",
+      "description": "string",
+      "valence": "positive|negative|mixed",
+      "arrows_up": 0,
+      "arrows_down": 0,
+      "severity": 1,
+      "tags": ["string"],
+      "thread_id": "string",
+      "supersedes": "string or null",
+      "activation": {
+        "type": "immediate|conditional",
+        "required_policy_tags": ["string"]
+      },
+      "effects": [
+        {"type": "DRAW_DEV_NOW", "params": {"count": 2, "stage_offset": 0}}
+      ],
+      "art_prompt": "string",
+      "suggested_visibility": "faceup|facedown|either"
+    }
+  ]
+}
+
+Constraints:
+- Produce exactly one card per beat, in the same order as card_ids.
+- Keep outcomes grounded and stage-appropriate; avoid sci-fi leaps.
+- Use 1-3 tags per card from the allowed list.
+- Respect any special_directive in the beat object (e.g., supersedes, conditional, powerup, quantitative_indicator).
+- For supersedes: reference a prior-stage card id when possible (provided in the beat).
+- For conditional: set activation.type=conditional and include at least one required_policy_tags item.
+- For powerup: include a non-empty effects list with meaningful parameters.
+- For quantitative_indicator: include at least one numeric indicator in the short_description (e.g., "+1.5%" or "3x").
+- art_prompt should be a concise instruction for a horizontal card illustration (no need to include title text here; it will be added later).
+
+Example (single card shown):
+{
+  "cards": [
+    {
+      "id": "dev_stage0_local_office_ai_copilots",
+      "stage": 0,
+      "title": "Copilots Spread Across Office Work",
+      "short_description": "Early productivity gains (+1.2%) appear in high-income service roles.",
+      "description": "AI copilots become standard in finance and legal workflows, raising output per worker. Firms reinvest savings into new AI tooling rather than hiring. Wage gaps widen between AI-augmented and non-augmented roles.",
+      "valence": "mixed",
+      "arrows_up": 2,
+      "arrows_down": 1,
+      "severity": 3,
+      "tags": ["productivity_growth", "wage_dispersion"],
+      "thread_id": "office_copilots",
+      "supersedes": null,
+      "activation": {"type": "immediate", "required_policy_tags": []},
+      "effects": [],
+      "art_prompt": "Horizontal illustration of an office skyline with glowing AI overlays, no readable text.",
+      "suggested_visibility": "faceup"
+    }
+  ]
+}

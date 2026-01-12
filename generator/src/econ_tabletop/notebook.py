@@ -129,14 +129,19 @@ def deck_builder(
     model_image: str | None = None,
     reasoning_effort: str | None = None,
     max_output_tokens: int | None = None,
+    temperature: float | None = None,
+    top_p: float | None = None,
     store: bool | None = None,
     image_size: str | None = None,
     image_background: str | None = None,
+    reference_policy_image: str | None = None,
+    reference_development_image: str | None = None,
     concurrency_text: int | None = None,
     concurrency_image: int | None = None,
     image_batch_size: int | None = None,
     resume: bool = True,
     cache_requests: bool | None = None,
+    prompt_path: str | None = None,
     scenario_name: str | None = None,
     scenario_injection: str | None = None,
     scenario_tone: str | None = None,
@@ -158,14 +163,19 @@ def deck_builder(
         model_image: Image model identifier.
         reasoning_effort: Reasoning effort setting for text model.
         max_output_tokens: Max output tokens for text model.
+        temperature: Sampling temperature for text model.
+        top_p: Top-p sampling for text model.
         store: Whether to store text responses.
         image_size: Image generation size.
         image_background: Image background setting.
+        reference_policy_image: Path to a reference policy card image.
+        reference_development_image: Path to a reference development card image.
         concurrency_text: Text generation concurrency.
         concurrency_image: Image generation concurrency.
         image_batch_size: Batch size for image generation.
         resume: Whether to resume/cache requests and reuse data.
         cache_requests: Whether to store OpenAI request/response cache.
+        prompt_path: Optional override path for prompt templates.
         scenario_name: Scenario label used in manifests.
         scenario_injection: Additional prompt instruction injected into prompts.
         scenario_tone: Style/tone guidance.
@@ -186,14 +196,19 @@ def deck_builder(
         model_image=model_image,
         reasoning_effort=reasoning_effort,
         max_output_tokens=max_output_tokens,
+        temperature=temperature,
+        top_p=top_p,
         store=store,
         image_size=image_size,
         image_background=image_background,
+        reference_policy_image=reference_policy_image,
+        reference_development_image=reference_development_image,
         concurrency_text=concurrency_text,
         concurrency_image=concurrency_image,
         image_batch_size=image_batch_size,
         resume=resume,
         cache_requests=cache_requests,
+        prompt_path=prompt_path,
         scenario_name=scenario_name,
         scenario_injection=scenario_injection,
         scenario_tone=scenario_tone,
@@ -328,14 +343,19 @@ def _build_config(
     model_image: str | None = None,
     reasoning_effort: str | None = None,
     max_output_tokens: int | None = None,
+    temperature: float | None = None,
+    top_p: float | None = None,
     store: bool | None = None,
     image_size: str | None = None,
     image_background: str | None = None,
+    reference_policy_image: str | None = None,
+    reference_development_image: str | None = None,
     concurrency_text: int | None = None,
     concurrency_image: int | None = None,
     image_batch_size: int | None = None,
     resume: bool | None = None,
     cache_requests: bool | None = None,
+    prompt_path: str | None = None,
     scenario_name: str | None = None,
     scenario_injection: str | None = None,
     scenario_tone: str | None = None,
@@ -367,6 +387,10 @@ def _build_config(
         text_model["reasoning_effort"] = reasoning_effort
     if max_output_tokens is not None:
         text_model["max_output_tokens"] = max_output_tokens
+    if temperature is not None:
+        text_model["temperature"] = temperature
+    if top_p is not None:
+        text_model["top_p"] = top_p
     if store is not None:
         text_model["store"] = store
     if text_model:
@@ -379,6 +403,10 @@ def _build_config(
         image_model["size"] = image_size
     if image_background is not None:
         image_model["background"] = image_background
+    if reference_policy_image is not None:
+        image_model["reference_policy_image"] = reference_policy_image
+    if reference_development_image is not None:
+        image_model["reference_development_image"] = reference_development_image
     if image_model:
         models["image"] = image_model
     if models:
@@ -395,6 +423,8 @@ def _build_config(
         runtime["resume"] = resume
     if cache_requests is not None:
         runtime["cache_requests"] = cache_requests
+    if prompt_path is not None:
+        runtime["prompt_path"] = prompt_path
     if runtime:
         overrides["runtime"] = runtime
 

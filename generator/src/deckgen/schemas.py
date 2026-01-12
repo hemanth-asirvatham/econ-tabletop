@@ -62,6 +62,19 @@ POLICY_CARD_SCHEMA = {
     },
 }
 
+POLICY_CARDS_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["cards"],
+    "properties": {
+        "cards": {
+            "type": "array",
+            "items": POLICY_CARD_SCHEMA,
+            "minItems": 1,
+        }
+    },
+}
+
 EFFECT_SCHEMA = {
     "type": "object",
     "additionalProperties": False,
@@ -127,5 +140,96 @@ DEVELOPMENT_CARD_SCHEMA = {
         "effects": {"type": "array", "items": EFFECT_SCHEMA},
         "art_prompt": {"type": "string"},
         "suggested_visibility": {"type": "string", "enum": ["faceup", "facedown", "either"]},
+    },
+}
+
+DEVELOPMENT_CARDS_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["cards"],
+    "properties": {
+        "cards": {
+            "type": "array",
+            "items": DEVELOPMENT_CARD_SCHEMA,
+            "minItems": 1,
+        }
+    },
+}
+
+TAXONOMY_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["categories", "tags", "roles"],
+    "properties": {
+        "categories": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+        "tags": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+        "roles": {"type": "array", "items": {"type": "string"}},
+    },
+}
+
+POLICY_BLUEPRINT_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["slots"],
+    "properties": {
+        "slots": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "required": ["slot_id", "category", "theme", "required_tags", "anti_duplicate_notes"],
+                "properties": {
+                    "slot_id": {"type": "string"},
+                    "category": {"type": "string"},
+                    "theme": {"type": "string"},
+                    "required_tags": {"type": "array", "items": {"type": "string"}},
+                    "anti_duplicate_notes": {"type": "string"},
+                },
+            },
+        }
+    },
+}
+
+STAGE_BLUEPRINT_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["threads", "special_counts"],
+    "properties": {
+        "threads": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "required": ["thread_id", "beat_plan", "target_count", "valence_target"],
+                "properties": {
+                    "thread_id": {"type": "string"},
+                    "beat_plan": {"type": "array", "items": {"type": "string"}},
+                    "target_count": {"type": "integer", "minimum": 1},
+                    "valence_target": {"type": "string", "enum": ["positive", "negative", "mixed"]},
+                },
+            },
+        },
+        "special_counts": {
+            "type": "object",
+            "additionalProperties": False,
+            "required": ["supersedes", "conditional", "powerups", "quantitative_indicators"],
+            "properties": {
+                "supersedes": {"type": "integer", "minimum": 0},
+                "conditional": {"type": "integer", "minimum": 0},
+                "powerups": {"type": "integer", "minimum": 0},
+                "quantitative_indicators": {"type": "integer", "minimum": 0},
+            },
+        },
+    },
+}
+
+STAGE_SUMMARY_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["stage", "facts", "changes_vs_prior"],
+    "properties": {
+        "stage": {"type": "integer", "minimum": 0},
+        "facts": {"type": "array", "items": {"type": "string"}},
+        "changes_vs_prior": {"type": "array", "items": {"type": "string"}},
     },
 }
