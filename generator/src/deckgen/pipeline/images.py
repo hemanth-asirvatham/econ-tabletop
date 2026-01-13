@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any, Coroutine, Iterable
 import asyncio
 import base64
 import concurrent.futures
@@ -28,12 +28,14 @@ def generate_images(
     out_dir: Path,
 ) -> None:
     try:
-        loop = asyncio.get_running_loop()
+        asyncio.get_running_loop()
     except RuntimeError:
         asyncio.run(generate_images_async(config, policies, developments, out_dir))
     else:
-        console.print("[yellow]Active event loop detected; running image generation synchronously.[/yellow]")
-        _generate_images_sync(config, policies, developments, out_dir)
+        console.print(
+            "[yellow]Active event loop detected; running image generation asynchronously in a worker thread.[/yellow]"
+        )
+        _run_async_in_thread(generate_images_async(config, policies, developments, out_dir))
 
 
 def _generate_images_sync(
@@ -120,6 +122,12 @@ def _generate_images_sync(
 
     all_tasks = policy_tasks + dev_tasks
     _run_batches(all_tasks, image_batch_size, concurrency, desc="Card images")
+
+
+def _run_async_in_thread(coro: Coroutine[Any, Any, None]) -> None:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+        future = executor.submit(asyncio.run, coro)
+        future.result()
 
 
 async def generate_images_async(

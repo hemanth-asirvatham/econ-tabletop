@@ -53,6 +53,7 @@ et.deck_builder(
     deck_dir,
     model_text="gpt-5.2",
     model_image="gpt-image-1.5",
+    concurrency_image=6,
     concurrency_text=6,
     resume=True,
     scenario_injection="Add UAE-specific policy context and examples.",
@@ -68,6 +69,11 @@ If you only want to generate without printable PDFs, you can skip the print step
 ```python
 et.deck_builder(deck_dir, print_pdf=False)
 ```
+
+Image generation runs concurrently based on `concurrency_image` and `image_batch_size`. In notebook
+environments with an active event loop, image generation automatically runs in a worker thread to
+preserve async parallelism while still exposing a synchronous API. Increase `concurrency_image` to
+drive more parallel image requests.
 
 If you see `ModuleNotFoundError: No module named 'reportlab'`, install the print dependency:
 
