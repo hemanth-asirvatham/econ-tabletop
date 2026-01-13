@@ -12,6 +12,7 @@ from deckgen.config import resolve_config
 from deckgen.schemas import (
     DEVELOPMENT_CARD_SCHEMA,
     DEVELOPMENT_CARDS_SCHEMA,
+    DEVELOPMENT_CARDS_RESPONSE_SCHEMA,
     STAGE_BLUEPRINT_SCHEMA,
     STAGE_SUMMARY_SCHEMA,
 )
@@ -148,7 +149,7 @@ def generate_stage_cards(
             cards_payload = _build_text_payload(
                 cards_prompt,
                 model_cfg,
-                DEVELOPMENT_CARDS_SCHEMA,
+                DEVELOPMENT_CARDS_RESPONSE_SCHEMA,
                 name=f"stage{stage_index}_cards",
             )
             cards_response = client.responses(cards_payload)
