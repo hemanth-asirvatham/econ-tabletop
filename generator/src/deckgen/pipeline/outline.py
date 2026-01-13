@@ -38,6 +38,7 @@ def generate_simulation_outline(
         console.print(f"[green]Simulation outline already exists; loading from {outline_txt_path}.[/green]")
         return outline_txt_path.read_text(encoding="utf-8")
 
+    console.print("[cyan]Starting simulation outline generation.[/cyan]")
     client = OpenAIClient()
     cache_dir = cache_dir_for(out_dir) if runtime.get("cache_requests", False) else None
 
@@ -72,6 +73,7 @@ def generate_simulation_outline(
     outline_txt_path.parent.mkdir(parents=True, exist_ok=True)
     outline_txt_path.write_text(outline_text, encoding="utf-8")
     outline_md_path.write_text(outline_text, encoding="utf-8")
+    console.print("[green]Simulation outline generation complete.[/green]")
     return outline_text
 
 

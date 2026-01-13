@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+import asyncio
 from jsonschema import Draft202012Validator
 from rich.console import Console
 from tqdm import tqdm
@@ -12,6 +13,7 @@ from deckgen.schemas import POLICY_BLUEPRINT_SCHEMA, POLICY_CARD_SCHEMA, POLICY_
 from deckgen.utils.cache import cache_dir_for
 from deckgen.utils.io import write_jsonl
 from deckgen.utils.openai_client import OpenAIClient, format_text_input
+from deckgen.utils.parallel import gather_with_concurrency
 from deckgen.utils.prompts import render_prompt
 from deckgen.utils.utility_functions import dummy_policy_blueprint, dummy_policy_cards
 
@@ -29,6 +31,7 @@ def generate_policies(
     runtime = resolved.get("runtime", {})
     model_cfg = resolved.get("models", {}).get("text", {})
     prompt_path = runtime.get("prompt_path")
+    concurrency_text = runtime.get("concurrency_text", 8)
     total = resolved["deck_sizes"]["policies_total"]
     tags = taxonomy["tags"]
     categories = taxonomy["categories"]
@@ -89,8 +92,13 @@ def generate_policies(
         cards = response.get("cards", [])
 
     cards = _normalize_policy_cards(cards, total, tags, categories)
-    for index, card in enumerate(tqdm(cards, desc="Building policy art prompts")):
+    for index, card in enumerate(cards):
         card["id"] = f"policy_{index:03d}"
+        card.setdefault("art_prompt", "")
+
+    console.print("[cyan]Generating policy art prompts in parallel.[/cyan]")
+
+    def _render_prompt(card: dict[str, Any]) -> dict[str, Any]:
         card["art_prompt"] = render_prompt(
             "image_prompt_policy.jinja",
             prompt_path=prompt_path,
@@ -99,6 +107,16 @@ def generate_policies(
             locale_visuals=scenario.get("locale_visuals", []),
             outline_text=outline_text,
         ).strip()
+        return card
+
+    asyncio.run(
+        gather_with_concurrency(
+            concurrency_text,
+            [lambda card=card: asyncio.to_thread(_render_prompt, card) for card in cards],
+        )
+    )
+
+    for card in tqdm(cards, desc="Validating policy cards"):
         Draft202012Validator(POLICY_CARD_SCHEMA).validate(card)
 
     write_jsonl(out_dir / "cards" / "policies.jsonl", cards)
