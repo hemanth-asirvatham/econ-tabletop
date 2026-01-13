@@ -1,0 +1,87 @@
+You are writing a single Simulation Outline document that will govern all downstream generation.
+
+Goal: Produce a detailed, well-structured outline with headings and bullet points (plain text only).
+
+Scenario Context (must be woven into the outline):
+{{ scenario_injection or "(none)" }}
+
+Stages (authoritative definitions):
+{{ stages | tojson }}
+
+Deck sizes:
+{{ deck_sizes | tojson }}
+
+Allowed categories:
+{{ categories | join(", ") }}
+
+Allowed tags:
+{{ tags | join(", ") }}
+
+Mix targets:
+{{ mix_targets | tojson }}
+
+Required sections (use these headings verbatim):
+1) Overview
+2) Stage-by-Stage Outline (one subsection per stage, in order)
+3) Policy Variety & Examples
+4) Development Card Variety & Examples
+5) Powerup/Conditional Mechanics Guidance
+6) Card Formatting (policy + development layout, valence iconography)
+7) Art Direction (minimalist, lightly impressionist; Victoria 3-style vibe)
+8) Generation Guardrails (optimism bias, realism, stage progression)
+
+Stage subsection template (repeat for each stage):
+### Stage <N>: <Name>
+- Time horizon:
+- Capability profile:
+- World state:
+- AI role:
+- Policy focus (bulleted list):
+- Development focus (bulleted list):
+- Power dynamics (bulleted list):
+- Example policy cards (3+ examples, each with Title + 1-2 sentence summary + tags):
+- Example development cards (3+ examples with Title + short description + valence arrows, include at least one powerup or conditional):
+- Art notes for this stage:
+
+Constraints:
+- Use plain text only (no JSON). The output must be a single cohesive document.
+- Explicitly describe valence iconography: green up-caret stack (1-3), red down-caret stack (1-3), neutral gray line if zero.
+- Ensure most development examples are positive/optimistic, with some mixed or negative for balance.
+- Make policy examples diverse in scale and instrument (pilots, national programs, cross-border coordination, regulation, incentives, procurement).
+- Keep stage progression realistic and increasingly advanced.
+- Reflect scenario context when provided (e.g., UAE localization).
+
+Example output (truncated):
+# Simulation Outline
+1) Overview
+- This simulation explores staged AI diffusion across the economy...
+
+2) Stage-by-Stage Outline
+### Stage 0: Stage 0
+- Time horizon: today / near-term
+- Capability profile: Frontier models as copilots
+- World state: Early productivity gains appear in office workflows...
+- AI role: Assistive copilots and analytics accelerators.
+- Policy focus:
+  - Workforce reskilling
+  - Safety standards
+  - Public-sector pilots
+- Development focus:
+  - Productivity nudges
+  - Labor shifts
+  - Compute availability
+- Power dynamics:
+  - Compute bottlenecks can reduce next-round dev draws (MODIFY_DEV_DRAW_NEXT_ROUND -1).
+  - Pilots can unlock conditional cards tied to public-sector tags.
+- Example policy cards:
+  - Reskilling Vouchers — Targeted vouchers for mid-career workers. Tags: workforce_reskilling
+  - AI Audit Liability Regime — Mandatory audits for high-risk models. Tags: safety_standards
+  - Compute Procurement Sandbox — Government pre-buys compute capacity for SMEs. Tags: compute_access
+- Example development cards:
+  - Copilots Spread Across Office Work — Early productivity gains (+1.2%); Valence: ↑↑ (mixed with tradeoffs). Tags: productivity_growth
+  - Public Service Copilot Rollout — Case backlog drops 15%; Valence: ↑↑↑ (positive). Powerup: DRAW_DEV_NOW +1.
+  - Chip Supply Pinch — Deployment delays in regulated sectors; Valence: ↓ (negative). Conditional: requires compute_policy tags.
+- Art notes for this stage: Minimalist office skyline, muted teal and sand palette.
+
+3) Policy Variety & Examples
+- Principles: ...

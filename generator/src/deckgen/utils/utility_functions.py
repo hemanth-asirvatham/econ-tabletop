@@ -149,3 +149,72 @@ def dummy_stage_summary(
         "facts": facts,
         "changes_vs_prior": ["Developments build on prior stage dynamics."],
     }
+
+
+def dummy_simulation_outline(
+    *,
+    stages: list[dict[str, Any]],
+    categories: list[str],
+    tags: list[str],
+) -> str:
+    tags_text = ", ".join(tags[:3]) if tags else "productivity_growth"
+    categories_text = ", ".join(categories[:3]) if categories else "labor, safety, innovation"
+    stage_lines = []
+    for stage in stages:
+        stage_lines.append(
+            "\n".join(
+                [
+                    f"### Stage {stage.get('id', 0)}: {stage.get('name', 'Stage')}",
+                    f"- Time horizon: {stage.get('time_horizon', 'near-term')}",
+                    f"- Capability profile: {stage.get('capability_profile', 'Baseline AI capabilities')}",
+                    "- World state: AI adoption continues to diffuse with measurable productivity gains.",
+                    "- AI role: Assistive copilots and analytics accelerators.",
+                    "- Policy focus:",
+                    "  - Workforce reskilling",
+                    "  - Safety standards",
+                    "  - Public-sector pilots",
+                    "- Development focus:",
+                    "  - Productivity nudges",
+                    "  - Labor shifts",
+                    "  - Compute availability",
+                    "- Power dynamics:",
+                    "  - Compute constraints can slow development draws.",
+                    "  - Targeted policies can unlock conditional developments.",
+                    "- Example policy cards:",
+                    f"  - Reskilling Vouchers — Targeted vouchers for mid-career workers. Tags: {tags_text}",
+                    "- Example development cards:",
+                    "  - Copilots Spread Across Office Work — Early productivity gains (+1.2%); Valence: ↑↑ (mixed).",
+                    "- Art notes for this stage: Minimalist skyline and circuit motifs with muted palette.",
+                ]
+            )
+        )
+
+    return "\n".join(
+        [
+            "# Simulation Outline",
+            "1) Overview",
+            "Dummy outline for testing.",
+            "",
+            "2) Stage-by-Stage Outline",
+            "\n\n".join(stage_lines),
+            "",
+            "3) Policy Variety & Examples",
+            f"- Categories: {categories_text}",
+            f"- Tags: {tags_text}",
+            "",
+            "4) Development Card Variety & Examples",
+            "- Most developments are positive with realistic tradeoffs.",
+            "",
+            "5) Powerup/Conditional Mechanics Guidance",
+            "- Use DRAW_DEV_NOW and MODIFY_DEV_DRAW_NEXT_ROUND sparingly.",
+            "",
+            "6) Card Formatting (policy + development layout, valence iconography)",
+            "- Upper-right: green up-carets, red down-carets, neutral gray line if zero.",
+            "",
+            "7) Art Direction (minimalist, lightly impressionist; Victoria 3-style vibe)",
+            "- Muted palette, thin-line icons, generous whitespace.",
+            "",
+            "8) Generation Guardrails (optimism bias, realism, stage progression)",
+            "- Keep at least ~70% of developments positive or net-positive.",
+        ]
+    )
