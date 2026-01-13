@@ -11,8 +11,8 @@ CARD_SIZE = (1536, 1024)
 
 
 def render_cards(policies: list[dict[str, Any]], developments: list[dict[str, Any]], out_dir: Path) -> None:
-    policy_dir = out_dir / "images" / "policy"
-    dev_dir = out_dir / "images" / "development"
+    policy_dir = out_dir / "render" / "policy"
+    dev_dir = out_dir / "render" / "development"
     policy_dir.mkdir(parents=True, exist_ok=True)
     dev_dir.mkdir(parents=True, exist_ok=True)
     font = _load_font(48)
