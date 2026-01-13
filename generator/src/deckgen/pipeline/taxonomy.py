@@ -10,7 +10,7 @@ from deckgen.config import resolve_config
 from deckgen.schemas import TAXONOMY_SCHEMA
 from deckgen.utils.cache import cache_dir_for
 from deckgen.utils.io import write_json
-from deckgen.utils.openai_client import OpenAIClient, format_text_input, supports_temperature
+from deckgen.utils.openai_client import OpenAIClient, format_text_input
 from deckgen.utils.prompts import render_prompt
 from deckgen.utils.utility_functions import dummy_taxonomy
 
@@ -85,12 +85,6 @@ def generate_taxonomy(config: dict[str, Any], out_dir: Path) -> dict[str, Any]:
                 "format": {"type": "json_schema", "name": "taxonomy", "schema": TAXONOMY_SCHEMA, "strict": True}
             },
         }
-        if model_cfg.get("max_output_tokens") is not None:
-            payload["max_output_tokens"] = model_cfg["max_output_tokens"]
-        if model_cfg.get("temperature") is not None and supports_temperature(model_cfg.get("model")):
-            payload["temperature"] = model_cfg["temperature"]
-        if model_cfg.get("top_p") is not None:
-            payload["top_p"] = model_cfg["top_p"]
         if model_cfg.get("reasoning_effort"):
             payload["reasoning"] = {"effort": model_cfg["reasoning_effort"]}
         payload["store"] = model_cfg.get("store", False)
