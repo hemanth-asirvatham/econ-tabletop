@@ -81,7 +81,9 @@ DEFAULT_CONFIG = {
             "store": False,
         },
         "image": {
+            "api": "responses",
             "model": "gpt-image-1.5",
+            "responses_model": "gpt-5.2",
             "size": "1536x1024",
             "background": "transparent",
             "reference_policy_image": None,

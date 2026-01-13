@@ -35,6 +35,7 @@ def generate_stage_cards(
     config: dict[str, Any],
     taxonomy: dict[str, Any],
     outline_text: str,
+    image_outline_text: str,
     out_dir: Path,
     *,
     reuse_existing: bool = True,
@@ -181,7 +182,7 @@ def generate_stage_cards(
                 card=card,
                 scenario_injection=scenario.get("injection", ""),
                 locale_visuals=scenario.get("locale_visuals", []),
-                outline_text=outline_text,
+                image_outline_text=image_outline_text or "",
             ).strip()
             return card
 

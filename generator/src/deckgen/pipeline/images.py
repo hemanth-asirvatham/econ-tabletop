@@ -51,6 +51,8 @@ def _generate_images_sync(
     model = image_cfg.get("model")
     size = image_cfg.get("size")
     background = image_cfg.get("background")
+    api = image_cfg.get("api", "images")
+    responses_model = image_cfg.get("responses_model") or model or "gpt-5.2"
     reference_policy = image_cfg.get("reference_policy_image")
     reference_dev = image_cfg.get("reference_development_image")
     resume = runtime_cfg.get("resume", True)
@@ -69,28 +71,38 @@ def _generate_images_sync(
     cache_dir = cache_dir_for(out_dir) if cache_requests else None
     client = OpenAIClient()
 
-    policy_ref_paths = _resolve_reference_images(
-        reference_policy,
-        policy_dir,
-        policies,
-        client,
-        model,
-        size,
-        background,
-        cache_dir,
-        resume,
-    )
-    dev_ref_paths = _resolve_reference_images(
-        reference_dev,
-        dev_dir,
-        developments,
-        client,
-        model,
-        size,
-        background,
-        cache_dir,
-        resume,
-    )
+    if api == "responses":
+        if reference_policy or reference_dev:
+            console.print("[yellow]Reference images are ignored when using the responses image API.[/yellow]")
+        policy_ref_paths = None
+        dev_ref_paths = None
+    else:
+        policy_ref_paths = _resolve_reference_images(
+            reference_policy,
+            policy_dir,
+            policies,
+            client,
+            model,
+            responses_model,
+            api,
+            size,
+            background,
+            cache_dir,
+            resume,
+        )
+        dev_ref_paths = _resolve_reference_images(
+            reference_dev,
+            dev_dir,
+            developments,
+            client,
+            model,
+            responses_model,
+            api,
+            size,
+            background,
+            cache_dir,
+            resume,
+        )
 
     policy_tasks = [
         {
@@ -99,6 +111,8 @@ def _generate_images_sync(
             "reference_images": policy_ref_paths,
             "client": client,
             "model": model,
+            "responses_model": responses_model,
+            "api": api,
             "size": size,
             "background": background,
             "cache_dir": cache_dir,
@@ -113,6 +127,8 @@ def _generate_images_sync(
             "reference_images": dev_ref_paths,
             "client": client,
             "model": model,
+            "responses_model": responses_model,
+            "api": api,
             "size": size,
             "background": background,
             "cache_dir": cache_dir,
@@ -143,6 +159,8 @@ async def generate_images_async(
     model = image_cfg.get("model")
     size = image_cfg.get("size")
     background = image_cfg.get("background")
+    api = image_cfg.get("api", "images")
+    responses_model = image_cfg.get("responses_model") or model or "gpt-5.2"
     reference_policy = image_cfg.get("reference_policy_image")
     reference_dev = image_cfg.get("reference_development_image")
     resume = runtime_cfg.get("resume", True)
@@ -161,28 +179,38 @@ async def generate_images_async(
     cache_dir = cache_dir_for(out_dir) if cache_requests else None
     client = OpenAIClient()
 
-    policy_ref_paths = _resolve_reference_images(
-        reference_policy,
-        policy_dir,
-        policies,
-        client,
-        model,
-        size,
-        background,
-        cache_dir,
-        resume,
-    )
-    dev_ref_paths = _resolve_reference_images(
-        reference_dev,
-        dev_dir,
-        developments,
-        client,
-        model,
-        size,
-        background,
-        cache_dir,
-        resume,
-    )
+    if api == "responses":
+        if reference_policy or reference_dev:
+            console.print("[yellow]Reference images are ignored when using the responses image API.[/yellow]")
+        policy_ref_paths = None
+        dev_ref_paths = None
+    else:
+        policy_ref_paths = _resolve_reference_images(
+            reference_policy,
+            policy_dir,
+            policies,
+            client,
+            model,
+            responses_model,
+            api,
+            size,
+            background,
+            cache_dir,
+            resume,
+        )
+        dev_ref_paths = _resolve_reference_images(
+            reference_dev,
+            dev_dir,
+            developments,
+            client,
+            model,
+            responses_model,
+            api,
+            size,
+            background,
+            cache_dir,
+            resume,
+        )
 
     policy_tasks = [
         {
@@ -191,6 +219,8 @@ async def generate_images_async(
             "reference_images": policy_ref_paths,
             "client": client,
             "model": model,
+            "responses_model": responses_model,
+            "api": api,
             "size": size,
             "background": background,
             "cache_dir": cache_dir,
@@ -205,6 +235,8 @@ async def generate_images_async(
             "reference_images": dev_ref_paths,
             "client": client,
             "model": model,
+            "responses_model": responses_model,
+            "api": api,
             "size": size,
             "background": background,
             "cache_dir": cache_dir,
@@ -224,6 +256,8 @@ def _generate_card_image(
     reference_images: list[Path] | None,
     client: OpenAIClient,
     model: str | None,
+    responses_model: str | None,
+    api: str,
     size: str | None,
     background: str | None,
     cache_dir: Path | None,
@@ -232,17 +266,23 @@ def _generate_card_image(
     if resume and out_path.exists() and out_path.stat().st_size > 0:
         return
     prompt = card.get("art_prompt") or f"Horizontal illustration for {card.get('title', 'card')}."
-    payload: dict[str, Any] = {
-        "model": model,
-        "prompt": prompt,
-    }
+    payload: dict[str, Any] = {"model": model, "prompt": prompt}
     if size is not None:
         payload["size"] = size
     if background is not None:
         payload["background"] = background
     response: dict[str, Any] | None = None
+    payload_for_cache = payload
     try:
-        if reference_images:
+        if api == "responses":
+            payload_for_cache = client.build_image_responses_payload(
+                prompt=prompt,
+                model=responses_model,
+                size=size,
+                background=background,
+            )
+            response = client.responses(payload_for_cache)
+        elif reference_images:
             try:
                 response = client.images_edit(payload, reference_images)
             except Exception as exc:  # noqa: BLE001 - fallback for edit failures
@@ -266,9 +306,9 @@ def _generate_card_image(
         return
 
     if cache_dir:
-        client.save_payload(cache_dir, f"image_{card['id']}", payload, response)
+        client.save_payload(cache_dir, f"image_{card['id']}", payload_for_cache, response)
 
-    data = (response.get("data") or [{}])[0].get("b64_json") or _DUMMY_PNG_BASE64
+    data = client.extract_image_b64(response) or _DUMMY_PNG_BASE64
     try:
         out_path.write_bytes(base64.b64decode(data))
     except Exception as exc:  # noqa: BLE001 - guard against corrupt payloads
@@ -285,6 +325,8 @@ def _resolve_reference_images(
     cards: list[dict[str, Any]],
     client: OpenAIClient,
     model: str | None,
+    responses_model: str | None,
+    api: str,
     size: str | None,
     background: str | None,
     cache_dir: Path | None,
@@ -307,6 +349,8 @@ def _resolve_reference_images(
         reference_images=None,
         client=client,
         model=model,
+        responses_model=responses_model,
+        api=api,
         size=size,
         background=background,
         cache_dir=cache_dir,

@@ -127,6 +127,8 @@ def deck_builder(
     *,
     model_text: str | None = None,
     model_image: str | None = None,
+    image_api: str | None = None,
+    image_responses_model: str | None = None,
     reasoning_effort: str | None = None,
     max_output_tokens: int | None = None,
     temperature: float | None = None,
@@ -162,6 +164,8 @@ def deck_builder(
         deck_dir: Output directory where deck artifacts are written.
         model_text: Text model identifier.
         model_image: Image model identifier.
+        image_api: Image API selection ("responses" or "images").
+        image_responses_model: Responses API model for image_generation tool calls.
         reasoning_effort: Reasoning effort setting for text model.
         max_output_tokens: Max output tokens for text model.
         temperature: Sampling temperature for text model.
@@ -199,6 +203,8 @@ def deck_builder(
     config = _build_config(
         model_text=model_text,
         model_image=model_image,
+        image_api=image_api,
+        image_responses_model=image_responses_model,
         reasoning_effort=reasoning_effort,
         max_output_tokens=max_output_tokens,
         temperature=temperature,
@@ -346,6 +352,8 @@ def _build_config(
     *,
     model_text: str | None = None,
     model_image: str | None = None,
+    image_api: str | None = None,
+    image_responses_model: str | None = None,
     reasoning_effort: str | None = None,
     max_output_tokens: int | None = None,
     temperature: float | None = None,
@@ -404,6 +412,10 @@ def _build_config(
     image_model: dict[str, Any] = {}
     if model_image is not None:
         image_model["model"] = model_image
+    if image_api is not None:
+        image_model["api"] = image_api
+    if image_responses_model is not None:
+        image_model["responses_model"] = image_responses_model
     if image_size is not None:
         image_model["size"] = image_size
     if image_background is not None:

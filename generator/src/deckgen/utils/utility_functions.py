@@ -151,6 +151,20 @@ def dummy_stage_summary(
     }
 
 
+def dummy_image_outline() -> str:
+    return "\n".join(
+        [
+            "- 3:2 horizontal card with a thin frame and a clean title band.",
+            "- Title in the top band; short description in the body with high legibility.",
+            "- Small corner label (POLICY or DEVELOPMENT), plus STAGE/OUTCOME tags where relevant.",
+            "- Outcome indicators: stacked green up-carets and red down-carets; neutral gray line if zero.",
+            "- Score chips/bars for IMPACT or SEVERITY using filled dots (1–5).",
+            "- Minimalist line-art motifs; muted palette; generous whitespace; no extra text.",
+            "- Flat or lightly shaded illustration, subtle gradients, consistent modern styling.",
+        ]
+    )
+
+
 def dummy_simulation_outline(
     *,
     stages: list[dict[str, Any]],

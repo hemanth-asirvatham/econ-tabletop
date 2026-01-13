@@ -1,36 +1,19 @@
-You are writing an image prompt for a horizontal policy card illustration where text is baked into the image.
+Create a 3:2 horizontal POLICY card illustration with baked-in text.
 
-Scenario Context:
-{{ scenario_injection or "(none)" }}
+Scenario context: {{ scenario_injection or "(none)" }}
+Locale visuals (optional motifs): {{ locale_visuals | join(", ") }}
+Card format notes (concise): {{ image_outline_text }}
 
-Locale visuals (optional motifs):
-{{ locale_visuals | join(", ") }}
+Title (verbatim): "{{ card.title }}"
+Description (verbatim): "{{ card.short_description }}"
+Impact score: {{ card.impact_score }}/5
+Budget level: {{ card.cost.budget_level }}/5
+Complexity: {{ card.cost.implementation_complexity }}/5
 
-Simulation outline (art direction + formatting guidance):
-{{ outline_text }}
-
-Card:
-{{ card | tojson }}
-
-Requirements:
-- Render a 3:2 horizontal game card with a subtle border/frame and a clear title band.
-- Use the exact title text (verbatim, same capitalization/punctuation): "{{ card.title }}".
-- Use the exact short description text (verbatim, same capitalization/punctuation): "{{ card.short_description }}".
-- Place the title in the title band and the description in the body area; ensure high legibility.
-- Include a small label reading "POLICY" in an upper corner.
-- Provide minimalist background artwork that reinforces the policy theme without competing with text.
-- Keep the style consistent across cards: modern, clean, minimal, lots of negative space.
-- Use a restrained palette (2–3 muted colors), soft gradients, and thin line icons or geometric shapes.
-- If a reference image is provided, stay close to its style, palette, and rendering approach.
-- No extra readable text beyond the provided title/description/label.
-- Avoid photorealism; use flat or lightly shaded illustration.
-- Use scenario motifs when provided.
-
-Output format (single sentence):
-"Horizontal 3:2 policy game card with a thin frame, title text '{{ card.title }}' in the top band, description text '{{ card.short_description }}' in the body, and a small 'POLICY' label in the upper-right corner; background shows a minimalist <policy-themed motif> with thin line icons, muted palette, generous whitespace, matching any reference image, no other text."
-
-Example:
-"Horizontal 3:2 policy game card with a thin frame, title text 'Reskilling Vouchers for Mid-Career Workers' and description text 'Targeted vouchers to rapidly retrain workers displaced by AI tools.' in the body, and a small 'POLICY' label in the upper-right corner; background shows a minimalist training motif with a single line icon of a book and circuit, soft teal gradient, subtle Gulf architecture accents, lots of whitespace, no other text."
-
-Example (exact text emphasis):
-"Horizontal 3:2 policy game card with a thin frame, title text 'AI Safety Standards' in the top band, description text 'Mandate audits and disclosure for high-risk models.' in the body, and a small 'POLICY' label in the upper-left corner; background shows a minimalist shield icon with circuit lines, muted navy and sand palette, clean flat illustration, no other text."
+Layout & styling:
+- Title in a clean top band; description in the body with high legibility.
+- Small "POLICY" label in an upper corner.
+- Include labeled score chips/bars (IMPACT, BUDGET, COMPLEXITY) with filled dots or bars matching the numbers above.
+- Minimalist background motif reinforcing the policy theme; thin line icons; generous whitespace.
+- Muted palette (2–3 colors), soft gradients, subtle texture; avoid photorealism.
+- Only show the specified text/labels; no extra readable text.
