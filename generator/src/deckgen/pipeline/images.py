@@ -228,7 +228,7 @@ def _generate_card_image(
     cache_dir: Path | None,
     resume: bool,
 ) -> None:
-    if resume and out_path.exists():
+    if resume and out_path.exists() and out_path.stat().st_size > 0:
         return
     prompt = card.get("art_prompt") or f"Horizontal illustration for {card.get('title', 'card')}."
     payload: dict[str, Any] = {
@@ -239,15 +239,43 @@ def _generate_card_image(
         payload["size"] = size
     if background is not None:
         payload["background"] = background
-    if reference_image:
-        response = client.images_edit(payload, [reference_image])
-    else:
-        response = client.images_generate(payload)
+    response: dict[str, Any] | None = None
+    try:
+        if reference_image:
+            try:
+                response = client.images_edit(payload, [reference_image])
+            except Exception as exc:  # noqa: BLE001 - fallback for edit failures
+                console.print(
+                    f"[yellow]Image edit failed for {card.get('id', 'card')}; "
+                    f"falling back to generation. Reason: {exc}[/yellow]"
+                )
+                response = client.images_generate(payload)
+        else:
+            response = client.images_generate(payload)
+    except Exception as exc:  # noqa: BLE001 - guard against per-card failures
+        console.print(
+            f"[red]Image generation failed for {card.get('id', 'card')}. "
+            f"Saving placeholder. Reason: {exc}[/red]"
+        )
+        out_path.write_bytes(base64.b64decode(_DUMMY_PNG_BASE64))
+        return
+
+    if response is None:
+        out_path.write_bytes(base64.b64decode(_DUMMY_PNG_BASE64))
+        return
+
     if cache_dir:
         client.save_payload(cache_dir, f"image_{card['id']}", payload, response)
 
     data = (response.get("data") or [{}])[0].get("b64_json") or _DUMMY_PNG_BASE64
-    out_path.write_bytes(base64.b64decode(data))
+    try:
+        out_path.write_bytes(base64.b64decode(data))
+    except Exception as exc:  # noqa: BLE001 - guard against corrupt payloads
+        console.print(
+            f"[yellow]Invalid image data for {card.get('id', 'card')}. "
+            f"Saving placeholder. Reason: {exc}[/yellow]"
+        )
+        out_path.write_bytes(base64.b64decode(_DUMMY_PNG_BASE64))
 
 
 def _resolve_reference_image(

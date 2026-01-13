@@ -10,18 +10,24 @@ Card:
 {{ card | tojson }}
 
 Requirements:
-- Render a 3:2 horizontal game card with a subtle border/frame and a title area.
-- The card must include the exact title text: "{{ card.title }}".
-- The card must include the exact short description text: "{{ card.short_description }}".
-- Include a small label reading "OUTCOME" (or "DEVELOPMENT") in a corner.
+- Render a 3:2 horizontal game card with a subtle border/frame and a clear title band.
+- Use the exact title text (verbatim, same capitalization/punctuation): "{{ card.title }}".
+- Use the exact short description text (verbatim, same capitalization/punctuation): "{{ card.short_description }}".
+- Place the title in the title band and the description in the body area; ensure high legibility.
+- Include a small label reading "OUTCOME" (or "DEVELOPMENT") in an upper corner.
 - Include small up/down arrow icons matching arrows_up={{ card.arrows_up }} and arrows_down={{ card.arrows_down }}.
-- Provide tasteful background artwork that reinforces the development theme; keep text legible.
+- Place the arrows in a lower corner or margin so they do not overlap text.
+- Provide tasteful background artwork that reinforces the development theme without competing with text.
 - If a reference image is provided, stay close to its style, palette, and rendering approach.
 - No extra readable text beyond the provided title/description/label.
 - Avoid photorealistic faces; use illustrative or iconographic style.
 - Use scenario motifs when provided.
 
-Output: One concise prompt sentence.
+Output format (single sentence):
+"Horizontal 3:2 development game card with a thin frame, title text '{{ card.title }}' in the top band, description text '{{ card.short_description }}' in the body, a small 'OUTCOME' label in the upper-left corner, and {{ card.arrows_up }} green up arrows plus {{ card.arrows_down }} red down arrows in the lower-right; background shows <development-themed scene> in a clean illustrative style, matching any reference image, no other text."
 
 Example:
 "Horizontal 3:2 development game card with a thin frame, title text 'Copilots Spread Across Office Work' and subtitle 'Early productivity gains (+1.2%) appear in high-income service roles.' plus a small 'OUTCOME' label and two green up arrows + one red down arrow. Background shows a stylized office skyline with glowing AI overlays, subtle Gulf architecture accents, clean readable typography, no other text."
+
+Example (exact text emphasis):
+"Horizontal 3:2 development game card with a thin frame, title text 'Regional Chip Supply Expands' in the top band, description text 'New fabs raise capacity but delay pricing relief.' in the body, a small 'OUTCOME' label in the upper-left corner, and 1 green up arrow plus 2 red down arrows in the lower-right; background shows a stylized semiconductor factory with circuit motifs, clean illustrative style, no other text."

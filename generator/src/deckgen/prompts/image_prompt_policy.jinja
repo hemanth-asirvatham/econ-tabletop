@@ -10,17 +10,22 @@ Card:
 {{ card | tojson }}
 
 Requirements:
-- Render a 3:2 horizontal game card with a subtle border/frame and a title area.
-- The card must include the exact title text: "{{ card.title }}".
-- The card must include the exact short description text: "{{ card.short_description }}".
-- Include a small label reading "POLICY" in a corner.
-- Provide tasteful background artwork that reinforces the policy theme; keep text legible.
+- Render a 3:2 horizontal game card with a subtle border/frame and a clear title band.
+- Use the exact title text (verbatim, same capitalization/punctuation): "{{ card.title }}".
+- Use the exact short description text (verbatim, same capitalization/punctuation): "{{ card.short_description }}".
+- Place the title in the title band and the description in the body area; ensure high legibility.
+- Include a small label reading "POLICY" in an upper corner.
+- Provide tasteful background artwork that reinforces the policy theme without competing with text.
 - If a reference image is provided, stay close to its style, palette, and rendering approach.
 - No extra readable text beyond the provided title/description/label.
 - Avoid photorealistic faces; use illustrative or iconographic style.
 - Use scenario motifs when provided.
 
-Output: One concise prompt sentence.
+Output format (single sentence):
+"Horizontal 3:2 policy game card with a thin frame, title text '{{ card.title }}' in the top band, description text '{{ card.short_description }}' in the body, and a small 'POLICY' label in the upper-right corner; background shows <policy-themed scene> in a clean illustrative style, matching any reference image, no other text."
 
 Example:
 "Horizontal 3:2 policy game card with a thin frame, title text 'Reskilling Vouchers for Mid-Career Workers' and subtitle 'Targeted vouchers to rapidly retrain workers displaced by AI tools.' plus a small 'POLICY' label. Background shows a modern training lab with stylized tools and holographic charts, subtle Gulf architecture accents, clean readable typography, no other text."
+
+Example (exact text emphasis):
+"Horizontal 3:2 policy game card with a thin frame, title text 'AI Safety Standards' in the top band, description text 'Mandate audits and disclosure for high-risk models.' in the body, and a small 'POLICY' label in the upper-left corner; background shows a stylized regulatory office with checklists and circuit motifs, clean illustrative style, no other text."
