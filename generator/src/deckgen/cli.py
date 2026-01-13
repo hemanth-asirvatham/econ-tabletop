@@ -18,6 +18,7 @@ from deckgen.pipeline.render_cards import render_cards
 from deckgen.pipeline.stages import generate_stage_cards
 from deckgen.pipeline.taxonomy import generate_taxonomy
 from deckgen.pipeline.validation import validate_deck
+from deckgen.utils.asyncio_utils import run_async
 from deckgen.utils.io import read_json, read_jsonl, write_json, write_yaml
 
 console = Console()
@@ -112,7 +113,7 @@ def run_generate(config_path: Path, out_dir: Path, *, reset: bool = False) -> No
         return results[0], results[1]
 
     console.print("[cyan]Generating policy and development cards in parallel.[/cyan]")
-    policies, developments = asyncio.run(_generate_cards())
+    policies, developments = run_async(_generate_cards())
 
     manifest = {
         "deck_id": out_dir.name,
@@ -175,7 +176,7 @@ def run_generate_from_config(config_data: dict[str, Any], out_dir: Path, *, rese
         return results[0], results[1]
 
     console.print("[cyan]Generating policy and development cards in parallel.[/cyan]")
-    policies, developments = asyncio.run(_generate_cards())
+    policies, developments = run_async(_generate_cards())
 
     manifest = {
         "deck_id": out_dir.name,
