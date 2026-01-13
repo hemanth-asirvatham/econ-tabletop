@@ -81,9 +81,8 @@ def generate_taxonomy(config: dict[str, Any], out_dir: Path) -> dict[str, Any]:
         payload: dict[str, Any] = {
             "model": model_cfg.get("model"),
             "input": format_text_input(model_cfg.get("model"), prompt),
-            "response_format": {
-                "type": "json_schema",
-                "json_schema": {"name": "taxonomy", "schema": TAXONOMY_SCHEMA, "strict": True},
+            "text": {
+                "format": {"type": "json_schema", "name": "taxonomy", "schema": TAXONOMY_SCHEMA, "strict": True}
             },
         }
         if model_cfg.get("max_output_tokens") is not None:
