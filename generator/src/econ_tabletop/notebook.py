@@ -154,6 +154,7 @@ def deck_builder(
     images: bool = True,
     print_pdf: bool = True,
     reuse_existing: bool | None = None,
+    reset_files: bool = False,
 ) -> Path:
     """Generate a deck with direct parameters (no config file required).
 
@@ -188,9 +189,13 @@ def deck_builder(
         images: When True, runs the image generation step.
         print_pdf: When True, exports printable PDFs for the deck.
         reuse_existing: When True, skip generation if deck artifacts already exist.
+        reset_files: When True, ignore cached deck files and regenerate all stages.
     """
     deck_path = _resolve_path(deck_dir)
     reuse_existing = resume if reuse_existing is None else reuse_existing
+    if reset_files:
+        print("Reset enabled; regenerating all deck files from scratch.")
+        reuse_existing = False
     config = _build_config(
         model_text=model_text,
         model_image=model_image,
@@ -222,7 +227,7 @@ def deck_builder(
     if reuse_existing and _deck_has_cards(deck_path):
         print(f"Deck already exists at {deck_path}; reusing existing cards.")
     else:
-        run_generate_from_config(config, deck_path)
+        run_generate_from_config(config, deck_path, reset=reset_files)
 
     if render:
         run_render(deck_path)

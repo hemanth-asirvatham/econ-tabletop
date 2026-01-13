@@ -16,7 +16,7 @@ from deckgen.schemas import (
     STAGE_SUMMARY_SCHEMA,
 )
 from deckgen.utils.cache import cache_dir_for
-from deckgen.utils.io import write_json, write_jsonl
+from deckgen.utils.io import read_json, read_jsonl, write_json, write_jsonl
 from deckgen.utils.openai_client import OpenAIClient, format_text_input
 from deckgen.utils.prompts import render_prompt
 from deckgen.utils.utility_functions import (
@@ -28,7 +28,13 @@ from deckgen.utils.utility_functions import (
 console = Console()
 
 
-def generate_stage_cards(config: dict[str, Any], taxonomy: dict[str, Any], out_dir: Path) -> list[dict[str, Any]]:
+def generate_stage_cards(
+    config: dict[str, Any],
+    taxonomy: dict[str, Any],
+    out_dir: Path,
+    *,
+    reuse_existing: bool = True,
+) -> list[dict[str, Any]]:
     resolved = resolve_config(config)
     scenario = resolved.get("scenario", {})
     runtime = resolved.get("runtime", {})
@@ -41,6 +47,12 @@ def generate_stage_cards(config: dict[str, Any], taxonomy: dict[str, Any], out_d
     cache_dir = cache_dir_for(out_dir) if runtime.get("cache_requests", False) else None
 
     summaries: list[dict[str, Any]] = []
+    existing_summaries: list[dict[str, Any]] = []
+    summaries_path = out_dir / "meta" / "stage_summaries.json"
+    if reuse_existing and summaries_path.exists():
+        existing = read_json(summaries_path)
+        if isinstance(existing, list):
+            existing_summaries = existing
     all_cards: list[dict[str, Any]] = []
     prior_summary: dict[str, Any] | None = None
     prior_card_ids: list[str] = []
@@ -51,6 +63,39 @@ def generate_stage_cards(config: dict[str, Any], taxonomy: dict[str, Any], out_d
         desc="Generating stages",
     ):
         stage_def = stages[min(stage_index, len(stages) - 1)] if stages else {"id": stage_index}
+        stage_path = out_dir / "cards" / f"developments.stage{stage_index}.jsonl"
+        if reuse_existing and stage_path.exists():
+            stage_cards = read_jsonl(stage_path)
+            if len(stage_cards) != count:
+                console.print(
+                    f"[yellow]Stage {stage_index} has {len(stage_cards)} cards on disk; "
+                    f"expected {count}. Using existing cards.[/yellow]"
+                )
+            else:
+                console.print(
+                    f"[green]Stage {stage_index} cards already exist; loading from {stage_path}.[/green]"
+                )
+            all_cards.extend(stage_cards)
+            prior_card_ids = [card.get("id", "") for card in stage_cards]
+            summary = None
+            if stage_index < len(existing_summaries):
+                summary = existing_summaries[stage_index]
+            else:
+                summary = _generate_stage_summary(
+                    stage_index=stage_index,
+                    stage_def=stage_def,
+                    stage_cards=stage_cards,
+                    prior_summary=prior_summary,
+                    scenario=scenario,
+                    prompt_path=prompt_path,
+                    model_cfg=model_cfg,
+                    cache_dir=cache_dir,
+                    client=client,
+                )
+            summaries.append(summary)
+            prior_summary = summary
+            continue
+
         console.print(f"[cyan]Generating stage {stage_index} with {count} development cards.[/cyan]")
 
         if client.use_dummy:
@@ -134,32 +179,56 @@ def generate_stage_cards(config: dict[str, Any], taxonomy: dict[str, Any], out_d
         all_cards.extend(stage_cards)
         prior_card_ids = [card["id"] for card in stage_cards]
 
-        if client.use_dummy:
-            summary = dummy_stage_summary(stage_index=stage_index, cards=stage_cards)
-        else:
-            summary_prompt = render_prompt(
-                "stage_summary.jinja",
-                prompt_path=prompt_path,
-                scenario_injection=scenario.get("injection", ""),
-                stage=stage_def,
-                cards=stage_cards,
-                prior_summary=prior_summary,
-            )
-            summary_payload = _build_text_payload(
-                summary_prompt,
-                model_cfg,
-                STAGE_SUMMARY_SCHEMA,
-                name=f"stage{stage_index}_summary",
-            )
-            summary_response = client.responses(summary_payload)
-            if cache_dir:
-                client.save_payload(cache_dir, f"stage{stage_index}_summary", summary_payload, summary_response)
-            summary = _parse_response_json(summary_response) or {"stage": stage_index, "facts": [], "changes_vs_prior": []}
+        summary = _generate_stage_summary(
+            stage_index=stage_index,
+            stage_def=stage_def,
+            stage_cards=stage_cards,
+            prior_summary=prior_summary,
+            scenario=scenario,
+            prompt_path=prompt_path,
+            model_cfg=model_cfg,
+            cache_dir=cache_dir,
+            client=client,
+        )
         summaries.append(summary)
         prior_summary = summary
 
     write_json(out_dir / "meta" / "stage_summaries.json", summaries)
     return all_cards
+
+
+def _generate_stage_summary(
+    *,
+    stage_index: int,
+    stage_def: dict[str, Any],
+    stage_cards: list[dict[str, Any]],
+    prior_summary: dict[str, Any] | None,
+    scenario: dict[str, Any],
+    prompt_path: str | None,
+    model_cfg: dict[str, Any],
+    cache_dir: Path | None,
+    client: OpenAIClient,
+) -> dict[str, Any]:
+    if client.use_dummy:
+        return dummy_stage_summary(stage_index=stage_index, cards=stage_cards)
+    summary_prompt = render_prompt(
+        "stage_summary.jinja",
+        prompt_path=prompt_path,
+        scenario_injection=scenario.get("injection", ""),
+        stage=stage_def,
+        cards=stage_cards,
+        prior_summary=prior_summary,
+    )
+    summary_payload = _build_text_payload(
+        summary_prompt,
+        model_cfg,
+        STAGE_SUMMARY_SCHEMA,
+        name=f"stage{stage_index}_summary",
+    )
+    summary_response = client.responses(summary_payload)
+    if cache_dir:
+        client.save_payload(cache_dir, f"stage{stage_index}_summary", summary_payload, summary_response)
+    return _parse_response_json(summary_response) or {"stage": stage_index, "facts": [], "changes_vs_prior": []}
 
 
 def _build_text_payload(prompt: str, model_cfg: dict[str, Any], schema: dict[str, Any], name: str) -> dict[str, Any]:

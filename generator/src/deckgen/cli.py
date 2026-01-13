@@ -15,7 +15,7 @@ from deckgen.pipeline.render_cards import render_cards
 from deckgen.pipeline.stages import generate_stage_cards
 from deckgen.pipeline.taxonomy import generate_taxonomy
 from deckgen.pipeline.validation import validate_deck
-from deckgen.utils.io import write_json, write_yaml
+from deckgen.utils.io import read_json, read_jsonl, write_json, write_yaml
 
 console = Console()
 
@@ -59,14 +59,30 @@ def main() -> None:
         run_print(out_dir)
 
 
-def run_generate(config_path: Path, out_dir: Path) -> None:
+def run_generate(config_path: Path, out_dir: Path, *, reset: bool = False) -> None:
     config = load_config(config_path)
     out_dir.mkdir(parents=True, exist_ok=True)
     write_yaml(out_dir / "meta" / "config_resolved.yaml", config.data)
 
-    taxonomy = generate_taxonomy(config.data, out_dir)
-    policies = generate_policies(config.data, taxonomy, out_dir)
-    developments = generate_stage_cards(config.data, taxonomy, out_dir)
+    taxonomy_path = out_dir / "meta" / "taxonomy.json"
+    if not reset and taxonomy_path.exists():
+        console.print(f"[green]Taxonomy already exists; loading from {taxonomy_path}.[/green]")
+        taxonomy = read_json(taxonomy_path)
+    else:
+        if reset:
+            console.print("[yellow]Reset enabled; regenerating taxonomy.[/yellow]")
+        taxonomy = generate_taxonomy(config.data, out_dir)
+
+    policies_path = out_dir / "cards" / "policies.jsonl"
+    if not reset and policies_path.exists():
+        console.print(f"[green]Policy cards already exist; loading from {policies_path}.[/green]")
+        policies = read_jsonl(policies_path)
+    else:
+        if reset:
+            console.print("[yellow]Reset enabled; regenerating policy cards.[/yellow]")
+        policies = generate_policies(config.data, taxonomy, out_dir)
+
+    developments = generate_stage_cards(config.data, taxonomy, out_dir, reuse_existing=not reset)
 
     manifest = {
         "deck_id": out_dir.name,
@@ -79,13 +95,29 @@ def run_generate(config_path: Path, out_dir: Path) -> None:
     console.print(f"[green]Generated deck at {out_dir}[/green]")
 
 
-def run_generate_from_config(config_data: dict[str, Any], out_dir: Path) -> None:
+def run_generate_from_config(config_data: dict[str, Any], out_dir: Path, *, reset: bool = False) -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
     write_yaml(out_dir / "meta" / "config_resolved.yaml", config_data)
 
-    taxonomy = generate_taxonomy(config_data, out_dir)
-    policies = generate_policies(config_data, taxonomy, out_dir)
-    developments = generate_stage_cards(config_data, taxonomy, out_dir)
+    taxonomy_path = out_dir / "meta" / "taxonomy.json"
+    if not reset and taxonomy_path.exists():
+        console.print(f"[green]Taxonomy already exists; loading from {taxonomy_path}.[/green]")
+        taxonomy = read_json(taxonomy_path)
+    else:
+        if reset:
+            console.print("[yellow]Reset enabled; regenerating taxonomy.[/yellow]")
+        taxonomy = generate_taxonomy(config_data, out_dir)
+
+    policies_path = out_dir / "cards" / "policies.jsonl"
+    if not reset and policies_path.exists():
+        console.print(f"[green]Policy cards already exist; loading from {policies_path}.[/green]")
+        policies = read_jsonl(policies_path)
+    else:
+        if reset:
+            console.print("[yellow]Reset enabled; regenerating policy cards.[/yellow]")
+        policies = generate_policies(config_data, taxonomy, out_dir)
+
+    developments = generate_stage_cards(config_data, taxonomy, out_dir, reuse_existing=not reset)
 
     manifest = {
         "deck_id": out_dir.name,
