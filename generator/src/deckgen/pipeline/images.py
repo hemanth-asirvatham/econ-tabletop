@@ -5,6 +5,7 @@ from typing import Any, Coroutine, Iterable
 import asyncio
 import base64
 import concurrent.futures
+import glob
 
 from rich.console import Console
 from tqdm import tqdm
@@ -68,7 +69,7 @@ def _generate_images_sync(
     cache_dir = cache_dir_for(out_dir) if cache_requests else None
     client = OpenAIClient()
 
-    policy_ref_path = _resolve_reference_image(
+    policy_ref_paths = _resolve_reference_images(
         reference_policy,
         policy_dir,
         policies,
@@ -79,7 +80,7 @@ def _generate_images_sync(
         cache_dir,
         resume,
     )
-    dev_ref_path = _resolve_reference_image(
+    dev_ref_paths = _resolve_reference_images(
         reference_dev,
         dev_dir,
         developments,
@@ -95,7 +96,7 @@ def _generate_images_sync(
         {
             "card": card,
             "out_path": policy_dir / f"{card['id']}.png",
-            "reference_image": policy_ref_path,
+            "reference_images": policy_ref_paths,
             "client": client,
             "model": model,
             "size": size,
@@ -109,7 +110,7 @@ def _generate_images_sync(
         {
             "card": card,
             "out_path": dev_dir / f"{card['id']}.png",
-            "reference_image": dev_ref_path,
+            "reference_images": dev_ref_paths,
             "client": client,
             "model": model,
             "size": size,
@@ -160,7 +161,7 @@ async def generate_images_async(
     cache_dir = cache_dir_for(out_dir) if cache_requests else None
     client = OpenAIClient()
 
-    policy_ref_path = _resolve_reference_image(
+    policy_ref_paths = _resolve_reference_images(
         reference_policy,
         policy_dir,
         policies,
@@ -171,7 +172,7 @@ async def generate_images_async(
         cache_dir,
         resume,
     )
-    dev_ref_path = _resolve_reference_image(
+    dev_ref_paths = _resolve_reference_images(
         reference_dev,
         dev_dir,
         developments,
@@ -187,7 +188,7 @@ async def generate_images_async(
         {
             "card": card,
             "out_path": policy_dir / f"{card['id']}.png",
-            "reference_image": policy_ref_path,
+            "reference_images": policy_ref_paths,
             "client": client,
             "model": model,
             "size": size,
@@ -201,7 +202,7 @@ async def generate_images_async(
         {
             "card": card,
             "out_path": dev_dir / f"{card['id']}.png",
-            "reference_image": dev_ref_path,
+            "reference_images": dev_ref_paths,
             "client": client,
             "model": model,
             "size": size,
@@ -220,7 +221,7 @@ def _generate_card_image(
     *,
     card: dict[str, Any],
     out_path: Path,
-    reference_image: Path | None,
+    reference_images: list[Path] | None,
     client: OpenAIClient,
     model: str | None,
     size: str | None,
@@ -241,9 +242,9 @@ def _generate_card_image(
         payload["background"] = background
     response: dict[str, Any] | None = None
     try:
-        if reference_image:
+        if reference_images:
             try:
-                response = client.images_edit(payload, [reference_image])
+                response = client.images_edit(payload, reference_images)
             except Exception as exc:  # noqa: BLE001 - fallback for edit failures
                 console.print(
                     f"[yellow]Image edit failed for {card.get('id', 'card')}; "
@@ -278,7 +279,7 @@ def _generate_card_image(
         out_path.write_bytes(base64.b64decode(_DUMMY_PNG_BASE64))
 
 
-def _resolve_reference_image(
+def _resolve_reference_images(
     reference_path: str | None,
     out_dir: Path,
     cards: list[dict[str, Any]],
@@ -288,12 +289,14 @@ def _resolve_reference_image(
     background: str | None,
     cache_dir: Path | None,
     resume: bool,
-) -> Path | None:
+) -> list[Path] | None:
     if reference_path:
-        ref = Path(reference_path).expanduser().resolve()
-        if ref.exists():
-            return ref
-        console.print(f"[yellow]Reference image not found at {ref}. Generating a fresh reference.[/yellow]")
+        reference_paths = _gather_reference_paths(reference_path)
+        if reference_paths:
+            return reference_paths
+        console.print(
+            "[yellow]Reference image(s) not found or empty. Generating a fresh reference.[/yellow]"
+        )
     if not cards:
         return None
     reference_card = cards[0]
@@ -301,7 +304,7 @@ def _resolve_reference_image(
     _generate_card_image(
         card=reference_card,
         out_path=reference_out,
-        reference_image=None,
+        reference_images=None,
         client=client,
         model=model,
         size=size,
@@ -309,7 +312,48 @@ def _resolve_reference_image(
         cache_dir=cache_dir,
         resume=resume,
     )
-    return reference_out
+    return [reference_out]
+
+
+def _gather_reference_paths(reference_path: str) -> list[Path]:
+    paths: list[Path] = []
+    parts = [part.strip() for part in reference_path.split(",") if part.strip()]
+    if not parts:
+        return paths
+    for part in parts:
+        expanded = Path(part).expanduser()
+        if any(char in part for char in ["*", "?", "["]):
+            matches = sorted(Path(match) for match in glob.glob(str(expanded)))
+            paths.extend([match for match in matches if match.is_file()])
+            continue
+        if expanded.exists():
+            if expanded.is_dir():
+                paths.extend(_list_image_files(expanded))
+            else:
+                paths.append(expanded)
+            continue
+        console.print(f"[yellow]Reference image not found at {expanded}.[/yellow]")
+    deduped: list[Path] = []
+    seen: set[Path] = set()
+    for path in paths:
+        resolved = path.resolve()
+        if resolved in seen:
+            continue
+        seen.add(resolved)
+        deduped.append(resolved)
+    return deduped
+
+
+def _list_image_files(directory: Path) -> list[Path]:
+    allowed = {".png", ".jpg", ".jpeg", ".webp"}
+    files = [
+        path
+        for path in sorted(directory.iterdir())
+        if path.is_file() and path.suffix.lower() in allowed
+    ]
+    if not files:
+        console.print(f"[yellow]No reference images found in directory {directory}.[/yellow]")
+    return files
 
 
 def _run_batches(

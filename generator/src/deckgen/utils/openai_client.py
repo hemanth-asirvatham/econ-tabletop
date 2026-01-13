@@ -122,8 +122,9 @@ class OpenAIClient:
             return {"data": [{"b64_json": ""}]}
         if not image_paths:
             raise ValueError("images_edit requires at least one reference image path.")
-        image_path = image_paths[0]
-        files = {"image": (image_path.name, image_path.read_bytes(), "image/png")}
+        files = [
+            ("image", (path.name, path.read_bytes(), _guess_image_mime(path))) for path in image_paths
+        ]
         resp = self.client.post(
             f"{self.base_url}/images/edits",
             headers={k: v for k, v in self._headers().items() if k != "Content-Type"},
@@ -148,3 +149,14 @@ class OpenAIClient:
         cache_dir.mkdir(parents=True, exist_ok=True)
         (cache_dir / f"{name}.request.json").write_text(json.dumps(payload, indent=2), encoding="utf-8")
         (cache_dir / f"{name}.response.json").write_text(json.dumps(response, indent=2), encoding="utf-8")
+
+
+def _guess_image_mime(path: Path) -> str:
+    suffix = path.suffix.lower()
+    if suffix in {".jpg", ".jpeg"}:
+        return "image/jpeg"
+    if suffix == ".webp":
+        return "image/webp"
+    if suffix == ".png":
+        return "image/png"
+    return "application/octet-stream"
