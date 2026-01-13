@@ -19,6 +19,7 @@ from deckgen.schemas import (
 from deckgen.utils.cache import cache_dir_for
 from deckgen.utils.io import read_jsonl, write_json, write_jsonl
 from deckgen.utils.openai_client import OpenAIClient, format_text_input
+from deckgen.utils.asyncio_utils import run_async
 from deckgen.utils.parallel import gather_with_concurrency
 from deckgen.utils.prompts import render_prompt
 from deckgen.utils.utility_functions import (
@@ -152,7 +153,7 @@ def generate_stage_cards(
 
     if stages_to_generate:
         console.print("[cyan]Generating development cards in parallel across stages.[/cyan]")
-        results = asyncio.run(
+        results = run_async(
             gather_with_concurrency(
                 concurrency_text,
                 [lambda spec=spec: _generate_stage(spec) for spec in stages_to_generate],
@@ -184,7 +185,7 @@ def generate_stage_cards(
             ).strip()
             return card
 
-        asyncio.run(
+        run_async(
             gather_with_concurrency(
                 concurrency_text,
                 [lambda card=card: asyncio.to_thread(_render_prompt, card) for card in cards_needing_prompts],
@@ -207,7 +208,7 @@ def generate_stage_cards(
             outline_text=outline_text,
         )
 
-    summary_results = asyncio.run(
+    summary_results = run_async(
         gather_with_concurrency(
             concurrency_text,
             [

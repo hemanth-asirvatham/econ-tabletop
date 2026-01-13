@@ -13,6 +13,7 @@ from deckgen.schemas import POLICY_BLUEPRINT_SCHEMA, POLICY_CARD_SCHEMA, POLICY_
 from deckgen.utils.cache import cache_dir_for
 from deckgen.utils.io import write_jsonl
 from deckgen.utils.openai_client import OpenAIClient, format_text_input
+from deckgen.utils.asyncio_utils import run_async
 from deckgen.utils.parallel import gather_with_concurrency
 from deckgen.utils.prompts import render_prompt
 from deckgen.utils.utility_functions import dummy_policy_blueprint, dummy_policy_cards
@@ -109,7 +110,7 @@ def generate_policies(
         ).strip()
         return card
 
-    asyncio.run(
+    run_async(
         gather_with_concurrency(
             concurrency_text,
             [lambda card=card: asyncio.to_thread(_render_prompt, card) for card in cards],
