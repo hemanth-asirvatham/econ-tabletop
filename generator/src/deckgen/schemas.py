@@ -110,7 +110,7 @@ EFFECT_SCHEMA = {
             "additionalProperties": False,
             "required": ["type", "params"],
             "properties": {
-                "type": {"const": "DRAW_DEV_NOW"},
+                "type": {"type": "string", "const": "DRAW_DEV_NOW"},
                 "params": EFFECT_PARAMS_DRAW_NOW,
             },
         },
@@ -119,7 +119,7 @@ EFFECT_SCHEMA = {
             "additionalProperties": False,
             "required": ["type", "params"],
             "properties": {
-                "type": {"const": "DRAW_DEV_NEXT_STAGE_NOW"},
+                "type": {"type": "string", "const": "DRAW_DEV_NEXT_STAGE_NOW"},
                 "params": EFFECT_PARAMS_DRAW_NEXT_STAGE,
             },
         },
@@ -128,7 +128,7 @@ EFFECT_SCHEMA = {
             "additionalProperties": False,
             "required": ["type", "params"],
             "properties": {
-                "type": {"const": "MODIFY_DEV_DRAW_NEXT_ROUND"},
+                "type": {"type": "string", "const": "MODIFY_DEV_DRAW_NEXT_ROUND"},
                 "params": EFFECT_PARAMS_MODIFY,
             },
         },
@@ -137,7 +137,7 @@ EFFECT_SCHEMA = {
             "additionalProperties": False,
             "required": ["type", "params"],
             "properties": {
-                "type": {"const": "MODIFY_POLICY_DRAW_NEXT_ROUND"},
+                "type": {"type": "string", "const": "MODIFY_POLICY_DRAW_NEXT_ROUND"},
                 "params": EFFECT_PARAMS_MODIFY,
             },
         },
@@ -146,7 +146,7 @@ EFFECT_SCHEMA = {
             "additionalProperties": False,
             "required": ["type", "params"],
             "properties": {
-                "type": {"const": "MODIFY_MAX_POLICIES_THIS_ROUND"},
+                "type": {"type": "string", "const": "MODIFY_MAX_POLICIES_THIS_ROUND"},
                 "params": EFFECT_PARAMS_MODIFY,
             },
         },
@@ -160,7 +160,7 @@ EFFECT_RESPONSE_SCHEMA = {
             "additionalProperties": False,
             "required": ["type", "params"],
             "properties": {
-                "type": {"const": "DRAW_DEV_NOW"},
+                "type": {"type": "string", "const": "DRAW_DEV_NOW"},
                 "params": EFFECT_PARAMS_DRAW_NOW,
             },
         },
@@ -169,7 +169,7 @@ EFFECT_RESPONSE_SCHEMA = {
             "additionalProperties": False,
             "required": ["type", "params"],
             "properties": {
-                "type": {"const": "DRAW_DEV_NEXT_STAGE_NOW"},
+                "type": {"type": "string", "const": "DRAW_DEV_NEXT_STAGE_NOW"},
                 "params": EFFECT_PARAMS_DRAW_NEXT_STAGE,
             },
         },
@@ -178,7 +178,7 @@ EFFECT_RESPONSE_SCHEMA = {
             "additionalProperties": False,
             "required": ["type", "params"],
             "properties": {
-                "type": {"const": "MODIFY_DEV_DRAW_NEXT_ROUND"},
+                "type": {"type": "string", "const": "MODIFY_DEV_DRAW_NEXT_ROUND"},
                 "params": EFFECT_PARAMS_MODIFY,
             },
         },
@@ -187,7 +187,7 @@ EFFECT_RESPONSE_SCHEMA = {
             "additionalProperties": False,
             "required": ["type", "params"],
             "properties": {
-                "type": {"const": "MODIFY_POLICY_DRAW_NEXT_ROUND"},
+                "type": {"type": "string", "const": "MODIFY_POLICY_DRAW_NEXT_ROUND"},
                 "params": EFFECT_PARAMS_MODIFY,
             },
         },
@@ -196,7 +196,7 @@ EFFECT_RESPONSE_SCHEMA = {
             "additionalProperties": False,
             "required": ["type", "params"],
             "properties": {
-                "type": {"const": "MODIFY_MAX_POLICIES_THIS_ROUND"},
+                "type": {"type": "string", "const": "MODIFY_MAX_POLICIES_THIS_ROUND"},
                 "params": EFFECT_PARAMS_MODIFY,
             },
         },
