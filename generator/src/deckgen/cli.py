@@ -11,6 +11,7 @@ from rich.console import Console
 
 from deckgen.config import load_config
 from deckgen.pipeline.images import generate_images
+from deckgen.pipeline.image_outline import generate_image_outline
 from deckgen.pipeline.outline import generate_simulation_outline
 from deckgen.pipeline.policies import generate_policies
 from deckgen.pipeline.print_export import export_print, export_text_mockups
@@ -86,6 +87,15 @@ def run_generate(config_path: Path, out_dir: Path, *, reset: bool = False) -> No
             console.print("[yellow]Reset enabled; regenerating simulation outline.[/yellow]")
         outline_text = generate_simulation_outline(config.data, taxonomy, out_dir, reuse_existing=not reset)
 
+    image_outline_path = out_dir / "meta" / "image_outline.txt"
+    if not reset and image_outline_path.exists():
+        console.print(f"[green]Image outline already exists; loading from {image_outline_path}.[/green]")
+        image_outline_text = image_outline_path.read_text(encoding="utf-8")
+    else:
+        if reset:
+            console.print("[yellow]Reset enabled; regenerating image outline.[/yellow]")
+        image_outline_text = generate_image_outline(config.data, outline_text, out_dir, reuse_existing=not reset)
+
     policies_path = out_dir / "cards" / "policies.jsonl"
     should_generate_policies = reset or not policies_path.exists()
     if not should_generate_policies:
@@ -97,7 +107,14 @@ def run_generate(config_path: Path, out_dir: Path, *, reset: bool = False) -> No
 
     async def _generate_cards() -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
         policy_task = (
-            asyncio.to_thread(generate_policies, config.data, taxonomy, outline_text, out_dir)
+            asyncio.to_thread(
+                generate_policies,
+                config.data,
+                taxonomy,
+                outline_text,
+                image_outline_text,
+                out_dir,
+            )
             if should_generate_policies
             else asyncio.to_thread(read_jsonl, policies_path)
         )
@@ -106,6 +123,7 @@ def run_generate(config_path: Path, out_dir: Path, *, reset: bool = False) -> No
             config.data,
             taxonomy,
             outline_text,
+            image_outline_text,
             out_dir,
             reuse_existing=not reset,
         )
@@ -149,6 +167,15 @@ def run_generate_from_config(config_data: dict[str, Any], out_dir: Path, *, rese
             console.print("[yellow]Reset enabled; regenerating simulation outline.[/yellow]")
         outline_text = generate_simulation_outline(config_data, taxonomy, out_dir, reuse_existing=not reset)
 
+    image_outline_path = out_dir / "meta" / "image_outline.txt"
+    if not reset and image_outline_path.exists():
+        console.print(f"[green]Image outline already exists; loading from {image_outline_path}.[/green]")
+        image_outline_text = image_outline_path.read_text(encoding="utf-8")
+    else:
+        if reset:
+            console.print("[yellow]Reset enabled; regenerating image outline.[/yellow]")
+        image_outline_text = generate_image_outline(config_data, outline_text, out_dir, reuse_existing=not reset)
+
     policies_path = out_dir / "cards" / "policies.jsonl"
     should_generate_policies = reset or not policies_path.exists()
     if not should_generate_policies:
@@ -160,7 +187,14 @@ def run_generate_from_config(config_data: dict[str, Any], out_dir: Path, *, rese
 
     async def _generate_cards() -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
         policy_task = (
-            asyncio.to_thread(generate_policies, config_data, taxonomy, outline_text, out_dir)
+            asyncio.to_thread(
+                generate_policies,
+                config_data,
+                taxonomy,
+                outline_text,
+                image_outline_text,
+                out_dir,
+            )
             if should_generate_policies
             else asyncio.to_thread(read_jsonl, policies_path)
         )
@@ -169,6 +203,7 @@ def run_generate_from_config(config_data: dict[str, Any], out_dir: Path, *, rese
             config_data,
             taxonomy,
             outline_text,
+            image_outline_text,
             out_dir,
             reuse_existing=not reset,
         )

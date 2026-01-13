@@ -25,6 +25,7 @@ def generate_policies(
     config: dict[str, Any],
     taxonomy: dict[str, Any],
     outline_text: str,
+    image_outline_text: str,
     out_dir: Path,
 ) -> list[dict[str, Any]]:
     resolved = resolve_config(config)
@@ -106,7 +107,7 @@ def generate_policies(
             card=card,
             scenario_injection=scenario.get("injection", ""),
             locale_visuals=scenario.get("locale_visuals", []),
-            outline_text=outline_text,
+            image_outline_text=image_outline_text or "",
         ).strip()
         return card
 

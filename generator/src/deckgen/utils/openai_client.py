@@ -132,6 +132,24 @@ class OpenAIClient:
             raise
         return resp.json()
 
+    def images_generate_with_responses(
+        self,
+        *,
+        prompt: str,
+        model: str | None,
+        size: str | None,
+        background: str | None,
+        store: bool = False,
+    ) -> dict[str, Any]:
+        payload = self.build_image_responses_payload(
+            prompt=prompt,
+            model=model,
+            size=size,
+            background=background,
+            store=store,
+        )
+        return self.responses(payload)
+
     def images_edit(self, payload: dict[str, Any], image_paths: list[Path]) -> dict[str, Any]:
         if self.use_dummy or not self.api_key:
             if self.use_dummy:
@@ -168,6 +186,45 @@ class OpenAIClient:
         cache_dir.mkdir(parents=True, exist_ok=True)
         (cache_dir / f"{name}.request.json").write_text(json.dumps(payload, indent=2), encoding="utf-8")
         (cache_dir / f"{name}.response.json").write_text(json.dumps(response, indent=2), encoding="utf-8")
+
+    def build_image_responses_payload(
+        self,
+        *,
+        prompt: str,
+        model: str | None,
+        size: str | None,
+        background: str | None,
+        store: bool = False,
+    ) -> dict[str, Any]:
+        tool: dict[str, Any] = {"type": "image_generation"}
+        if size:
+            tool["size"] = size
+        if background:
+            tool["background"] = background
+        return {
+            "model": model,
+            "input": format_text_input(model, prompt),
+            "tools": [tool],
+            "tool_choice": {"type": "image_generation"},
+            "store": store,
+        }
+
+    def extract_image_b64(self, response: dict[str, Any]) -> str | None:
+        if "data" in response:
+            data = (response.get("data") or [{}])[0]
+            if isinstance(data, dict):
+                b64 = data.get("b64_json")
+                if b64:
+                    return b64
+        for output in response.get("output", []):
+            if output.get("type") == "image_generation_call" and output.get("result"):
+                return output.get("result")
+            for item in output.get("content", []):
+                if item.get("type") == "image_generation_call" and item.get("result"):
+                    return item.get("result")
+                if item.get("type") == "output_image" and item.get("image_base64"):
+                    return item.get("image_base64")
+        return None
 
 
 def _guess_image_mime(path: Path) -> str:

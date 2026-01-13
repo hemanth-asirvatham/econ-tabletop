@@ -118,8 +118,24 @@ def _draw_text_card(
         canvas.drawString(x + 8, desc_y, line)
         desc_y -= 10
 
+    canvas.setFont("Helvetica", 7)
+    if label == "POLICY":
+        impact = int(card.get("impact_score", 0) or 0)
+        cost = card.get("cost", {}) or {}
+        budget = int(cost.get("budget_level", 0) or 0)
+        complexity = int(cost.get("implementation_complexity", 0) or 0)
+        canvas.drawString(x + 8, y + 28, f"COMPLEX {_score_row(complexity)}")
+        canvas.drawString(x + 8, y + 18, f"BUDGET {_score_row(budget)}")
+        canvas.drawString(x + 8, y + 8, f"IMPACT {_score_row(impact)}")
     if label == "DEVELOPMENT":
+        severity = int(card.get("severity", 0) or 0)
+        canvas.drawString(x + 8, y + 8, f"SEVERITY {_score_row(severity)}")
         _draw_valence_icons(canvas, card, x + card_width - 32, y + card_height - 20)
+
+
+def _score_row(score: int, max_score: int = 5) -> str:
+    score = max(0, min(score, max_score))
+    return "●" * score + "○" * (max_score - score)
 
 
 def _draw_valence_icons(canvas: Any, card: dict[str, Any], x_right: float, y_top: float) -> None:
