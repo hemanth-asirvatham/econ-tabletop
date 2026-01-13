@@ -121,10 +121,11 @@ EFFECT_SCHEMA = {
         "params": {
             "type": "object",
             "additionalProperties": False,
+            "required": ["count", "stage_offset", "delta"],
             "properties": {
-                "count": {"type": "integer", "minimum": 1},
-                "stage_offset": {"type": "integer", "minimum": 0},
-                "delta": {"type": "integer"},
+                "count": {"type": ["integer", "null"], "minimum": 1},
+                "stage_offset": {"type": ["integer", "null"], "minimum": 0},
+                "delta": {"type": ["integer", "null"]},
             },
         },
     },
