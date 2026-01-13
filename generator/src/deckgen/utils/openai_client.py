@@ -9,6 +9,7 @@ import httpx
 from rich.console import Console
 
 console = Console()
+_READ_TIMEOUT_ENV = "ECON_TABLETOP_OPENAI_READ_TIMEOUT"
 
 
 def format_text_input(model: str | None, prompt: str) -> str | list[dict[str, str]]:
@@ -33,7 +34,36 @@ class OpenAIClient:
         self.project = os.environ.get("OPENAI_PROJECT", "").strip()
         env_dummy = os.environ.get("ECON_TABLETOP_DUMMY_OPENAI", "").strip().lower() in {"1", "true", "yes"}
         self.use_dummy = env_dummy if dummy is None else dummy
-        self.client = httpx.Client(timeout=120)
+        self.client = httpx.Client(timeout=self._timeout_config())
+
+    def _timeout_config(self) -> httpx.Timeout:
+        def _parse_timeout(value: str | None, *, default: float | None) -> float | None:
+            if value is None:
+                return default
+            stripped = value.strip().lower()
+            if stripped in {"none", "null", "off"}:
+                return None
+            try:
+                parsed = float(stripped)
+            except ValueError:
+                return default
+            if parsed <= 0:
+                return None
+            return parsed
+
+        total_timeout = _parse_timeout(os.environ.get("ECON_TABLETOP_OPENAI_TIMEOUT"), default=None)
+        connect_timeout = _parse_timeout(os.environ.get("ECON_TABLETOP_OPENAI_CONNECT_TIMEOUT"), default=10.0)
+        read_timeout = _parse_timeout(os.environ.get(_READ_TIMEOUT_ENV), default=None)
+        write_timeout = _parse_timeout(os.environ.get("ECON_TABLETOP_OPENAI_WRITE_TIMEOUT"), default=120.0)
+        pool_timeout = _parse_timeout(os.environ.get("ECON_TABLETOP_OPENAI_POOL_TIMEOUT"), default=10.0)
+
+        return httpx.Timeout(
+            total_timeout,
+            connect=connect_timeout,
+            read=read_timeout,
+            write=write_timeout,
+            pool=pool_timeout,
+        )
 
     def _headers(self) -> dict[str, str]:
         headers = {"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"}
