@@ -18,7 +18,12 @@ from deckgen.utils.utility_functions import dummy_policy_blueprint, dummy_policy
 console = Console()
 
 
-def generate_policies(config: dict[str, Any], taxonomy: dict[str, Any], out_dir: Path) -> list[dict[str, Any]]:
+def generate_policies(
+    config: dict[str, Any],
+    taxonomy: dict[str, Any],
+    outline: dict[str, Any],
+    out_dir: Path,
+) -> list[dict[str, Any]]:
     resolved = resolve_config(config)
     scenario = resolved.get("scenario", {})
     runtime = resolved.get("runtime", {})
@@ -45,6 +50,7 @@ def generate_policies(config: dict[str, Any], taxonomy: dict[str, Any], out_dir:
             target_count=total,
             categories=categories,
             tags=tags,
+            outline=outline,
         )
         blueprint_payload = _build_text_payload(
             blueprint_prompt,
@@ -68,6 +74,7 @@ def generate_policies(config: dict[str, Any], taxonomy: dict[str, Any], out_dir:
             tags=tags,
             slots=slots,
             card_ids=card_ids,
+            outline=outline,
         )
         cards_payload = _build_text_payload(
             cards_prompt,
@@ -90,6 +97,7 @@ def generate_policies(config: dict[str, Any], taxonomy: dict[str, Any], out_dir:
             card=card,
             scenario_injection=scenario.get("injection", ""),
             locale_visuals=scenario.get("locale_visuals", []),
+            outline=outline,
         ).strip()
         Draft202012Validator(POLICY_CARD_SCHEMA).validate(card)
 

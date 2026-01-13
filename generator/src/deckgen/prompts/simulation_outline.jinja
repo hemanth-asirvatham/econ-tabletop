@@ -1,0 +1,187 @@
+You are generating a single "Simulation Outline" document that governs all later policy and development card generation.
+
+This document must:
+- Enumerate each stage with clear world-state, AI capabilities, policy focus, development themes, and power dynamics.
+- Provide explicit examples of varied policy sets and development cards (with valence icons).
+- Define the card formatting conventions (layout, iconography, and minimalist art style guidance).
+- Establish consistency rules so later prompts can be parallelized without dependence on earlier generations.
+
+Scenario Context (inject into all relevant sections):
+{{ scenario_injection or "(none)" }}
+
+Stages (authoritative definitions):
+{{ stages | tojson }}
+
+Deck sizes:
+{{ deck_sizes | tojson }}
+
+Allowed categories:
+{{ categories | join(", ") }}
+
+Allowed tags:
+{{ tags | join(", ") }}
+
+Mix targets:
+{{ mix_targets | tojson }}
+
+Output JSON schema:
+{
+  "document_markdown": "string",
+  "stage_outlines": [
+    {
+      "stage_id": 0,
+      "name": "string",
+      "time_horizon": "string",
+      "capability_profile": "string",
+      "world_state": "string",
+      "ai_role": "string",
+      "policy_focus": ["string"],
+      "development_focus": ["string"],
+      "power_dynamics": ["string"],
+      "example_policies": [
+        {"title": "string", "summary": "string", "tags": ["string"]}
+      ],
+      "example_developments": [
+        {
+          "title": "string",
+          "short_description": "string",
+          "valence": "positive|negative|mixed",
+          "arrows_up": 0,
+          "arrows_down": 0,
+          "tags": ["string"],
+          "special_directive": "string"
+        }
+      ],
+      "art_notes": "string"
+    }
+  ],
+  "policy_variety": {
+    "principles": ["string"],
+    "example_sets": [
+      {
+        "name": "string",
+        "description": "string",
+        "examples": [{"title": "string", "summary": "string", "tags": ["string"]}]
+      }
+    ]
+  },
+  "development_variety": {
+    "principles": ["string"],
+    "example_cards": [
+      {
+        "title": "string",
+        "short_description": "string",
+        "valence": "positive|negative|mixed",
+        "arrows_up": 0,
+        "arrows_down": 0,
+        "stage_id": 0,
+        "tags": ["string"],
+        "special_directive": "string"
+      }
+    ]
+  },
+  "card_formatting": {
+    "policy_layout": "string",
+    "development_layout": "string",
+    "impact_iconography": "string",
+    "metadata_badges": "string"
+  },
+  "art_direction": {
+    "style_summary": "string",
+    "palette": ["string"],
+    "composition_rules": ["string"],
+    "reference_vibes": ["string"]
+  },
+  "generation_guardrails": {
+    "optimism_bias": "string",
+    "realism_guardrail": "string",
+    "stage_progression_rule": "string"
+  }
+}
+
+Constraints:
+- Produce a single cohesive outline in document_markdown, with numbered headings for each stage.
+- Ensure stage_outlines is in the same order as stages in the input definitions.
+- Most development cards should be optimistic/positive; encode that bias in generation_guardrails.
+- Clearly articulate powerup mechanics and how they affect draws/policy limits within each stage.
+- Provide concrete policy variety examples (small pilots, national programs, cross-border coordination).
+- Include card formatting details: title band, short description body, labels, and valence iconography (green up carets,
+  red down carets, neutral gray line).
+- Art direction should call for minimalist, clean, lightly impressionist style (e.g., Victoria 3-inspired), with restrained palette.
+- Use scenario context to localize examples when provided.
+- Keep examples grounded, policy-relevant, and stage-appropriate.
+
+Example (truncated):
+{
+  "document_markdown": "# Simulation Outline\\n## Stage 0 ...",
+  "stage_outlines": [
+    {
+      "stage_id": 0,
+      "name": "Stage 0",
+      "time_horizon": "today / near-term",
+      "capability_profile": "Frontier models as copilots",
+      "world_state": "AI tools diffuse into office workflows; early productivity gains appear.",
+      "ai_role": "Assistive copilots and analytics accelerators.",
+      "policy_focus": ["workforce reskilling", "safety standards", "public-sector pilots"],
+      "development_focus": ["productivity nudges", "early labor shifts", "compute supply constraints"],
+      "power_dynamics": ["Compute bottlenecks can slow draw next round", "Pilot programs unlock conditional cards"],
+      "example_policies": [
+        {"title": "Reskilling Vouchers", "summary": "Targeted vouchers for mid-career workers.", "tags": ["workforce_reskilling"]}
+      ],
+      "example_developments": [
+        {
+          "title": "Copilots Spread Across Office Work",
+          "short_description": "Early productivity gains (+1.2%) appear in high-income service roles.",
+          "valence": "mixed",
+          "arrows_up": 2,
+          "arrows_down": 1,
+          "tags": ["productivity_growth"],
+          "special_directive": "quantitative_indicator"
+        }
+      ],
+      "art_notes": "Minimalist office skyline, muted teal and sand palette."
+    }
+  ],
+  "policy_variety": {
+    "principles": ["Separate levers by instrument and stakeholder."],
+    "example_sets": [
+      {
+        "name": "Regulation & Standards",
+        "description": "Baseline compliance and audit regimes.",
+        "examples": [{"title": "AI Audit Liability Regime", "summary": "Mandatory audits for high-risk models.", "tags": ["safety_standards"]}]
+      }
+    ]
+  },
+  "development_variety": {
+    "principles": ["Most are positive with some mixed tradeoffs."],
+    "example_cards": [
+      {
+        "title": "Public Service Copilot Rollout",
+        "short_description": "Case backlog drops 15% in courts.",
+        "valence": "positive",
+        "arrows_up": 3,
+        "arrows_down": 0,
+        "stage_id": 1,
+        "tags": ["public_sector_modernization"],
+        "special_directive": "powerup"
+      }
+    ]
+  },
+  "card_formatting": {
+    "policy_layout": "Title band on top, short description below, small POLICY label upper-right.",
+    "development_layout": "Title band on top, short description below, OUTCOME label upper-left.",
+    "impact_iconography": "Upper-right: green up-caret stack (1-3), red down-caret stack (1-3), neutral gray line if zero.",
+    "metadata_badges": "Use subtle tags or timeline badges in lower corners when needed."
+  },
+  "art_direction": {
+    "style_summary": "Minimalist, clean, light impressionist textures with Victoria 3 vibe.",
+    "palette": ["muted teal", "slate blue", "warm sand"],
+    "composition_rules": ["Wide negative space", "Thin-line icons", "Soft gradients"],
+    "reference_vibes": ["modern policy briefs", "strategic wargame cards"]
+  },
+  "generation_guardrails": {
+    "optimism_bias": "At least ~70% of developments should be positive or net-positive.",
+    "realism_guardrail": "Stay grounded in plausible economic and policy impacts.",
+    "stage_progression_rule": "Each stage escalates capabilities, scope, and systemic integration."
+  }
+}

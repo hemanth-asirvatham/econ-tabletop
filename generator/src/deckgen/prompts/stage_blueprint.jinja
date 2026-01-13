@@ -6,8 +6,11 @@ Scenario Context:
 Stage:
 {{ stage | tojson }}
 
-Prior summaries:
-{{ prior_summaries | tojson }}
+Stage outline:
+{{ stage_outline | tojson }}
+
+Simulation outline:
+{{ outline | tojson }}
 
 Allowed tags:
 {{ tags | join(", ") }}
@@ -37,6 +40,7 @@ Output JSON schema:
 
 Constraints:
 - Progress gradually from Stage 0 realism toward later stages.
+- Use the simulation outline to keep stage differentiation and optimistic bias consistent.
 - Ensure a mix of quantitative indicators, institutional shifts, geopolitics, labor, and safety/security.
 - Include a few powerup-style beats that explicitly describe acceleration or deceleration effects (e.g., research acceleration,
   compute bottlenecks, regulatory slowdowns) suitable for draw/limit modifiers.

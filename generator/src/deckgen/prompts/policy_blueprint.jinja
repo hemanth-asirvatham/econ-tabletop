@@ -13,6 +13,9 @@ Allowed categories:
 Allowed tags:
 {{ tags | join(", ") }}
 
+Simulation outline:
+{{ outline | tojson }}
+
 Output JSON schema:
 {
   "slots": [
@@ -30,6 +33,7 @@ Constraints:
 - Produce exactly {{ target_count }} slots.
 - MECE coverage across categories, with at least one slot per core category.
 - Ensure diversity of themes and tags (no more than 2 slots sharing the same primary tag).
+- Use the simulation outline to align themes with stage progression and policy variety.
 - Avoid vague "AI changes everything" slots; each slot should be a specific policy lever.
 - Themes should be phrased as actionable interventions (e.g., "compute procurement sandboxes").
 - Include a wide range of scale and scope: small pilots, national programs, regional coordination, and global treaties.

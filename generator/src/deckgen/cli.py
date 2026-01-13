@@ -9,8 +9,9 @@ from rich.console import Console
 
 from deckgen.config import load_config
 from deckgen.pipeline.images import generate_images
+from deckgen.pipeline.outline import generate_simulation_outline
 from deckgen.pipeline.policies import generate_policies
-from deckgen.pipeline.print_export import export_print
+from deckgen.pipeline.print_export import export_print, export_text_mockups
 from deckgen.pipeline.render_cards import render_cards
 from deckgen.pipeline.stages import generate_stage_cards
 from deckgen.pipeline.taxonomy import generate_taxonomy
@@ -73,6 +74,15 @@ def run_generate(config_path: Path, out_dir: Path, *, reset: bool = False) -> No
             console.print("[yellow]Reset enabled; regenerating taxonomy.[/yellow]")
         taxonomy = generate_taxonomy(config.data, out_dir)
 
+    outline_path = out_dir / "meta" / "simulation_outline.json"
+    if not reset and outline_path.exists():
+        console.print(f"[green]Simulation outline already exists; loading from {outline_path}.[/green]")
+        outline = read_json(outline_path)
+    else:
+        if reset:
+            console.print("[yellow]Reset enabled; regenerating simulation outline.[/yellow]")
+        outline = generate_simulation_outline(config.data, taxonomy, out_dir, reuse_existing=not reset)
+
     policies_path = out_dir / "cards" / "policies.jsonl"
     if not reset and policies_path.exists():
         console.print(f"[green]Policy cards already exist; loading from {policies_path}.[/green]")
@@ -80,9 +90,9 @@ def run_generate(config_path: Path, out_dir: Path, *, reset: bool = False) -> No
     else:
         if reset:
             console.print("[yellow]Reset enabled; regenerating policy cards.[/yellow]")
-        policies = generate_policies(config.data, taxonomy, out_dir)
+        policies = generate_policies(config.data, taxonomy, outline, out_dir)
 
-    developments = generate_stage_cards(config.data, taxonomy, out_dir, reuse_existing=not reset)
+    developments = generate_stage_cards(config.data, taxonomy, outline, out_dir, reuse_existing=not reset)
 
     manifest = {
         "deck_id": out_dir.name,
@@ -92,6 +102,7 @@ def run_generate(config_path: Path, out_dir: Path, *, reset: bool = False) -> No
     }
     write_json(out_dir / "manifest.json", manifest)
     validate_deck(policies, developments, out_dir)
+    export_text_mockups(policies, developments, out_dir)
     console.print(f"[green]Generated deck at {out_dir}[/green]")
 
 
@@ -108,6 +119,15 @@ def run_generate_from_config(config_data: dict[str, Any], out_dir: Path, *, rese
             console.print("[yellow]Reset enabled; regenerating taxonomy.[/yellow]")
         taxonomy = generate_taxonomy(config_data, out_dir)
 
+    outline_path = out_dir / "meta" / "simulation_outline.json"
+    if not reset and outline_path.exists():
+        console.print(f"[green]Simulation outline already exists; loading from {outline_path}.[/green]")
+        outline = read_json(outline_path)
+    else:
+        if reset:
+            console.print("[yellow]Reset enabled; regenerating simulation outline.[/yellow]")
+        outline = generate_simulation_outline(config_data, taxonomy, out_dir, reuse_existing=not reset)
+
     policies_path = out_dir / "cards" / "policies.jsonl"
     if not reset and policies_path.exists():
         console.print(f"[green]Policy cards already exist; loading from {policies_path}.[/green]")
@@ -115,9 +135,9 @@ def run_generate_from_config(config_data: dict[str, Any], out_dir: Path, *, rese
     else:
         if reset:
             console.print("[yellow]Reset enabled; regenerating policy cards.[/yellow]")
-        policies = generate_policies(config_data, taxonomy, out_dir)
+        policies = generate_policies(config_data, taxonomy, outline, out_dir)
 
-    developments = generate_stage_cards(config_data, taxonomy, out_dir, reuse_existing=not reset)
+    developments = generate_stage_cards(config_data, taxonomy, outline, out_dir, reuse_existing=not reset)
 
     manifest = {
         "deck_id": out_dir.name,
@@ -127,6 +147,7 @@ def run_generate_from_config(config_data: dict[str, Any], out_dir: Path, *, rese
     }
     write_json(out_dir / "manifest.json", manifest)
     validate_deck(policies, developments, out_dir)
+    export_text_mockups(policies, developments, out_dir)
     console.print(f"[green]Generated deck at {out_dir}[/green]")
 
 

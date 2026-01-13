@@ -6,11 +6,14 @@ Scenario Context:
 Stage:
 {{ stage | tojson }}
 
+Stage outline:
+{{ stage_outline | tojson }}
+
 Cards:
 {{ cards | tojson }}
 
-Prior summary:
-{{ prior_summary | tojson }}
+Simulation outline:
+{{ outline | tojson }}
 
 Output JSON schema:
 {
@@ -23,6 +26,7 @@ Constraints:
 - 10 to 25 bullet facts.
 - Highlight macro, labor, geopolitics, and safety/security.
 - Use grounded language; avoid speculative sci-fi.
+- Align with the stage outline and overall simulation outline.
 
 Example:
 {

@@ -17,7 +17,7 @@ from deckgen.schemas import (
     STAGE_SUMMARY_SCHEMA,
 )
 from deckgen.utils.cache import cache_dir_for
-from deckgen.utils.io import read_json, read_jsonl, write_json, write_jsonl
+from deckgen.utils.io import read_jsonl, write_json, write_jsonl
 from deckgen.utils.openai_client import OpenAIClient, format_text_input
 from deckgen.utils.prompts import render_prompt
 from deckgen.utils.utility_functions import (
@@ -32,6 +32,7 @@ console = Console()
 def generate_stage_cards(
     config: dict[str, Any],
     taxonomy: dict[str, Any],
+    outline: dict[str, Any],
     out_dir: Path,
     *,
     reuse_existing: bool = True,
@@ -47,16 +48,8 @@ def generate_stage_cards(
     client = OpenAIClient()
     cache_dir = cache_dir_for(out_dir) if runtime.get("cache_requests", False) else None
 
-    summaries: list[dict[str, Any]] = []
-    existing_summaries: list[dict[str, Any]] = []
-    summaries_path = out_dir / "meta" / "stage_summaries.json"
-    if reuse_existing and summaries_path.exists():
-        existing = read_json(summaries_path)
-        if isinstance(existing, list):
-            existing_summaries = existing
     all_cards: list[dict[str, Any]] = []
-    prior_summary: dict[str, Any] | None = None
-    prior_card_ids: list[str] = []
+    summaries: list[dict[str, Any]] = []
 
     for stage_index, count in tqdm(
         enumerate(stage_counts),
@@ -64,6 +57,7 @@ def generate_stage_cards(
         desc="Generating stages",
     ):
         stage_def = stages[min(stage_index, len(stages) - 1)] if stages else {"id": stage_index}
+        stage_outline = _get_stage_outline(outline, stage_index)
         stage_path = out_dir / "cards" / f"developments.stage{stage_index}.jsonl"
         if reuse_existing and stage_path.exists():
             stage_cards = read_jsonl(stage_path)
@@ -77,24 +71,19 @@ def generate_stage_cards(
                     f"[green]Stage {stage_index} cards already exist; loading from {stage_path}.[/green]"
                 )
             all_cards.extend(stage_cards)
-            prior_card_ids = [card.get("id", "") for card in stage_cards]
-            summary = None
-            if stage_index < len(existing_summaries):
-                summary = existing_summaries[stage_index]
-            else:
-                summary = _generate_stage_summary(
-                    stage_index=stage_index,
-                    stage_def=stage_def,
-                    stage_cards=stage_cards,
-                    prior_summary=prior_summary,
-                    scenario=scenario,
-                    prompt_path=prompt_path,
-                    model_cfg=model_cfg,
-                    cache_dir=cache_dir,
-                    client=client,
-                )
+            summary = _generate_stage_summary(
+                stage_index=stage_index,
+                stage_def=stage_def,
+                stage_outline=stage_outline,
+                stage_cards=stage_cards,
+                scenario=scenario,
+                prompt_path=prompt_path,
+                model_cfg=model_cfg,
+                cache_dir=cache_dir,
+                client=client,
+                outline=outline,
+            )
             summaries.append(summary)
-            prior_summary = summary
             continue
 
         console.print(f"[cyan]Generating stage {stage_index} with {count} development cards.[/cyan]")
@@ -107,10 +96,11 @@ def generate_stage_cards(
                 prompt_path=prompt_path,
                 scenario_injection=scenario.get("injection", ""),
                 stage=stage_def,
-                prior_summaries=summaries,
+                stage_outline=stage_outline,
                 tags=tags,
                 mix_targets=resolved.get("mix_targets", {}),
                 target_count=count,
+                outline=outline,
             )
             blueprint_payload = _build_text_payload(
                 blueprint_prompt,
@@ -125,6 +115,7 @@ def generate_stage_cards(
 
         threads = blueprint.get("threads", [])
         special_counts = blueprint.get("special_counts", {})
+        prior_card_ids = _prior_stage_card_ids(stage_index, stage_counts)
         beats = _build_beats(threads, count, prior_card_ids, tags, special_counts)
         card_ids = [f"dev_s{stage_index}_{i:02d}" for i in range(count)]
 
@@ -141,10 +132,11 @@ def generate_stage_cards(
                 prompt_path=prompt_path,
                 scenario_injection=scenario.get("injection", ""),
                 stage=stage_def,
-                prior_summary=prior_summary,
+                stage_outline=stage_outline,
                 tags=tags,
                 beats=beats,
                 card_ids=card_ids,
+                outline=outline,
             )
             cards_payload = _build_text_payload(
                 cards_prompt,
@@ -173,26 +165,26 @@ def generate_stage_cards(
                 card=card,
                 scenario_injection=scenario.get("injection", ""),
                 locale_visuals=scenario.get("locale_visuals", []),
+                outline=outline,
             ).strip()
             Draft202012Validator(DEVELOPMENT_CARD_SCHEMA).validate(card)
 
         write_jsonl(out_dir / "cards" / f"developments.stage{stage_index}.jsonl", stage_cards)
         all_cards.extend(stage_cards)
-        prior_card_ids = [card["id"] for card in stage_cards]
 
         summary = _generate_stage_summary(
             stage_index=stage_index,
             stage_def=stage_def,
+            stage_outline=stage_outline,
             stage_cards=stage_cards,
-            prior_summary=prior_summary,
             scenario=scenario,
             prompt_path=prompt_path,
             model_cfg=model_cfg,
             cache_dir=cache_dir,
             client=client,
+            outline=outline,
         )
         summaries.append(summary)
-        prior_summary = summary
 
     write_json(out_dir / "meta" / "stage_summaries.json", summaries)
     return all_cards
@@ -202,13 +194,14 @@ def _generate_stage_summary(
     *,
     stage_index: int,
     stage_def: dict[str, Any],
+    stage_outline: dict[str, Any] | None,
     stage_cards: list[dict[str, Any]],
-    prior_summary: dict[str, Any] | None,
     scenario: dict[str, Any],
     prompt_path: str | None,
     model_cfg: dict[str, Any],
     cache_dir: Path | None,
     client: OpenAIClient,
+    outline: dict[str, Any],
 ) -> dict[str, Any]:
     if client.use_dummy:
         return dummy_stage_summary(stage_index=stage_index, cards=stage_cards)
@@ -217,8 +210,9 @@ def _generate_stage_summary(
         prompt_path=prompt_path,
         scenario_injection=scenario.get("injection", ""),
         stage=stage_def,
+        stage_outline=stage_outline,
         cards=stage_cards,
-        prior_summary=prior_summary,
+        outline=outline,
     )
     summary_payload = _build_text_payload(
         summary_prompt,
@@ -352,3 +346,23 @@ def _normalize_dev_cards(
             if not any(char.isdigit() for char in card["short_description"]):
                 card["short_description"] = f"{card['short_description']} (+1.0%)"
     return normalized
+
+
+def _get_stage_outline(outline: dict[str, Any], stage_index: int) -> dict[str, Any] | None:
+    stage_outlines = outline.get("stage_outlines")
+    if not isinstance(stage_outlines, list):
+        return None
+    for stage in stage_outlines:
+        if stage.get("stage_id") == stage_index:
+            return stage
+    if stage_outlines:
+        return stage_outlines[min(stage_index, len(stage_outlines) - 1)]
+    return None
+
+
+def _prior_stage_card_ids(stage_index: int, stage_counts: list[int]) -> list[str]:
+    if stage_index <= 0 or not stage_counts:
+        return []
+    prior_index = stage_index - 1
+    prior_count = stage_counts[prior_index] if prior_index < len(stage_counts) else stage_counts[-1]
+    return [f"dev_s{prior_index}_{i:02d}" for i in range(prior_count)]

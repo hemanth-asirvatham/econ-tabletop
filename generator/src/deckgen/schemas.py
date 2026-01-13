@@ -361,3 +361,196 @@ STAGE_SUMMARY_SCHEMA = {
         "changes_vs_prior": {"type": "array", "items": {"type": "string"}},
     },
 }
+
+SIMULATION_OUTLINE_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": [
+        "document_markdown",
+        "stage_outlines",
+        "policy_variety",
+        "development_variety",
+        "card_formatting",
+        "art_direction",
+        "generation_guardrails",
+    ],
+    "properties": {
+        "document_markdown": {"type": "string"},
+        "stage_outlines": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "required": [
+                    "stage_id",
+                    "name",
+                    "time_horizon",
+                    "capability_profile",
+                    "world_state",
+                    "ai_role",
+                    "policy_focus",
+                    "development_focus",
+                    "power_dynamics",
+                    "example_policies",
+                    "example_developments",
+                    "art_notes",
+                ],
+                "properties": {
+                    "stage_id": {"type": "integer", "minimum": 0},
+                    "name": {"type": "string"},
+                    "time_horizon": {"type": "string"},
+                    "capability_profile": {"type": "string"},
+                    "world_state": {"type": "string"},
+                    "ai_role": {"type": "string"},
+                    "policy_focus": {"type": "array", "items": {"type": "string"}},
+                    "development_focus": {"type": "array", "items": {"type": "string"}},
+                    "power_dynamics": {"type": "array", "items": {"type": "string"}},
+                    "example_policies": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "additionalProperties": False,
+                            "required": ["title", "summary", "tags"],
+                            "properties": {
+                                "title": {"type": "string"},
+                                "summary": {"type": "string"},
+                                "tags": {"type": "array", "items": {"type": "string"}},
+                            },
+                        },
+                    },
+                    "example_developments": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "additionalProperties": False,
+                            "required": [
+                                "title",
+                                "short_description",
+                                "valence",
+                                "arrows_up",
+                                "arrows_down",
+                                "tags",
+                                "special_directive",
+                            ],
+                            "properties": {
+                                "title": {"type": "string"},
+                                "short_description": {"type": "string"},
+                                "valence": {"type": "string", "enum": ["positive", "negative", "mixed"]},
+                                "arrows_up": {"type": "integer", "minimum": 0, "maximum": 3},
+                                "arrows_down": {"type": "integer", "minimum": 0, "maximum": 3},
+                                "tags": {"type": "array", "items": {"type": "string"}},
+                                "special_directive": {"type": "string"},
+                            },
+                        },
+                    },
+                    "art_notes": {"type": "string"},
+                },
+            },
+        },
+        "policy_variety": {
+            "type": "object",
+            "additionalProperties": False,
+            "required": ["principles", "example_sets"],
+            "properties": {
+                "principles": {"type": "array", "items": {"type": "string"}},
+                "example_sets": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": False,
+                        "required": ["name", "description", "examples"],
+                        "properties": {
+                            "name": {"type": "string"},
+                            "description": {"type": "string"},
+                            "examples": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "additionalProperties": False,
+                                    "required": ["title", "summary", "tags"],
+                                    "properties": {
+                                        "title": {"type": "string"},
+                                        "summary": {"type": "string"},
+                                        "tags": {"type": "array", "items": {"type": "string"}},
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+        "development_variety": {
+            "type": "object",
+            "additionalProperties": False,
+            "required": ["principles", "example_cards"],
+            "properties": {
+                "principles": {"type": "array", "items": {"type": "string"}},
+                "example_cards": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": False,
+                        "required": [
+                            "title",
+                            "short_description",
+                            "valence",
+                            "arrows_up",
+                            "arrows_down",
+                            "stage_id",
+                            "tags",
+                            "special_directive",
+                        ],
+                        "properties": {
+                            "title": {"type": "string"},
+                            "short_description": {"type": "string"},
+                            "valence": {"type": "string", "enum": ["positive", "negative", "mixed"]},
+                            "arrows_up": {"type": "integer", "minimum": 0, "maximum": 3},
+                            "arrows_down": {"type": "integer", "minimum": 0, "maximum": 3},
+                            "stage_id": {"type": "integer", "minimum": 0},
+                            "tags": {"type": "array", "items": {"type": "string"}},
+                            "special_directive": {"type": "string"},
+                        },
+                    },
+                },
+            },
+        },
+        "card_formatting": {
+            "type": "object",
+            "additionalProperties": False,
+            "required": [
+                "policy_layout",
+                "development_layout",
+                "impact_iconography",
+                "metadata_badges",
+            ],
+            "properties": {
+                "policy_layout": {"type": "string"},
+                "development_layout": {"type": "string"},
+                "impact_iconography": {"type": "string"},
+                "metadata_badges": {"type": "string"},
+            },
+        },
+        "art_direction": {
+            "type": "object",
+            "additionalProperties": False,
+            "required": ["style_summary", "palette", "composition_rules", "reference_vibes"],
+            "properties": {
+                "style_summary": {"type": "string"},
+                "palette": {"type": "array", "items": {"type": "string"}},
+                "composition_rules": {"type": "array", "items": {"type": "string"}},
+                "reference_vibes": {"type": "array", "items": {"type": "string"}},
+            },
+        },
+        "generation_guardrails": {
+            "type": "object",
+            "additionalProperties": False,
+            "required": ["optimism_bias", "realism_guardrail", "stage_progression_rule"],
+            "properties": {
+                "optimism_bias": {"type": "string"},
+                "realism_guardrail": {"type": "string"},
+                "stage_progression_rule": {"type": "string"},
+            },
+        },
+    },
+}

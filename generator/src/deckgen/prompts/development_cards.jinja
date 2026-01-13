@@ -6,8 +6,11 @@ Scenario Context:
 Stage:
 {{ stage | tojson }}
 
-Prior summary:
-{{ prior_summary | tojson }}
+Stage outline:
+{{ stage_outline | tojson }}
+
+Simulation outline:
+{{ outline | tojson }}
 
 Allowed tags:
 {{ tags | join(", ") }}
@@ -52,6 +55,7 @@ Constraints:
 - Generate the full stage in one response; do not split or stream per-card outputs.
 - Keep outcomes mutually exclusive within the stage: avoid duplicate or near-duplicate developments and effects.
 - Keep outcomes grounded and stage-appropriate; avoid sci-fi leaps.
+- Use the simulation outline to maintain an optimistic skew and stage-appropriate progressions.
 - Use 1-3 tags per card from the allowed list.
 - Respect any special_directive in the beat object (e.g., supersedes, conditional, powerup, quantitative_indicator).
 - For supersedes: reference a prior-stage card id when possible (provided in the beat).

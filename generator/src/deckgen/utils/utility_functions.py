@@ -149,3 +149,106 @@ def dummy_stage_summary(
         "facts": facts,
         "changes_vs_prior": ["Developments build on prior stage dynamics."],
     }
+
+
+def dummy_simulation_outline(
+    *,
+    stages: list[dict[str, Any]],
+    categories: list[str],
+    tags: list[str],
+) -> dict[str, Any]:
+    stage_outlines = []
+    for stage in stages:
+        stage_outlines.append(
+            {
+                "stage_id": stage.get("id", 0),
+                "name": stage.get("name", f"Stage {stage.get('id', 0)}"),
+                "time_horizon": stage.get("time_horizon", "near-term"),
+                "capability_profile": stage.get("capability_profile", "Baseline AI capabilities"),
+                "world_state": "AI adoption continues to diffuse with measurable productivity gains.",
+                "ai_role": "Assistive copilots and analytics accelerators.",
+                "policy_focus": ["workforce reskilling", "safety standards", "public-sector pilots"],
+                "development_focus": ["productivity nudges", "labor shifts", "compute availability"],
+                "power_dynamics": [
+                    "Compute constraints can slow development draws.",
+                    "Targeted policies can unlock conditional developments.",
+                ],
+                "example_policies": [
+                    {
+                        "title": "Reskilling Vouchers",
+                        "summary": "Targeted vouchers for mid-career workers.",
+                        "tags": [tags[0]] if tags else [],
+                    }
+                ],
+                "example_developments": [
+                    {
+                        "title": "Copilots Spread Across Office Work",
+                        "short_description": "Early productivity gains (+1.2%) appear in high-income service roles.",
+                        "valence": "mixed",
+                        "arrows_up": 2,
+                        "arrows_down": 1,
+                        "tags": [tags[0]] if tags else [],
+                        "special_directive": "quantitative_indicator",
+                    }
+                ],
+                "art_notes": "Minimalist skyline and circuit motifs with muted palette.",
+            }
+        )
+    return {
+        "document_markdown": "# Simulation Outline\n\n## Overview\nDummy outline for testing.\n",
+        "stage_outlines": stage_outlines,
+        "policy_variety": {
+            "principles": [
+                "Separate levers by instrument and stakeholder.",
+                "Maintain a mix of pilots, national programs, and coordination.",
+            ],
+            "example_sets": [
+                {
+                    "name": "Regulation & Standards",
+                    "description": "Compliance and audit regimes.",
+                    "examples": [
+                        {
+                            "title": "AI Audit Liability Regime",
+                            "summary": "Mandatory audits for high-risk models.",
+                            "tags": [tags[0]] if tags else [],
+                        }
+                    ],
+                }
+            ],
+        },
+        "development_variety": {
+            "principles": [
+                "Most developments are positive with realistic tradeoffs.",
+                "Include some conditional/powerup mechanics.",
+            ],
+            "example_cards": [
+                {
+                    "title": "Public Service Copilot Rollout",
+                    "short_description": "Case backlog drops 15% in courts.",
+                    "valence": "positive",
+                    "arrows_up": 3,
+                    "arrows_down": 0,
+                    "stage_id": 1,
+                    "tags": [tags[0]] if tags else [],
+                    "special_directive": "powerup",
+                }
+            ],
+        },
+        "card_formatting": {
+            "policy_layout": "Title band on top, description below, POLICY label in corner.",
+            "development_layout": "Title band on top, description below, OUTCOME label in corner.",
+            "impact_iconography": "Upper-right: green up-carets, red down-carets, neutral gray line if zero.",
+            "metadata_badges": "Use subtle tags or timeline badges in lower corners when needed.",
+        },
+        "art_direction": {
+            "style_summary": "Minimalist, clean, lightly impressionist with restrained palette.",
+            "palette": ["muted teal", "slate", "warm sand"],
+            "composition_rules": ["Wide negative space", "Thin-line icons", "Soft gradients"],
+            "reference_vibes": ["strategic policy brief", "modern wargame card"],
+        },
+        "generation_guardrails": {
+            "optimism_bias": "Keep at least ~70% of developments positive or net-positive.",
+            "realism_guardrail": "Ground in plausible economic and policy impacts.",
+            "stage_progression_rule": "Each stage escalates in capability and systemic integration.",
+        },
+    }
