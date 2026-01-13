@@ -17,7 +17,7 @@ from deckgen.schemas import (
 )
 from deckgen.utils.cache import cache_dir_for
 from deckgen.utils.io import write_json, write_jsonl
-from deckgen.utils.openai_client import OpenAIClient, format_text_input
+from deckgen.utils.openai_client import OpenAIClient, format_text_input, supports_temperature
 from deckgen.utils.prompts import render_prompt
 from deckgen.utils.utility_functions import (
     dummy_development_cards,
@@ -167,7 +167,7 @@ def _build_text_payload(prompt: str, model_cfg: dict[str, Any], schema: dict[str
     }
     if model_cfg.get("max_output_tokens") is not None:
         payload["max_output_tokens"] = model_cfg["max_output_tokens"]
-    if model_cfg.get("temperature") is not None:
+    if model_cfg.get("temperature") is not None and supports_temperature(model_cfg.get("model")):
         payload["temperature"] = model_cfg["temperature"]
     if model_cfg.get("top_p") is not None:
         payload["top_p"] = model_cfg["top_p"]
