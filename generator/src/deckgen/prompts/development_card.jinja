@@ -9,11 +9,8 @@ Stage:
 Thread beat:
 {{ beat | tojson }}
 
-Stage outline:
-{{ stage_outline | tojson }}
-
 Simulation outline:
-{{ outline | tojson }}
+{{ outline_text }}
 
 Allowed tags:
 {{ tags | join(", ") }}

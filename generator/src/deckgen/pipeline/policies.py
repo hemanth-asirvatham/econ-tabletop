@@ -21,7 +21,7 @@ console = Console()
 def generate_policies(
     config: dict[str, Any],
     taxonomy: dict[str, Any],
-    outline: dict[str, Any],
+    outline_text: str,
     out_dir: Path,
 ) -> list[dict[str, Any]]:
     resolved = resolve_config(config)
@@ -50,7 +50,7 @@ def generate_policies(
             target_count=total,
             categories=categories,
             tags=tags,
-            outline=outline,
+            outline_text=outline_text,
         )
         blueprint_payload = _build_text_payload(
             blueprint_prompt,
@@ -74,7 +74,7 @@ def generate_policies(
             tags=tags,
             slots=slots,
             card_ids=card_ids,
-            outline=outline,
+            outline_text=outline_text,
         )
         cards_payload = _build_text_payload(
             cards_prompt,
@@ -97,7 +97,7 @@ def generate_policies(
             card=card,
             scenario_injection=scenario.get("injection", ""),
             locale_visuals=scenario.get("locale_visuals", []),
-            outline=outline,
+            outline_text=outline_text,
         ).strip()
         Draft202012Validator(POLICY_CARD_SCHEMA).validate(card)
 

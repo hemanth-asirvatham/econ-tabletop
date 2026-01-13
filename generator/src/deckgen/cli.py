@@ -74,14 +74,14 @@ def run_generate(config_path: Path, out_dir: Path, *, reset: bool = False) -> No
             console.print("[yellow]Reset enabled; regenerating taxonomy.[/yellow]")
         taxonomy = generate_taxonomy(config.data, out_dir)
 
-    outline_path = out_dir / "meta" / "simulation_outline.json"
+    outline_path = out_dir / "meta" / "simulation_outline.txt"
     if not reset and outline_path.exists():
         console.print(f"[green]Simulation outline already exists; loading from {outline_path}.[/green]")
-        outline = read_json(outline_path)
+        outline_text = outline_path.read_text(encoding="utf-8")
     else:
         if reset:
             console.print("[yellow]Reset enabled; regenerating simulation outline.[/yellow]")
-        outline = generate_simulation_outline(config.data, taxonomy, out_dir, reuse_existing=not reset)
+        outline_text = generate_simulation_outline(config.data, taxonomy, out_dir, reuse_existing=not reset)
 
     policies_path = out_dir / "cards" / "policies.jsonl"
     if not reset and policies_path.exists():
@@ -90,9 +90,9 @@ def run_generate(config_path: Path, out_dir: Path, *, reset: bool = False) -> No
     else:
         if reset:
             console.print("[yellow]Reset enabled; regenerating policy cards.[/yellow]")
-        policies = generate_policies(config.data, taxonomy, outline, out_dir)
+        policies = generate_policies(config.data, taxonomy, outline_text, out_dir)
 
-    developments = generate_stage_cards(config.data, taxonomy, outline, out_dir, reuse_existing=not reset)
+    developments = generate_stage_cards(config.data, taxonomy, outline_text, out_dir, reuse_existing=not reset)
 
     manifest = {
         "deck_id": out_dir.name,
@@ -119,14 +119,14 @@ def run_generate_from_config(config_data: dict[str, Any], out_dir: Path, *, rese
             console.print("[yellow]Reset enabled; regenerating taxonomy.[/yellow]")
         taxonomy = generate_taxonomy(config_data, out_dir)
 
-    outline_path = out_dir / "meta" / "simulation_outline.json"
+    outline_path = out_dir / "meta" / "simulation_outline.txt"
     if not reset and outline_path.exists():
         console.print(f"[green]Simulation outline already exists; loading from {outline_path}.[/green]")
-        outline = read_json(outline_path)
+        outline_text = outline_path.read_text(encoding="utf-8")
     else:
         if reset:
             console.print("[yellow]Reset enabled; regenerating simulation outline.[/yellow]")
-        outline = generate_simulation_outline(config_data, taxonomy, out_dir, reuse_existing=not reset)
+        outline_text = generate_simulation_outline(config_data, taxonomy, out_dir, reuse_existing=not reset)
 
     policies_path = out_dir / "cards" / "policies.jsonl"
     if not reset and policies_path.exists():
@@ -135,9 +135,9 @@ def run_generate_from_config(config_data: dict[str, Any], out_dir: Path, *, rese
     else:
         if reset:
             console.print("[yellow]Reset enabled; regenerating policy cards.[/yellow]")
-        policies = generate_policies(config_data, taxonomy, outline, out_dir)
+        policies = generate_policies(config_data, taxonomy, outline_text, out_dir)
 
-    developments = generate_stage_cards(config_data, taxonomy, outline, out_dir, reuse_existing=not reset)
+    developments = generate_stage_cards(config_data, taxonomy, outline_text, out_dir, reuse_existing=not reset)
 
     manifest = {
         "deck_id": out_dir.name,

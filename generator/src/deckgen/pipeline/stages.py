@@ -32,7 +32,7 @@ console = Console()
 def generate_stage_cards(
     config: dict[str, Any],
     taxonomy: dict[str, Any],
-    outline: dict[str, Any],
+    outline_text: str,
     out_dir: Path,
     *,
     reuse_existing: bool = True,
@@ -57,7 +57,6 @@ def generate_stage_cards(
         desc="Generating stages",
     ):
         stage_def = stages[min(stage_index, len(stages) - 1)] if stages else {"id": stage_index}
-        stage_outline = _get_stage_outline(outline, stage_index)
         stage_path = out_dir / "cards" / f"developments.stage{stage_index}.jsonl"
         if reuse_existing and stage_path.exists():
             stage_cards = read_jsonl(stage_path)
@@ -74,14 +73,13 @@ def generate_stage_cards(
             summary = _generate_stage_summary(
                 stage_index=stage_index,
                 stage_def=stage_def,
-                stage_outline=stage_outline,
                 stage_cards=stage_cards,
                 scenario=scenario,
                 prompt_path=prompt_path,
                 model_cfg=model_cfg,
                 cache_dir=cache_dir,
                 client=client,
-                outline=outline,
+                outline_text=outline_text,
             )
             summaries.append(summary)
             continue
@@ -96,11 +94,10 @@ def generate_stage_cards(
                 prompt_path=prompt_path,
                 scenario_injection=scenario.get("injection", ""),
                 stage=stage_def,
-                stage_outline=stage_outline,
                 tags=tags,
                 mix_targets=resolved.get("mix_targets", {}),
                 target_count=count,
-                outline=outline,
+                outline_text=outline_text,
             )
             blueprint_payload = _build_text_payload(
                 blueprint_prompt,
@@ -132,11 +129,10 @@ def generate_stage_cards(
                 prompt_path=prompt_path,
                 scenario_injection=scenario.get("injection", ""),
                 stage=stage_def,
-                stage_outline=stage_outline,
                 tags=tags,
                 beats=beats,
                 card_ids=card_ids,
-                outline=outline,
+                outline_text=outline_text,
             )
             cards_payload = _build_text_payload(
                 cards_prompt,
@@ -165,7 +161,7 @@ def generate_stage_cards(
                 card=card,
                 scenario_injection=scenario.get("injection", ""),
                 locale_visuals=scenario.get("locale_visuals", []),
-                outline=outline,
+                outline_text=outline_text,
             ).strip()
             Draft202012Validator(DEVELOPMENT_CARD_SCHEMA).validate(card)
 
@@ -175,14 +171,13 @@ def generate_stage_cards(
         summary = _generate_stage_summary(
             stage_index=stage_index,
             stage_def=stage_def,
-            stage_outline=stage_outline,
             stage_cards=stage_cards,
             scenario=scenario,
             prompt_path=prompt_path,
             model_cfg=model_cfg,
             cache_dir=cache_dir,
             client=client,
-            outline=outline,
+            outline_text=outline_text,
         )
         summaries.append(summary)
 
@@ -194,14 +189,13 @@ def _generate_stage_summary(
     *,
     stage_index: int,
     stage_def: dict[str, Any],
-    stage_outline: dict[str, Any] | None,
     stage_cards: list[dict[str, Any]],
     scenario: dict[str, Any],
     prompt_path: str | None,
     model_cfg: dict[str, Any],
     cache_dir: Path | None,
     client: OpenAIClient,
-    outline: dict[str, Any],
+    outline_text: str,
 ) -> dict[str, Any]:
     if client.use_dummy:
         return dummy_stage_summary(stage_index=stage_index, cards=stage_cards)
@@ -210,9 +204,8 @@ def _generate_stage_summary(
         prompt_path=prompt_path,
         scenario_injection=scenario.get("injection", ""),
         stage=stage_def,
-        stage_outline=stage_outline,
         cards=stage_cards,
-        outline=outline,
+        outline_text=outline_text,
     )
     summary_payload = _build_text_payload(
         summary_prompt,
@@ -346,18 +339,6 @@ def _normalize_dev_cards(
             if not any(char.isdigit() for char in card["short_description"]):
                 card["short_description"] = f"{card['short_description']} (+1.0%)"
     return normalized
-
-
-def _get_stage_outline(outline: dict[str, Any], stage_index: int) -> dict[str, Any] | None:
-    stage_outlines = outline.get("stage_outlines")
-    if not isinstance(stage_outlines, list):
-        return None
-    for stage in stage_outlines:
-        if stage.get("stage_id") == stage_index:
-            return stage
-    if stage_outlines:
-        return stage_outlines[min(stage_index, len(stage_outlines) - 1)]
-    return None
 
 
 def _prior_stage_card_ids(stage_index: int, stage_counts: list[int]) -> list[str]:
