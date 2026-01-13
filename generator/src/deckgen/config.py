@@ -16,7 +16,7 @@ DEFAULT_CONFIG = {
         "locale_visuals": [],
     },
     "stages": {
-        "count": 3,
+        "count": 5,
         "definitions": [
             {
                 "id": 0,
@@ -36,11 +36,23 @@ DEFAULT_CONFIG = {
                 "time_horizon": "5-10 years",
                 "capability_profile": "Broader automation with significant macroeconomic impacts",
             },
+            {
+                "id": 3,
+                "name": "Stage 3",
+                "time_horizon": "10-15 years",
+                "capability_profile": "Systemic AI integration across critical infrastructure and services",
+            },
+            {
+                "id": 4,
+                "name": "Stage 4",
+                "time_horizon": "15+ years",
+                "capability_profile": "Advanced AI driving economy-wide reorganization and governance shifts",
+            },
         ],
     },
     "deck_sizes": {
-        "policies_total": 18,
-        "developments_per_stage": [16, 18, 20],
+        "policies_total": 56,
+        "developments_per_stage": [30, 30, 30, 30, 30],
     },
     "mix_targets": {
         "positive_share": 0.7,

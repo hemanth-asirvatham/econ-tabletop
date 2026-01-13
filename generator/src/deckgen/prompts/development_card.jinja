@@ -59,3 +59,10 @@ Example:
   "art_prompt": "Horizontal illustration of an office skyline with glowing AI overlays, clear space top-left for text, no readable text.",
   "suggested_visibility": "faceup"
 }
+
+Effects vocabulary (use when needed, especially for powerups):
+- DRAW_DEV_NOW {count, stage_offset}: immediately reveal additional development cards this round.
+- DRAW_DEV_NEXT_STAGE_NOW {count}: immediately reveal cards from the next stage.
+- MODIFY_DEV_DRAW_NEXT_ROUND {delta}: increase/decrease next round's development draw (research acceleration/slowdown).
+- MODIFY_POLICY_DRAW_NEXT_ROUND {delta}: increase/decrease next round's policy draw (policy bandwidth shifts).
+- MODIFY_MAX_POLICIES_THIS_ROUND {delta}: change how many policies can be implemented this round.

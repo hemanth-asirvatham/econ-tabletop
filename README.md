@@ -197,6 +197,23 @@ Key knobs:
 - `models.text` and `models.image`: model slugs and generation parameters.
 - `runtime`: concurrency and batching for text/image generation.
 
+Default sizing is **5 stages**, **~30 developments per stage**, and **~56 policies**. Tune these
+directly in your config:
+
+```yaml
+stages:
+  count: 5
+  definitions:
+    - id: 0
+      name: "Stage 0"
+      time_horizon: "today / near-term"
+      capability_profile: "Frontier AI capabilities similar to present-day large models"
+    # ...
+deck_sizes:
+  policies_total: 56
+  developments_per_stage: [30, 30, 30, 30, 30]
+```
+
 ## OpenAI API usage (structured outputs + images)
 
 The generator uses the OpenAI Responses API for structured JSON outputs and the Images API for card art.

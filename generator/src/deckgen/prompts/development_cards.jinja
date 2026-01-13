@@ -57,6 +57,12 @@ Constraints:
 - For supersedes: reference a prior-stage card id when possible (provided in the beat).
 - For conditional: set activation.type=conditional and include at least one required_policy_tags item.
 - For powerup: include a non-empty effects list with meaningful parameters.
+- Effects vocabulary (use one or two max):
+  - DRAW_DEV_NOW {count, stage_offset}: immediately reveal additional development cards this round.
+  - DRAW_DEV_NEXT_STAGE_NOW {count}: immediately reveal cards from the next stage.
+  - MODIFY_DEV_DRAW_NEXT_ROUND {delta}: increase/decrease next round's development draw (research acceleration/slowdown).
+  - MODIFY_POLICY_DRAW_NEXT_ROUND {delta}: increase/decrease next round's policy draw (policy bandwidth shifts).
+  - MODIFY_MAX_POLICIES_THIS_ROUND {delta}: change how many policies can be implemented this round.
 - For quantitative_indicator: include at least one numeric indicator in the short_description (e.g., "+1.5%" or "3x").
 - art_prompt should be a concise instruction for a horizontal card illustration (no need to include title text here; it will be added later).
 

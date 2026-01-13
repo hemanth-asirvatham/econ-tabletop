@@ -1,4 +1,4 @@
-import { DevelopmentCard, GameSettings, GameState, GameStateSnapshot, PolicyCard } from "./types";
+import { DevelopmentCard, Effect, GameSettings, GameState, GameStateSnapshot, PolicyCard, RoundModifiers } from "./types";
 
 export type Action =
   | { type: "INIT_DECK"; payload: { manifest: Record<string, unknown>; policies: PolicyCard[]; developmentsByStage: Record<number, DevelopmentCard[]>; settings: GameSettings } }
@@ -31,6 +31,8 @@ export function createInitialState(settings: GameSettings): GameState {
     log: [],
     selectedDevId: null,
     selectedPolicyId: null,
+    roundModifiers: defaultRoundModifiers(),
+    triggeredDevEffects: [],
     history: [],
     future: [],
     settings,
@@ -52,6 +54,8 @@ export function gameReducer(state: GameState, action: Action): GameState {
         policyDeck,
         deckOrder,
         settings,
+        roundModifiers: defaultRoundModifiers(),
+        triggeredDevEffects: [],
         history: [...state.history, snapshot],
         future: [],
       };
@@ -59,21 +63,24 @@ export function gameReducer(state: GameState, action: Action): GameState {
     case "DEAL_STAGE": {
       const snapshot = createSnapshot(state);
       const currentStageCards = state.developmentsByStage[state.stageIndex] || [];
-      const { faceUp, faceDown, remaining } = dealDevelopments(
+      const { faceUp, faceDown } = dealDevelopments(
         currentStageCards,
         state.settings.devFaceupStart,
         state.settings.devFacedownStart,
       );
-      return {
+      let nextState: GameState = {
         ...state,
         faceUp,
         faceDown,
         dormant: currentStageCards.filter((card) => card.activation.type === "conditional"),
         round: 1,
+        roundModifiers: defaultRoundModifiers(),
         history: [...state.history, snapshot],
         future: [],
         log: [...state.log, `Dealt stage ${state.stageIndex} developments.`],
       };
+      nextState = applyEffectsForDevelopments(nextState, faceUp);
+      return nextState;
     }
     case "DRAW_ROUND": {
       const snapshot = createSnapshot(state);
@@ -81,29 +88,35 @@ export function gameReducer(state: GameState, action: Action): GameState {
       const remaining = currentStageCards.filter(
         (card) => !state.faceUp.some((up) => up.id === card.id) && !state.faceDown.some((down) => down.id === card.id),
       );
+      const faceUpCount = Math.max(0, state.settings.devFaceupPerRound + state.roundModifiers.devDrawDeltaNext);
       const { faceUp, faceDown } = dealDevelopments(
         remaining,
-        state.settings.devFaceupPerRound,
+        faceUpCount,
         state.settings.devFacedownPerRound,
       );
-      const { drawnPolicies, remainingPolicies } = drawPolicies(state.policies, state.policyDeck, state.settings.policyDrawPerRound);
-      return {
+      const policyDrawCount = Math.max(0, state.settings.policyDrawPerRound + state.roundModifiers.policyDrawDeltaNext);
+      const { drawnPolicies, remainingPolicies } = drawPolicies(state.policies, state.policyDeck, policyDrawCount);
+      let nextState: GameState = {
         ...state,
         faceUp: [...state.faceUp, ...faceUp],
         faceDown: [...state.faceDown, ...faceDown],
         policyDeck: remainingPolicies,
         hand: [...state.hand, ...drawnPolicies],
         round: state.round + 1,
+        roundModifiers: defaultRoundModifiers(),
         history: [...state.history, snapshot],
         future: [],
         log: [...state.log, `Round ${state.round + 1} draw.`],
       };
+      nextState = applyEffectsForDevelopments(nextState, faceUp);
+      return nextState;
     }
     case "PLAY_POLICY": {
       const snapshot = createSnapshot(state);
       const policy = state.hand.find((item) => item.id === action.payload.policyId);
       if (!policy) return state;
-      if (state.implemented.length >= state.settings.maxPoliciesPerRound) return state;
+      const maxPolicies = Math.max(0, state.settings.maxPoliciesPerRound + state.roundModifiers.maxPoliciesDeltaThisRound);
+      if (state.implemented.length >= maxPolicies) return state;
       return {
         ...state,
         implemented: [...state.implemented, policy],
@@ -120,7 +133,7 @@ export function gameReducer(state: GameState, action: Action): GameState {
       if (!dev) return state;
       const attachments = { ...state.attachments };
       attachments[action.payload.policyId] = [...(attachments[action.payload.policyId] || []), dev];
-      return {
+      let nextState: GameState = {
         ...state,
         faceUp: state.faceUp.filter((item) => item.id !== dev.id),
         faceDown: state.faceDown.filter((item) => item.id !== dev.id),
@@ -130,6 +143,8 @@ export function gameReducer(state: GameState, action: Action): GameState {
         future: [],
         log: [...state.log, `Attached ${dev.title} under policy.`],
       };
+      nextState = applyEffectsForDevelopments(nextState, [dev]);
+      return nextState;
     }
     case "AUTO_ATTACH": {
       const snapshot = createSnapshot(state);
@@ -144,7 +159,7 @@ export function gameReducer(state: GameState, action: Action): GameState {
           attachments[policy.id] = [...(attachments[policy.id] || []), dev];
         }
       });
-      return {
+      let nextState: GameState = {
         ...state,
         faceUp: state.faceUp.filter((dev) => !autoTargets.some((target) => target.id === dev.id)),
         attachments,
@@ -152,6 +167,8 @@ export function gameReducer(state: GameState, action: Action): GameState {
         future: [],
         log: [...state.log, `Auto-attached ${autoTargets.length} developments.`],
       };
+      nextState = applyEffectsForDevelopments(nextState, autoTargets);
+      return nextState;
     }
     case "SELECT_DEV":
       return { ...state, selectedDevId: action.payload.devId };
@@ -168,6 +185,7 @@ export function gameReducer(state: GameState, action: Action): GameState {
         implemented: [],
         attachments: {},
         round: 0,
+        roundModifiers: defaultRoundModifiers(),
         history: [...state.history, snapshot],
         future: [],
         log: [...state.log, `Advanced to stage ${state.stageIndex + 1}.`],
@@ -217,4 +235,117 @@ function findDev(state: GameState, devId: string): DevelopmentCard | undefined {
 function createSnapshot(state: GameState): GameStateSnapshot {
   const { history, future, ...snapshot } = state;
   return snapshot;
+}
+
+function defaultRoundModifiers(): RoundModifiers {
+  return {
+    devDrawDeltaNext: 0,
+    policyDrawDeltaNext: 0,
+    maxPoliciesDeltaThisRound: 0,
+  };
+}
+
+function applyEffectsForDevelopments(state: GameState, developments: DevelopmentCard[]): GameState {
+  let nextState = { ...state };
+  developments.forEach((dev) => {
+    if (nextState.triggeredDevEffects.includes(dev.id)) return;
+    if (!dev.effects || dev.effects.length === 0) return;
+    dev.effects.forEach((effect) => {
+      nextState = applyEffect(nextState, effect, dev);
+    });
+    nextState = {
+      ...nextState,
+      triggeredDevEffects: [...nextState.triggeredDevEffects, dev.id],
+    };
+  });
+  return nextState;
+}
+
+function applyEffect(state: GameState, effect: Effect, source: DevelopmentCard): GameState {
+  switch (effect.type) {
+    case "DRAW_DEV_NOW": {
+      const count = readParam(effect.params, "count");
+      const stageOffset = readParam(effect.params, "stage_offset");
+      if (count <= 0) return state;
+      const { nextState, drawn } = drawDevelopmentsFromStage(state, state.stageIndex + stageOffset, count, source);
+      return applyEffectsForDevelopments(nextState, drawn);
+    }
+    case "DRAW_DEV_NEXT_STAGE_NOW": {
+      const count = readParam(effect.params, "count");
+      if (count <= 0) return state;
+      const { nextState, drawn } = drawDevelopmentsFromStage(state, state.stageIndex + 1, count, source);
+      return applyEffectsForDevelopments(nextState, drawn);
+    }
+    case "MODIFY_DEV_DRAW_NEXT_ROUND": {
+      const delta = readParam(effect.params, "delta");
+      const roundModifiers = {
+        ...state.roundModifiers,
+        devDrawDeltaNext: state.roundModifiers.devDrawDeltaNext + delta,
+      };
+      return {
+        ...state,
+        roundModifiers,
+        log: [...state.log, `${source.title} will ${delta >= 0 ? "increase" : "decrease"} next round's development draw by ${Math.abs(delta)}.`],
+      };
+    }
+    case "MODIFY_POLICY_DRAW_NEXT_ROUND": {
+      const delta = readParam(effect.params, "delta");
+      const roundModifiers = {
+        ...state.roundModifiers,
+        policyDrawDeltaNext: state.roundModifiers.policyDrawDeltaNext + delta,
+      };
+      return {
+        ...state,
+        roundModifiers,
+        log: [...state.log, `${source.title} will ${delta >= 0 ? "increase" : "decrease"} next round's policy draw by ${Math.abs(delta)}.`],
+      };
+    }
+    case "MODIFY_MAX_POLICIES_THIS_ROUND": {
+      const delta = readParam(effect.params, "delta");
+      const roundModifiers = {
+        ...state.roundModifiers,
+        maxPoliciesDeltaThisRound: state.roundModifiers.maxPoliciesDeltaThisRound + delta,
+      };
+      return {
+        ...state,
+        roundModifiers,
+        log: [...state.log, `${source.title} changes max policies this round by ${delta >= 0 ? "+" : ""}${delta}.`],
+      };
+    }
+    default:
+      return state;
+  }
+}
+
+function drawDevelopmentsFromStage(
+  state: GameState,
+  stageIndex: number,
+  count: number,
+  source: DevelopmentCard,
+): { nextState: GameState; drawn: DevelopmentCard[] } {
+  const stageCards = state.developmentsByStage[stageIndex] || [];
+  const usedIds = new Set([
+    ...state.faceUp.map((card) => card.id),
+    ...state.faceDown.map((card) => card.id),
+    ...state.dormant.map((card) => card.id),
+    ...Object.values(state.attachments).flat().map((card) => card.id),
+  ]);
+  const available = stageCards.filter((card) => !usedIds.has(card.id));
+  const drawn = available.slice(0, count);
+  if (drawn.length === 0) return { nextState: state, drawn: [] };
+  const drawnIds = new Set(drawn.map((card) => card.id));
+  const updatedStage = stageCards.filter((card) => !drawnIds.has(card.id));
+  const nextState = {
+    ...state,
+    developmentsByStage: { ...state.developmentsByStage, [stageIndex]: updatedStage },
+    faceUp: [...state.faceUp, ...drawn],
+    log: [...state.log, `${source.title} draws ${drawn.length} development card(s) from stage ${stageIndex}.`],
+  };
+  return { nextState, drawn };
+}
+
+function readParam(params: Record<string, number>, key: string): number {
+  const value = params[key];
+  if (typeof value === "number" && !Number.isNaN(value)) return value;
+  return 0;
 }

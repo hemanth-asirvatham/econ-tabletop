@@ -56,6 +56,12 @@ export type Effect = {
   params: Record<string, number>;
 };
 
+export type RoundModifiers = {
+  devDrawDeltaNext: number;
+  policyDrawDeltaNext: number;
+  maxPoliciesDeltaThisRound: number;
+};
+
 export type GameState = {
   manifest: Record<string, unknown> | null;
   stageIndex: number;
@@ -73,6 +79,8 @@ export type GameState = {
   log: string[];
   selectedDevId: string | null;
   selectedPolicyId: string | null;
+  roundModifiers: RoundModifiers;
+  triggeredDevEffects: string[];
   history: GameStateSnapshot[];
   future: GameStateSnapshot[];
   settings: GameSettings;

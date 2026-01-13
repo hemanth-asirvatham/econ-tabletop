@@ -104,31 +104,53 @@ EFFECT_PARAMS_MODIFY = {
 }
 
 EFFECT_SCHEMA = {
-    "type": "object",
-    "additionalProperties": False,
-    "required": ["type", "params"],
-    "properties": {
-        "type": {
-            "type": "string",
-            "enum": [
-                "DRAW_DEV_NOW",
-                "DRAW_DEV_NEXT_STAGE_NOW",
-                "MODIFY_DEV_DRAW_NEXT_ROUND",
-                "MODIFY_POLICY_DRAW_NEXT_ROUND",
-                "MODIFY_MAX_POLICIES_THIS_ROUND",
-            ],
-        },
-        "params": {
+    "oneOf": [
+        {
             "type": "object",
             "additionalProperties": False,
-            "required": ["count", "stage_offset", "delta"],
+            "required": ["type", "params"],
             "properties": {
-                "count": {"type": ["integer", "null"], "minimum": 1},
-                "stage_offset": {"type": ["integer", "null"], "minimum": 0},
-                "delta": {"type": ["integer", "null"]},
+                "type": {"const": "DRAW_DEV_NOW"},
+                "params": EFFECT_PARAMS_DRAW_NOW,
             },
         },
-    },
+        {
+            "type": "object",
+            "additionalProperties": False,
+            "required": ["type", "params"],
+            "properties": {
+                "type": {"const": "DRAW_DEV_NEXT_STAGE_NOW"},
+                "params": EFFECT_PARAMS_DRAW_NEXT_STAGE,
+            },
+        },
+        {
+            "type": "object",
+            "additionalProperties": False,
+            "required": ["type", "params"],
+            "properties": {
+                "type": {"const": "MODIFY_DEV_DRAW_NEXT_ROUND"},
+                "params": EFFECT_PARAMS_MODIFY,
+            },
+        },
+        {
+            "type": "object",
+            "additionalProperties": False,
+            "required": ["type", "params"],
+            "properties": {
+                "type": {"const": "MODIFY_POLICY_DRAW_NEXT_ROUND"},
+                "params": EFFECT_PARAMS_MODIFY,
+            },
+        },
+        {
+            "type": "object",
+            "additionalProperties": False,
+            "required": ["type", "params"],
+            "properties": {
+                "type": {"const": "MODIFY_MAX_POLICIES_THIS_ROUND"},
+                "params": EFFECT_PARAMS_MODIFY,
+            },
+        },
+    ]
 }
 
 DEVELOPMENT_CARD_SCHEMA = {
