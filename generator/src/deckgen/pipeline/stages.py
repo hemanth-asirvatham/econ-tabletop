@@ -162,7 +162,7 @@ def _build_text_payload(prompt: str, model_cfg: dict[str, Any], schema: dict[str
     payload: dict[str, Any] = {
         "model": model_cfg.get("model"),
         "input": format_text_input(model_cfg.get("model"), prompt),
-        "response_format": {"type": "json_schema", "json_schema": {"name": name, "schema": schema, "strict": True}},
+        "text": {"format": {"type": "json_schema", "name": name, "schema": schema, "strict": True}},
         "store": model_cfg.get("store", False),
     }
     if model_cfg.get("max_output_tokens") is not None:
