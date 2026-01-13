@@ -5,6 +5,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+import asyncio
+
 from rich.console import Console
 
 from deckgen.config import load_config
@@ -84,15 +86,33 @@ def run_generate(config_path: Path, out_dir: Path, *, reset: bool = False) -> No
         outline_text = generate_simulation_outline(config.data, taxonomy, out_dir, reuse_existing=not reset)
 
     policies_path = out_dir / "cards" / "policies.jsonl"
-    if not reset and policies_path.exists():
+    should_generate_policies = reset or not policies_path.exists()
+    if not should_generate_policies:
         console.print(f"[green]Policy cards already exist; loading from {policies_path}.[/green]")
         policies = read_jsonl(policies_path)
     else:
         if reset:
             console.print("[yellow]Reset enabled; regenerating policy cards.[/yellow]")
-        policies = generate_policies(config.data, taxonomy, outline_text, out_dir)
 
-    developments = generate_stage_cards(config.data, taxonomy, outline_text, out_dir, reuse_existing=not reset)
+    async def _generate_cards() -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+        policy_task = (
+            asyncio.to_thread(generate_policies, config.data, taxonomy, outline_text, out_dir)
+            if should_generate_policies
+            else asyncio.to_thread(read_jsonl, policies_path)
+        )
+        dev_task = asyncio.to_thread(
+            generate_stage_cards,
+            config.data,
+            taxonomy,
+            outline_text,
+            out_dir,
+            reuse_existing=not reset,
+        )
+        results = await asyncio.gather(policy_task, dev_task)
+        return results[0], results[1]
+
+    console.print("[cyan]Generating policy and development cards in parallel.[/cyan]")
+    policies, developments = asyncio.run(_generate_cards())
 
     manifest = {
         "deck_id": out_dir.name,
@@ -129,15 +149,33 @@ def run_generate_from_config(config_data: dict[str, Any], out_dir: Path, *, rese
         outline_text = generate_simulation_outline(config_data, taxonomy, out_dir, reuse_existing=not reset)
 
     policies_path = out_dir / "cards" / "policies.jsonl"
-    if not reset and policies_path.exists():
+    should_generate_policies = reset or not policies_path.exists()
+    if not should_generate_policies:
         console.print(f"[green]Policy cards already exist; loading from {policies_path}.[/green]")
         policies = read_jsonl(policies_path)
     else:
         if reset:
             console.print("[yellow]Reset enabled; regenerating policy cards.[/yellow]")
-        policies = generate_policies(config_data, taxonomy, outline_text, out_dir)
 
-    developments = generate_stage_cards(config_data, taxonomy, outline_text, out_dir, reuse_existing=not reset)
+    async def _generate_cards() -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+        policy_task = (
+            asyncio.to_thread(generate_policies, config_data, taxonomy, outline_text, out_dir)
+            if should_generate_policies
+            else asyncio.to_thread(read_jsonl, policies_path)
+        )
+        dev_task = asyncio.to_thread(
+            generate_stage_cards,
+            config_data,
+            taxonomy,
+            outline_text,
+            out_dir,
+            reuse_existing=not reset,
+        )
+        results = await asyncio.gather(policy_task, dev_task)
+        return results[0], results[1]
+
+    console.print("[cyan]Generating policy and development cards in parallel.[/cyan]")
+    policies, developments = asyncio.run(_generate_cards())
 
     manifest = {
         "deck_id": out_dir.name,

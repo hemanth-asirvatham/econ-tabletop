@@ -17,9 +17,10 @@ Requirements:
 - Use the exact title text (verbatim, same capitalization/punctuation): "{{ card.title }}".
 - Use the exact short description text (verbatim, same capitalization/punctuation): "{{ card.short_description }}".
 - Place the title in the title band and the description in the body area; ensure high legibility.
-- Include a small label reading "OUTCOME" (or "DEVELOPMENT") in an upper corner.
+- Include a small label reading "Stage {{ card.stage }}" in the upper-left corner.
+- Include a small label reading "OUTCOME" (or "DEVELOPMENT") in the upper-right corner, positioned above the carrots.
 - Include small up/down carrot icons matching arrows_up={{ card.arrows_up }} and arrows_down={{ card.arrows_down }}.
-- Place the carrots in the upper-right corner; stack more carrots for higher magnitude.
+- Place the carrots in the upper-right corner under the label; stack more carrots for higher magnitude.
 - If arrows_up=0 and arrows_down=0, show a neutral gray horizontal line in the upper-right instead of carrots.
 - Provide minimalist background artwork that reinforces the development theme without competing with text.
 - Keep the style consistent across cards: modern, clean, minimal, lots of negative space.
@@ -30,10 +31,10 @@ Requirements:
 - Use scenario motifs when provided.
 
 Output format (single sentence):
-"Horizontal 3:2 development game card with a thin frame, title text '{{ card.title }}' in the top band, description text '{{ card.short_description }}' in the body, a small 'OUTCOME' label in the upper-left corner, and {{ card.arrows_up }} stacked green up-carrots plus {{ card.arrows_down }} stacked red down-carrots in the upper-right (or a single neutral gray line if both are zero); background shows a minimalist <development-themed motif> with thin line icons, muted palette, generous whitespace, matching any reference image, no other text."
+"Horizontal 3:2 development game card with a thin frame, title text '{{ card.title }}' in the top band, description text '{{ card.short_description }}' in the body, a small 'Stage {{ card.stage }}' label in the upper-left corner, a small 'OUTCOME' label in the upper-right corner above the carrots, and {{ card.arrows_up }} stacked green up-carrots plus {{ card.arrows_down }} stacked red down-carrots in the upper-right (or a single neutral gray line if both are zero); background shows a minimalist <development-themed motif> with thin line icons, muted palette, generous whitespace, matching any reference image, no other text."
 
 Example:
-"Horizontal 3:2 development game card with a thin frame, title text 'Copilots Spread Across Office Work' and description text 'Early productivity gains (+1.2%) appear in high-income service roles.' in the body, a small 'OUTCOME' label in the upper-left corner, and two stacked green up-carrots plus one stacked red down-carrot in the upper-right; background shows a minimalist office skyline icon with soft gradients, subtle Gulf architecture accents, ample whitespace, no other text."
+"Horizontal 3:2 development game card with a thin frame, title text 'Copilots Spread Across Office Work' and description text 'Early productivity gains (+1.2%) appear in high-income service roles.' in the body, a small 'Stage 1' label in the upper-left corner, a small 'OUTCOME' label in the upper-right corner above the carrots, and two stacked green up-carrots plus one stacked red down-carrot in the upper-right; background shows a minimalist office skyline icon with soft gradients, subtle Gulf architecture accents, ample whitespace, no other text."
 
 Example (exact text emphasis):
-"Horizontal 3:2 development game card with a thin frame, title text 'Regional Chip Supply Expands' in the top band, description text 'New fabs raise capacity but delay pricing relief.' in the body, a small 'OUTCOME' label in the upper-left corner, and 1 stacked green up-carrot plus 2 stacked red down-carrots in the upper-right; background shows a minimalist chip icon with circuit lines, muted slate and gold palette, clean flat illustration, no other text."
+"Horizontal 3:2 development game card with a thin frame, title text 'Regional Chip Supply Expands' in the top band, description text 'New fabs raise capacity but delay pricing relief.' in the body, a small 'Stage 2' label in the upper-left corner, a small 'OUTCOME' label in the upper-right corner above the carrots, and 1 stacked green up-carrot plus 2 stacked red down-carrots in the upper-right; background shows a minimalist chip icon with circuit lines, muted slate and gold palette, clean flat illustration, no other text."

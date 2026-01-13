@@ -91,6 +91,25 @@ class OpenAIClient:
             raise
         return resp.json()
 
+    async def responses_async(self, payload: dict[str, Any]) -> dict[str, Any]:
+        if self.use_dummy or not self.api_key:
+            if self.use_dummy:
+                console.print("[yellow]ECON_TABLETOP_DUMMY_OPENAI enabled. Returning dummy response.[/yellow]")
+            else:
+                console.print("[yellow]OPENAI_API_KEY not set. Returning dummy response.[/yellow]")
+            return {"output": [{"content": [{"type": "output_text", "text": json.dumps({})}]}]}
+        async with httpx.AsyncClient(timeout=self._timeout_config()) as client:
+            resp = await client.post(f"{self.base_url}/responses", headers=self._headers(), json=payload)
+            try:
+                resp.raise_for_status()
+            except httpx.HTTPStatusError:
+                console.print(
+                    "[red]OpenAI responses request failed.[/red]"
+                    f" Status: {resp.status_code}. Body: {resp.text}"
+                )
+                raise
+            return resp.json()
+
     def images_generate(self, payload: dict[str, Any]) -> dict[str, Any]:
         if self.use_dummy or not self.api_key:
             if self.use_dummy:

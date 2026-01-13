@@ -3,10 +3,10 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+import asyncio
 import itertools
 from jsonschema import Draft202012Validator
 from rich.console import Console
-from tqdm import tqdm
 
 from deckgen.config import resolve_config
 from deckgen.schemas import (
@@ -19,6 +19,7 @@ from deckgen.schemas import (
 from deckgen.utils.cache import cache_dir_for
 from deckgen.utils.io import read_jsonl, write_json, write_jsonl
 from deckgen.utils.openai_client import OpenAIClient, format_text_input
+from deckgen.utils.parallel import gather_with_concurrency
 from deckgen.utils.prompts import render_prompt
 from deckgen.utils.utility_functions import (
     dummy_development_cards,
@@ -42,6 +43,7 @@ def generate_stage_cards(
     runtime = resolved.get("runtime", {})
     model_cfg = resolved.get("models", {}).get("text", {})
     prompt_path = runtime.get("prompt_path")
+    concurrency_text = runtime.get("concurrency_text", 8)
     tags = taxonomy["tags"]
     stages = resolved.get("stages", {}).get("definitions", [])
     stage_counts = resolved["deck_sizes"]["developments_per_stage"]
@@ -50,12 +52,10 @@ def generate_stage_cards(
 
     all_cards: list[dict[str, Any]] = []
     summaries: list[dict[str, Any]] = []
+    stages_to_generate: list[dict[str, Any]] = []
+    stage_cards_by_index: dict[int, list[dict[str, Any]]] = {}
 
-    for stage_index, count in tqdm(
-        enumerate(stage_counts),
-        total=len(stage_counts),
-        desc="Generating stages",
-    ):
+    for stage_index, count in enumerate(stage_counts):
         stage_def = stages[min(stage_index, len(stages) - 1)] if stages else {"id": stage_index}
         stage_path = out_dir / "cards" / f"developments.stage{stage_index}.jsonl"
         if reuse_existing and stage_path.exists():
@@ -69,23 +69,15 @@ def generate_stage_cards(
                 console.print(
                     f"[green]Stage {stage_index} cards already exist; loading from {stage_path}.[/green]"
                 )
-            all_cards.extend(stage_cards)
-            summary = _generate_stage_summary(
-                stage_index=stage_index,
-                stage_def=stage_def,
-                stage_cards=stage_cards,
-                scenario=scenario,
-                prompt_path=prompt_path,
-                model_cfg=model_cfg,
-                cache_dir=cache_dir,
-                client=client,
-                outline_text=outline_text,
-            )
-            summaries.append(summary)
+            stage_cards_by_index[stage_index] = stage_cards
             continue
+        stages_to_generate.append({"index": stage_index, "count": count, "def": stage_def})
 
+    async def _generate_stage(stage_spec: dict[str, Any]) -> tuple[int, list[dict[str, Any]]]:
+        stage_index = stage_spec["index"]
+        count = stage_spec["count"]
+        stage_def = stage_spec["def"]
         console.print(f"[cyan]Generating stage {stage_index} with {count} development cards.[/cyan]")
-
         if client.use_dummy:
             blueprint = dummy_stage_blueprint(stage=stage_def, tags=tags, target_count=count)
         else:
@@ -105,7 +97,7 @@ def generate_stage_cards(
                 STAGE_BLUEPRINT_SCHEMA,
                 name=f"stage{stage_index}_blueprint",
             )
-            blueprint_response = client.responses(blueprint_payload)
+            blueprint_response = await client.responses_async(blueprint_payload)
             if cache_dir:
                 client.save_payload(cache_dir, f"stage{stage_index}_blueprint", blueprint_payload, blueprint_response)
             blueprint = _parse_response_json(blueprint_response) or {}
@@ -140,7 +132,7 @@ def generate_stage_cards(
                 DEVELOPMENT_CARDS_RESPONSE_SCHEMA,
                 name=f"stage{stage_index}_cards",
             )
-            cards_response = client.responses(cards_payload)
+            cards_response = await client.responses_async(cards_payload)
             if cache_dir:
                 client.save_payload(cache_dir, f"stage{stage_index}_cards", cards_payload, cards_response)
             response = _parse_response_json(cards_response) or {}
@@ -152,9 +144,36 @@ def generate_stage_cards(
             tags,
             beats,
         )
-        for idx, card in enumerate(tqdm(stage_cards, desc=f"Stage {stage_index} art prompts")):
+        for idx, card in enumerate(stage_cards):
             card["id"] = card_ids[idx]
             card["stage"] = stage_index
+            card.setdefault("art_prompt", "")
+        return stage_index, stage_cards
+
+    if stages_to_generate:
+        console.print("[cyan]Generating development cards in parallel across stages.[/cyan]")
+        results = asyncio.run(
+            gather_with_concurrency(
+                concurrency_text,
+                [lambda spec=spec: _generate_stage(spec) for spec in stages_to_generate],
+            )
+        )
+        for stage_index, stage_cards in results:
+            stage_cards_by_index[stage_index] = stage_cards
+
+    cards_needing_prompts: list[dict[str, Any]] = []
+    for stage_index, count in enumerate(stage_counts):
+        stage_cards = stage_cards_by_index.get(stage_index, [])
+        if not stage_cards:
+            continue
+        for card in stage_cards:
+            if not card.get("art_prompt"):
+                cards_needing_prompts.append(card)
+
+    if cards_needing_prompts:
+        console.print("[cyan]Generating development art prompts in parallel.[/cyan]")
+
+        def _render_prompt(card: dict[str, Any]) -> dict[str, Any]:
             card["art_prompt"] = render_prompt(
                 "image_prompt_development.jinja",
                 prompt_path=prompt_path,
@@ -163,12 +182,20 @@ def generate_stage_cards(
                 locale_visuals=scenario.get("locale_visuals", []),
                 outline_text=outline_text,
             ).strip()
-            Draft202012Validator(DEVELOPMENT_CARD_SCHEMA).validate(card)
+            return card
 
-        write_jsonl(out_dir / "cards" / f"developments.stage{stage_index}.jsonl", stage_cards)
-        all_cards.extend(stage_cards)
+        asyncio.run(
+            gather_with_concurrency(
+                concurrency_text,
+                [lambda card=card: asyncio.to_thread(_render_prompt, card) for card in cards_needing_prompts],
+            )
+        )
 
-        summary = _generate_stage_summary(
+    console.print("[cyan]Generating stage summaries in parallel.[/cyan]")
+
+    async def _summary_task(stage_index: int, stage_cards: list[dict[str, Any]]) -> dict[str, Any]:
+        stage_def = stages[min(stage_index, len(stages) - 1)] if stages else {"id": stage_index}
+        return await _generate_stage_summary_async(
             stage_index=stage_index,
             stage_def=stage_def,
             stage_cards=stage_cards,
@@ -179,7 +206,25 @@ def generate_stage_cards(
             client=client,
             outline_text=outline_text,
         )
-        summaries.append(summary)
+
+    summary_results = asyncio.run(
+        gather_with_concurrency(
+            concurrency_text,
+            [
+                lambda stage_index=stage_index, stage_cards=stage_cards: _summary_task(
+                    stage_index, stage_cards
+                )
+                for stage_index, stage_cards in stage_cards_by_index.items()
+            ],
+        )
+    )
+    summaries.extend(summary_results)
+
+    for stage_index, stage_cards in stage_cards_by_index.items():
+        for card in stage_cards:
+            Draft202012Validator(DEVELOPMENT_CARD_SCHEMA).validate(card)
+        write_jsonl(out_dir / "cards" / f"developments.stage{stage_index}.jsonl", stage_cards)
+        all_cards.extend(stage_cards)
 
     write_json(out_dir / "meta" / "stage_summaries.json", summaries)
     return all_cards
@@ -214,6 +259,40 @@ def _generate_stage_summary(
         name=f"stage{stage_index}_summary",
     )
     summary_response = client.responses(summary_payload)
+    if cache_dir:
+        client.save_payload(cache_dir, f"stage{stage_index}_summary", summary_payload, summary_response)
+    return _parse_response_json(summary_response) or {"stage": stage_index, "facts": [], "changes_vs_prior": []}
+
+
+async def _generate_stage_summary_async(
+    *,
+    stage_index: int,
+    stage_def: dict[str, Any],
+    stage_cards: list[dict[str, Any]],
+    scenario: dict[str, Any],
+    prompt_path: str | None,
+    model_cfg: dict[str, Any],
+    cache_dir: Path | None,
+    client: OpenAIClient,
+    outline_text: str,
+) -> dict[str, Any]:
+    if client.use_dummy:
+        return dummy_stage_summary(stage_index=stage_index, cards=stage_cards)
+    summary_prompt = render_prompt(
+        "stage_summary.jinja",
+        prompt_path=prompt_path,
+        scenario_injection=scenario.get("injection", ""),
+        stage=stage_def,
+        cards=stage_cards,
+        outline_text=outline_text,
+    )
+    summary_payload = _build_text_payload(
+        summary_prompt,
+        model_cfg,
+        STAGE_SUMMARY_SCHEMA,
+        name=f"stage{stage_index}_summary",
+    )
+    summary_response = await client.responses_async(summary_payload)
     if cache_dir:
         client.save_payload(cache_dir, f"stage{stage_index}_summary", summary_payload, summary_response)
     return _parse_response_json(summary_response) or {"stage": stage_index, "facts": [], "changes_vs_prior": []}
