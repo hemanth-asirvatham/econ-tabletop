@@ -224,7 +224,7 @@ def deck_builder(
         stages=stages,
     )
 
-    if reuse_existing and _deck_has_cards(deck_path):
+    if reuse_existing and _deck_has_all_cards(deck_path, config):
         print(f"Deck already exists at {deck_path}; reusing existing cards.")
     else:
         run_generate_from_config(config, deck_path, reset=reset_files)
@@ -445,5 +445,13 @@ def _build_config(
     return resolve_config(overrides)
 
 
-def _deck_has_cards(deck_dir: Path) -> bool:
-    return (deck_dir / "cards" / "policies.jsonl").exists()
+def _deck_has_all_cards(deck_dir: Path, config: dict[str, Any]) -> bool:
+    cards_dir = deck_dir / "cards"
+    if not (cards_dir / "policies.jsonl").exists():
+        return False
+
+    stage_counts = config.get("deck_sizes", {}).get("developments_per_stage", [])
+    for stage_index in range(len(stage_counts)):
+        if not (cards_dir / f"developments.stage{stage_index}.jsonl").exists():
+            return False
+    return True
