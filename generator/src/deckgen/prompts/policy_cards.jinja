@@ -50,6 +50,9 @@ Output JSON schema:
 
 Constraints:
 - Produce exactly one card per slot, in the same order as card_ids.
+- Generate the full list in one response; do not split or stream per-card outputs.
+- Keep policies mutually exclusive: each card should represent a distinct lever, target, or mechanism without overlapping other cards.
+- Avoid near-duplicates by varying instruments, stakeholders, and implementation mechanisms across the set.
 - Categories and tags must come from the allowed lists.
 - Use 1-3 tags per card; addresses_tags must overlap with the card tags.
 - Use grounded, policy-relevant language; avoid sci-fi or sensationalism.

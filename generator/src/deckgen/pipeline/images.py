@@ -102,8 +102,8 @@ def generate_images(
         for card in developments
     ]
 
-    _run_batches(policy_tasks, image_batch_size, concurrency, desc="Policy images")
-    _run_batches(dev_tasks, image_batch_size, concurrency, desc="Development images")
+    all_tasks = policy_tasks + dev_tasks
+    _run_batches(all_tasks, image_batch_size, concurrency, desc="Card images")
 
 
 def _generate_card_image(
