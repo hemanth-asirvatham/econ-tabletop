@@ -153,6 +153,34 @@ EFFECT_SCHEMA = {
     ]
 }
 
+EFFECT_RESPONSE_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["type", "params"],
+    "properties": {
+        "type": {
+            "type": "string",
+            "enum": [
+                "DRAW_DEV_NOW",
+                "DRAW_DEV_NEXT_STAGE_NOW",
+                "MODIFY_DEV_DRAW_NEXT_ROUND",
+                "MODIFY_POLICY_DRAW_NEXT_ROUND",
+                "MODIFY_MAX_POLICIES_THIS_ROUND",
+            ],
+        },
+        "params": {
+            "type": "object",
+            "additionalProperties": False,
+            "minProperties": 1,
+            "properties": {
+                "count": {"type": "integer", "minimum": 1},
+                "stage_offset": {"type": "integer", "minimum": 0},
+                "delta": {"type": "integer"},
+            },
+        },
+    },
+}
+
 DEVELOPMENT_CARD_SCHEMA = {
     "type": "object",
     "additionalProperties": False,
@@ -212,6 +240,25 @@ DEVELOPMENT_CARDS_SCHEMA = {
             "items": DEVELOPMENT_CARD_SCHEMA,
             "minItems": 1,
         }
+    },
+}
+
+DEVELOPMENT_CARD_RESPONSE_SCHEMA = {
+    **DEVELOPMENT_CARD_SCHEMA,
+    "properties": {
+        **DEVELOPMENT_CARD_SCHEMA["properties"],
+        "effects": {"type": "array", "items": EFFECT_RESPONSE_SCHEMA},
+    },
+}
+
+DEVELOPMENT_CARDS_RESPONSE_SCHEMA = {
+    **DEVELOPMENT_CARDS_SCHEMA,
+    "properties": {
+        **DEVELOPMENT_CARDS_SCHEMA["properties"],
+        "cards": {
+            **DEVELOPMENT_CARDS_SCHEMA["properties"]["cards"],
+            "items": DEVELOPMENT_CARD_RESPONSE_SCHEMA,
+        },
     },
 }
 
