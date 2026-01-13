@@ -45,7 +45,11 @@ def generate_stage_cards(config: dict[str, Any], taxonomy: dict[str, Any], out_d
     prior_summary: dict[str, Any] | None = None
     prior_card_ids: list[str] = []
 
-    for stage_index, count in enumerate(stage_counts):
+    for stage_index, count in tqdm(
+        enumerate(stage_counts),
+        total=len(stage_counts),
+        desc="Generating stages",
+    ):
         stage_def = stages[min(stage_index, len(stages) - 1)] if stages else {"id": stage_index}
         console.print(f"[cyan]Generating stage {stage_index} with {count} development cards.[/cyan]")
 

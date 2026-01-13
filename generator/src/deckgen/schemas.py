@@ -75,23 +75,82 @@ POLICY_CARDS_SCHEMA = {
     },
 }
 
-EFFECT_SCHEMA = {
+EFFECT_PARAMS_DRAW_NOW = {
     "type": "object",
     "additionalProperties": False,
-    "required": ["type", "params"],
+    "required": ["count", "stage_offset"],
     "properties": {
-        "type": {
-            "type": "string",
-            "enum": [
-                "DRAW_DEV_NOW",
-                "DRAW_DEV_NEXT_STAGE_NOW",
-                "MODIFY_DEV_DRAW_NEXT_ROUND",
-                "MODIFY_POLICY_DRAW_NEXT_ROUND",
-                "MODIFY_MAX_POLICIES_THIS_ROUND",
-            ],
-        },
-        "params": {"type": "object"},
+        "count": {"type": "integer", "minimum": 1},
+        "stage_offset": {"type": "integer", "minimum": 0},
     },
+}
+
+EFFECT_PARAMS_DRAW_NEXT_STAGE = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["count"],
+    "properties": {
+        "count": {"type": "integer", "minimum": 1},
+    },
+}
+
+EFFECT_PARAMS_MODIFY = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["delta"],
+    "properties": {
+        "delta": {"type": "integer"},
+    },
+}
+
+EFFECT_SCHEMA = {
+    "oneOf": [
+        {
+            "type": "object",
+            "additionalProperties": False,
+            "required": ["type", "params"],
+            "properties": {
+                "type": {"const": "DRAW_DEV_NOW"},
+                "params": EFFECT_PARAMS_DRAW_NOW,
+            },
+        },
+        {
+            "type": "object",
+            "additionalProperties": False,
+            "required": ["type", "params"],
+            "properties": {
+                "type": {"const": "DRAW_DEV_NEXT_STAGE_NOW"},
+                "params": EFFECT_PARAMS_DRAW_NEXT_STAGE,
+            },
+        },
+        {
+            "type": "object",
+            "additionalProperties": False,
+            "required": ["type", "params"],
+            "properties": {
+                "type": {"const": "MODIFY_DEV_DRAW_NEXT_ROUND"},
+                "params": EFFECT_PARAMS_MODIFY,
+            },
+        },
+        {
+            "type": "object",
+            "additionalProperties": False,
+            "required": ["type", "params"],
+            "properties": {
+                "type": {"const": "MODIFY_POLICY_DRAW_NEXT_ROUND"},
+                "params": EFFECT_PARAMS_MODIFY,
+            },
+        },
+        {
+            "type": "object",
+            "additionalProperties": False,
+            "required": ["type", "params"],
+            "properties": {
+                "type": {"const": "MODIFY_MAX_POLICIES_THIS_ROUND"},
+                "params": EFFECT_PARAMS_MODIFY,
+            },
+        },
+    ]
 }
 
 DEVELOPMENT_CARD_SCHEMA = {
