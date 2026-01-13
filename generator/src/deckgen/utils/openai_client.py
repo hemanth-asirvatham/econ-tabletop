@@ -17,12 +17,6 @@ def format_text_input(model: str | None, prompt: str) -> str | list[dict[str, st
     return prompt
 
 
-def supports_temperature(model: str | None) -> bool:
-    if not model:
-        return True
-    return not (model.startswith("gpt-5") or model.startswith("o"))
-
-
 class OpenAIClient:
     def __init__(
         self,
