@@ -42,6 +42,7 @@ Constraints:
 - Include a few powerup-style beats that explicitly describe acceleration or deceleration effects (e.g., research acceleration,
   compute bottlenecks, regulatory slowdowns) suitable for draw/limit modifiers.
 - Avoid duplicate beats across threads.
+- Use valence_target=positive or negative for most threads; only use mixed for neutral beats (no red/green arrow icons).
 - Produce thread target_counts that sum to {{ target_count }} (or as close as possible).
 
 Example:
@@ -51,7 +52,7 @@ Example:
       "thread_id": "labor_market_polarization",
       "beat_plan": ["AI copilots raise top-tier productivity", "mid-skill squeeze intensifies"],
       "target_count": 2,
-      "valence_target": "mixed"
+      "valence_target": "negative"
     }
   ],
   "special_counts": {

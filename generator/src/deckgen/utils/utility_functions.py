@@ -90,7 +90,7 @@ def dummy_stage_blueprint(
                     f"Acceleration in {tag.replace('_', ' ')} adoption",
                 ],
                 "target_count": max(1, target_count // thread_count),
-                "valence_target": "mixed",
+                "valence_target": "positive",
             }
         )
     return {
@@ -122,9 +122,9 @@ def dummy_development_cards(
                 "title": f"Stage {stage_index} {tag.replace('_', ' ').title()} Shift",
                 "short_description": beat.get("beat") or f"Observed shift in {tag.replace('_', ' ')}.",
                 "description": "Grounded development reflecting AI deployment trends and economic impacts.",
-                "valence": "mixed",
-                "arrows_up": 2,
-                "arrows_down": 1,
+                "valence": "positive",
+                "arrows_up": 1,
+                "arrows_down": 0,
                 "severity": 3,
                 "tags": [tag],
                 "thread_id": beat.get("thread_id") or f"thread_{stage_index}",
@@ -154,13 +154,13 @@ def dummy_stage_summary(
 def dummy_image_outline() -> str:
     return "\n".join(
         [
-            "- 3:2 horizontal card with a thin frame and a clean title band.",
-            "- Title in the top band; short description in the body with high legibility.",
-            "- Small corner label (POLICY or DEVELOPMENT), plus STAGE/OUTCOME tags where relevant.",
-            "- Outcome indicators: stacked green up-carets and red down-carets; neutral gray line if zero.",
-            "- Score chips/bars for IMPACT or SEVERITY using filled dots (1–5).",
+            "- 3:2 horizontal card that fills the frame with a full border.",
+            "- Title near top; short description near bottom; text is minimal and highly legible.",
+            "- Policy cards: no stage/carets; bottom row with Cost, Time, Impact, Category labels.",
+            "- Development cards: stage number upper-left; caret stack upper-right; neutral gray line if zero.",
+            "- Outcome indicators: green up-carets or red down-carets only (never both).",
+            "- Score chips/bars for SEVERITY using filled dots (1–5).",
             "- Minimalist line-art motifs; muted palette; generous whitespace; no extra text.",
-            "- Flat or lightly shaded illustration, subtle gradients, consistent modern styling.",
         ]
     )
 
@@ -223,7 +223,8 @@ def dummy_simulation_outline(
             "- Use DRAW_DEV_NOW and MODIFY_DEV_DRAW_NEXT_ROUND sparingly.",
             "",
             "6) Card Formatting (policy + development layout, valence iconography)",
-            "- Upper-right: green up-carets, red down-carets, neutral gray line if zero.",
+            "- Development: stage number upper-left; carets upper-right (green or red only; neutral gray line if zero).",
+            "- Policy: no stage/carets; bottom row with Cost, Time, Impact, Category labels.",
             "",
             "7) Art Direction (minimalist, lightly impressionist; Victoria 3-style vibe)",
             "- Muted palette, thin-line icons, generous whitespace.",

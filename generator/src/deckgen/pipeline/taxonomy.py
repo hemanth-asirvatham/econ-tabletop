@@ -20,6 +20,7 @@ console = Console()
 DEFAULT_CATEGORIES = [
     "energy",
     "science",
+    "defense",
     "labor",
     "governance",
     "markets",
@@ -152,6 +153,8 @@ def _normalize_category(category: str) -> str:
         "power and energy": "energy",
         "science and research": "science",
         "r&d": "science",
+        "defense and security": "defense",
+        "national security": "defense",
         "labor market": "labor",
         "workforce": "labor",
         "governance and institutions": "governance",
