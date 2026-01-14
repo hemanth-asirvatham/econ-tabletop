@@ -4,9 +4,12 @@ type Props = {
 
 export function EventLog({ log }: Props) {
   return (
-    <section style={{ background: "#0f172a", padding: 12, borderRadius: 8 }}>
-      <h3 style={{ color: "#f8fafc" }}>Event Log</h3>
-      <ul style={{ color: "#cbd5f5" }}>
+    <section className="event-log">
+      <div className="event-log__header">
+        <h3>Event Log</h3>
+        <p>Latest actions and milestones.</p>
+      </div>
+      <ul>
         {log.map((entry, index) => (
           <li key={`${entry}-${index}`}>{entry}</li>
         ))}

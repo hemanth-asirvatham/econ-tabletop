@@ -57,99 +57,99 @@ export function Table({
   }
 
   return (
-    <div style={{ display: "grid", gap: 24 }}>
-      <Lane title="Face-up Developments">
-        {faceUp.map((dev) => (
-          <Card
-            key={dev.id}
-            card={dev}
-            type="development"
-            imageBaseUrl={imageBaseUrl}
-            selected={selectedDevId === dev.id}
-            dragPayload={{ kind: "development", id: dev.id }}
-            onClick={() => onSelectDev(dev.id)}
-          />
-        ))}
-      </Lane>
-      <Lane title="Face-down Developments">
-        {faceDown.map((dev) => (
-          <Card
-            key={dev.id}
-            card={dev}
-            type="development"
-            imageBaseUrl={imageBaseUrl}
-            selected={selectedDevId === dev.id}
-            dragPayload={{ kind: "development", id: dev.id }}
-            onClick={() => onSelectDev(dev.id)}
-          />
-        ))}
-      </Lane>
-      <Lane title="Dormant Developments">
-        {dormant.map((dev) => (
-          <Card
-            key={dev.id}
-            card={dev}
-            type="development"
-            imageBaseUrl={imageBaseUrl}
-            selected={selectedDevId === dev.id}
-            dragPayload={{ kind: "development", id: dev.id }}
-            onClick={() => onSelectDev(dev.id)}
-          />
-        ))}
-      </Lane>
-      <Lane
-        title="Implemented Policies"
-        onDrop={(event) => {
-          const payload = readPayload(event);
-          if (payload?.kind === "policy") {
-            onPlayPolicy(payload.id);
-          }
-          setPolicyDropActive(false);
-        }}
-        onDragEnter={() => setPolicyDropActive(true)}
-        onDragLeave={() => setPolicyDropActive(false)}
-        isActive={policyDropActive}
-      >
-        {implemented.map((policy) => (
-          <div
-            key={policy.id}
-            onDragOver={(event) => event.preventDefault()}
-            onDragEnter={() => setHoveredPolicyId(policy.id)}
-            onDragLeave={() => setHoveredPolicyId(null)}
-            onDrop={(event) => {
-              const payload = readPayload(event);
-              if (payload?.kind === "development") {
-                onAttach(policy.id, payload.id);
-              }
-              setHoveredPolicyId(null);
-            }}
-            style={{
-              display: "grid",
-              gap: 8,
-              padding: 8,
-              borderRadius: 10,
-              border:
-                hoveredPolicyId === policy.id
-                  ? "2px dashed rgba(125, 211, 252, 0.7)"
-                  : "1px solid rgba(148, 163, 184, 0.2)",
-              background: "rgba(15, 23, 42, 0.6)",
-            }}
-          >
+    <div className="table">
+      <div className="table__grid">
+        <Lane title="Face-up Developments" className="lane lane--market lane--faceup">
+          {faceUp.map((dev) => (
             <Card
-              card={policy}
-              type="policy"
+              key={dev.id}
+              card={dev}
+              type="development"
               imageBaseUrl={imageBaseUrl}
-              selected={selectedPolicyId === policy.id}
-              onClick={() => onSelectPolicy(policy.id)}
+              selected={selectedDevId === dev.id}
+              dragPayload={{ kind: "development", id: dev.id }}
+              onClick={() => onSelectDev(dev.id)}
             />
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              {(attachments[policy.id] || []).map((dev) => (
-                <Card key={dev.id} card={dev} type="development" imageBaseUrl={imageBaseUrl} />
-              ))}
-            </div>
-          </div>
-        ))}
-      </Lane>
+          ))}
+        </Lane>
+
+        <Lane
+          title="Policy Center"
+          className="lane lane--policy"
+          onDrop={(event) => {
+            const payload = readPayload(event);
+            if (payload?.kind === "policy") {
+              onPlayPolicy(payload.id);
+            }
+            setPolicyDropActive(false);
+          }}
+          onDragEnter={() => setPolicyDropActive(true)}
+          onDragLeave={() => setPolicyDropActive(false)}
+          isActive={policyDropActive}
+        >
+          {implemented.length === 0 ? (
+            <div className="lane__empty">Drag policies here to implement them.</div>
+          ) : (
+            implemented.map((policy) => (
+              <div
+                key={policy.id}
+                className={`policy-stack${hoveredPolicyId === policy.id ? " policy-stack--active" : ""}`}
+                onDragOver={(event) => event.preventDefault()}
+                onDragEnter={() => setHoveredPolicyId(policy.id)}
+                onDragLeave={() => setHoveredPolicyId(null)}
+                onDrop={(event) => {
+                  const payload = readPayload(event);
+                  if (payload?.kind === "development") {
+                    onAttach(policy.id, payload.id);
+                  }
+                  setHoveredPolicyId(null);
+                }}
+              >
+                <Card
+                  card={policy}
+                  type="policy"
+                  imageBaseUrl={imageBaseUrl}
+                  selected={selectedPolicyId === policy.id}
+                  onClick={() => onSelectPolicy(policy.id)}
+                />
+                <div className="policy-stack__attachments">
+                  {(attachments[policy.id] || []).map((dev) => (
+                    <Card key={dev.id} card={dev} type="development" imageBaseUrl={imageBaseUrl} />
+                  ))}
+                </div>
+              </div>
+            ))
+          )}
+        </Lane>
+
+        <Lane title="Face-down Developments" className="lane lane--market lane--facedown">
+          {faceDown.map((dev) => (
+            <Card
+              key={dev.id}
+              card={dev}
+              type="development"
+              imageBaseUrl={imageBaseUrl}
+              selected={selectedDevId === dev.id}
+              dragPayload={{ kind: "development", id: dev.id }}
+              onClick={() => onSelectDev(dev.id)}
+            />
+          ))}
+        </Lane>
+
+        <Lane title="Dormant Developments" className="lane lane--dormant">
+          {dormant.map((dev) => (
+            <Card
+              key={dev.id}
+              card={dev}
+              type="development"
+              imageBaseUrl={imageBaseUrl}
+              selected={selectedDevId === dev.id}
+              dragPayload={{ kind: "development", id: dev.id }}
+              onClick={() => onSelectDev(dev.id)}
+            />
+          ))}
+        </Lane>
+      </div>
     </div>
   );
 }
@@ -161,6 +161,7 @@ function Lane({
   onDragEnter,
   onDragLeave,
   isActive,
+  className,
 }: {
   title: string;
   children: React.ReactNode;
@@ -168,25 +169,19 @@ function Lane({
   onDragEnter?: () => void;
   onDragLeave?: () => void;
   isActive?: boolean;
+  className?: string;
 }) {
   return (
-    <section>
-      <h3 style={{ color: "#f8fafc" }}>{title}</h3>
+    <section className={`${className ?? "lane"}${isActive ? " lane--active" : ""}`}>
+      <div className="lane__header">
+        <h3>{title}</h3>
+      </div>
       <div
         onDragOver={(event) => event.preventDefault()}
         onDrop={onDrop}
         onDragEnter={onDragEnter}
         onDragLeave={onDragLeave}
-        style={{
-          display: "flex",
-          gap: 12,
-          flexWrap: "wrap",
-          padding: 12,
-          borderRadius: 12,
-          border: isActive ? "2px dashed rgba(125, 211, 252, 0.7)" : "1px dashed rgba(148, 163, 184, 0.15)",
-          background: isActive ? "rgba(59, 130, 246, 0.08)" : "transparent",
-          transition: "border 0.2s ease, background 0.2s ease",
-        }}
+        className="lane__body"
       >
         {children}
       </div>
