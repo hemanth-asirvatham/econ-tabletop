@@ -19,6 +19,8 @@ const DEFAULT_SETTINGS: GameSettings = {
   maxPoliciesPerRound: 3,
 };
 
+const DECK_BASE_URL = "http://localhost:8787";
+
 export default function App() {
   const [state, dispatch] = useReducer(gameReducer, createInitialState(DEFAULT_SETTINGS));
   const [setupReady, setSetupReady] = useState(false);
@@ -41,9 +43,9 @@ export default function App() {
 
   async function loadDeck() {
     const [manifestRes, policiesRes, stagesRes] = await Promise.all([
-      fetch("http://localhost:8787/api/manifest"),
-      fetch("http://localhost:8787/api/policies"),
-      fetch("http://localhost:8787/api/stages"),
+      fetch(`${DECK_BASE_URL}/api/manifest`),
+      fetch(`${DECK_BASE_URL}/api/policies`),
+      fetch(`${DECK_BASE_URL}/api/stages`),
     ]);
     const manifest = await manifestRes.json();
     const policies = (await policiesRes.json()) as PolicyCard[];
@@ -51,7 +53,7 @@ export default function App() {
     const developmentsByStage: Record<number, DevelopmentCard[]> = {};
     await Promise.all(
       stages.map(async (stage: number) => {
-        const res = await fetch(`http://localhost:8787/api/developments?stage=${stage}`);
+        const res = await fetch(`${DECK_BASE_URL}/api/developments?stage=${stage}`);
         developmentsByStage[stage] = (await res.json()) as DevelopmentCard[];
       }),
     );
@@ -121,6 +123,7 @@ export default function App() {
 
           <PlayerHand
             hand={state.hand}
+            imageBaseUrl={DECK_BASE_URL}
             selectedPolicyId={state.selectedPolicyId}
             onSelectPolicy={(id) => dispatch({ type: "SELECT_POLICY", payload: { policyId: id } })}
           />
@@ -131,10 +134,13 @@ export default function App() {
             dormant={state.dormant}
             implemented={state.implemented}
             attachments={state.attachments}
+            imageBaseUrl={DECK_BASE_URL}
             selectedDevId={state.selectedDevId}
             selectedPolicyId={state.selectedPolicyId}
             onSelectDev={(id) => dispatch({ type: "SELECT_DEV", payload: { devId: id } })}
             onSelectPolicy={(id) => dispatch({ type: "SELECT_POLICY", payload: { policyId: id } })}
+            onAttach={(policyId, devId) => dispatch({ type: "ATTACH_DEV", payload: { policyId, devId } })}
+            onPlayPolicy={(policyId) => dispatch({ type: "PLAY_POLICY", payload: { policyId } })}
           />
 
           <EventLog log={state.log} />

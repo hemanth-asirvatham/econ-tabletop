@@ -35,6 +35,7 @@ app.get("/api/stages", (_req, res) => {
 });
 
 app.use("/images", express.static(path.join(absoluteDeckDir, "images")));
+app.use("/render", express.static(path.join(absoluteDeckDir, "render")));
 
 const port = Number(process.env.PORT || 8787);
 app.listen(port, () => {
