@@ -18,17 +18,11 @@ console = Console()
 
 
 DEFAULT_CATEGORIES = [
-    "macro",
+    "energy",
+    "science",
     "labor",
-    "firm_dynamics",
-    "inequality_welfare",
-    "education",
-    "geopolitics",
-    "infra_energy",
-    "trust_misinfo",
-    "governance_capacity",
-    "frontier_rd",
-    "safety_security",
+    "governance",
+    "markets",
 ]
 
 DEFAULT_TAGS = [
@@ -135,6 +129,7 @@ def _normalize_taxonomy(payload: dict[str, Any], config: dict[str, Any]) -> dict
         normalized = _normalize_category(category)
         if normalized not in normalized_categories:
             normalized_categories.append(normalized)
+    normalized_categories = [category for category in normalized_categories if category in DEFAULT_CATEGORIES]
     for required in DEFAULT_CATEGORIES:
         if required not in normalized_categories:
             normalized_categories.append(required)
@@ -153,13 +148,14 @@ def _normalize_taxonomy(payload: dict[str, Any], config: dict[str, Any]) -> dict
 
 def _normalize_category(category: str) -> str:
     alias_map = {
-        "firm dynamics": "firm_dynamics",
-        "inequality/welfare": "inequality_welfare",
-        "infra/energy": "infra_energy",
-        "trust/misinfo": "trust_misinfo",
-        "governance capacity": "governance_capacity",
-        "frontier r&d": "frontier_rd",
-        "safety/security": "safety_security",
+        "energy systems": "energy",
+        "power and energy": "energy",
+        "science and research": "science",
+        "r&d": "science",
+        "labor market": "labor",
+        "workforce": "labor",
+        "governance and institutions": "governance",
+        "markets and competition": "markets",
     }
     cleaned = category.strip().lower()
     cleaned = alias_map.get(cleaned, cleaned)

@@ -6,7 +6,7 @@ Scenario Context:
 Tone: {{ scenario_tone }}
 
 Target counts:
-- Categories: 10 to 14
+- Categories: exactly 5 (broad, high-level)
 - Tags: 24 to 36 (snake_case, reusable by both policies and developments)
 
 Output JSON schema:
@@ -17,15 +17,14 @@ Output JSON schema:
 }
 
 Requirements:
-- Include categories: macro, labor, firm dynamics, inequality/welfare, education, geopolitics, infra/energy, trust/misinfo, governance capacity, frontier R&D, safety/security.
-- Preserve these category names verbatim when present; you may add 0-3 additional categories if justified by the scenario.
+- Use exactly these 5 broad categories (verbatim, no extras): Energy, Science, Labor, Governance, Markets.
 - Tags must be concise, consistent, and usable by both Policy and Development cards (snake_case, 1-3 words).
 - Keep tags grounded in real-world AI economy impacts (avoid sci-fi or singularity framing).
 - Roles should match the scenario context (e.g., finance_minister, labor_minister, national_ai_chief).
 
 Example (abbreviated):
 {
-  "categories": ["macro", "labor"],
+  "categories": ["Energy", "Science", "Labor", "Governance", "Markets"],
   "tags": ["productivity_growth", "wage_dispersion"],
   "roles": ["finance_minister", "labor_minister"]
 }

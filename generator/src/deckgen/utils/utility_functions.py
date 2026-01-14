@@ -232,3 +232,8 @@ def dummy_simulation_outline(
             "- Keep at least ~70% of developments positive or net-positive.",
         ]
     )
+
+
+def dummy_image_critique(*, card: dict[str, Any], card_type: str) -> dict[str, Any]:
+    _ = (card, card_type)
+    return {"rating": 100}

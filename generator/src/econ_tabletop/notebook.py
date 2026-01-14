@@ -141,6 +141,8 @@ def deck_builder(
     concurrency_text: int | None = None,
     concurrency_image: int | None = None,
     image_batch_size: int | None = None,
+    image_candidate_count: int | None = None,
+    image_reference_candidate_multiplier: int | None = None,
     resume: bool = True,
     cache_requests: bool | None = None,
     prompt_path: str | None = None,
@@ -178,6 +180,8 @@ def deck_builder(
         concurrency_text: Text generation concurrency.
         concurrency_image: Image generation concurrency.
         image_batch_size: Batch size for image generation.
+        image_candidate_count: Number of candidate images generated per card.
+        image_reference_candidate_multiplier: Multiplier applied to reference candidates.
         resume: Whether to resume/cache requests and reuse data.
         cache_requests: Whether to store OpenAI request/response cache.
         prompt_path: Optional override path for prompt templates.
@@ -217,6 +221,8 @@ def deck_builder(
         concurrency_text=concurrency_text,
         concurrency_image=concurrency_image,
         image_batch_size=image_batch_size,
+        image_candidate_count=image_candidate_count,
+        image_reference_candidate_multiplier=image_reference_candidate_multiplier,
         resume=resume,
         cache_requests=cache_requests,
         prompt_path=prompt_path,
@@ -366,6 +372,8 @@ def _build_config(
     concurrency_text: int | None = None,
     concurrency_image: int | None = None,
     image_batch_size: int | None = None,
+    image_candidate_count: int | None = None,
+    image_reference_candidate_multiplier: int | None = None,
     resume: bool | None = None,
     cache_requests: bool | None = None,
     prompt_path: str | None = None,
@@ -436,6 +444,10 @@ def _build_config(
         runtime["concurrency_image"] = concurrency_image
     if image_batch_size is not None:
         runtime["image_batch_size"] = image_batch_size
+    if image_candidate_count is not None:
+        runtime["image_candidate_count"] = image_candidate_count
+    if image_reference_candidate_multiplier is not None:
+        runtime["image_reference_candidate_multiplier"] = image_reference_candidate_multiplier
     if resume is not None:
         runtime["resume"] = resume
     if cache_requests is not None:

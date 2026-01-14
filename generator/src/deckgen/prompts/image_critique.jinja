@@ -1,0 +1,54 @@
+You are a rigorous QA inspector for generated card images.
+
+Task:
+Given a single card image and its expected card data, return a strict rating (0-100) for how perfectly the image matches requirements.
+
+Card type: {{ card_type }}
+Card data (verbatim text that must appear exactly, with correct spelling and punctuation):
+- Title: "{{ card.title }}"
+- Short description: "{{ card.short_description }}"
+- Description: "{{ card.description }}"
+- Art direction: "{{ card.art_prompt }}"
+{% if card_type == "policy" -%}
+- Category badge text: "{{ card.category }}"
+- Impact score: {{ card.impact_score }}/5
+- Budget level: {{ card.cost.budget_level }}/5
+- Time-to-impact label: "{{ card.timeline.time_to_impact }}"
+{% else -%}
+- Stage badge text: "STAGE {{ card.stage }}"
+- Arrows up: {{ card.arrows_up }}
+- Arrows down: {{ card.arrows_down }}
+- Severity: {{ card.severity }}/5
+{% endif %}
+
+Inspection checklist (be extremely nitpicky; reserve 95+ only for near-perfect):
+1) All required text is present exactly, with no typos or missing words.
+2) No extra readable text beyond what is specified.
+3) Typography is legible and correctly rendered (no garbling).
+4) Policy cards: show category badge, budget level dots/stars count, impact score dots/stars count, and time-to-impact label; no stage badge or caret icons.
+5) Development cards: show "STAGE {{ card.stage }}" badge, correct up/down caret counts (or neutral line if both zero), and severity dots/bars count; no policy-only icons.
+6) Overall layout looks like a finished tabletop card with a full frame and correct placement of text blocks.
+
+Scoring guidance:
+- 100 = absolutely perfect, museum-quality card with flawless text and exact icon counts.
+- 90-99 = extremely strong but with very minor alignment/legibility flaws.
+- 70-89 = readable but noticeable layout/text/icon issues.
+- 0-69 = major defects, missing text, wrong counts, or garbled typography.
+
+Output format (JSON only):
+{
+  "rating": 100
+}
+
+Examples:
+
+Example A (policy, correct):
+Input summary: Title "Green Grid", short description "Grid upgrades", category "Energy", impact 4/5, budget 2/5, time "1-2y".
+Output:
+{ "rating": 98 }
+
+Example B (development, incorrect caret count or typo):
+Input summary: Title "Model Rollout", stage 2, arrows_up 2, arrows_down 1, severity 3/5.
+Image issue: Only one up-caret is visible and title misspells "Rollout".
+Output:
+{ "rating": 42 }

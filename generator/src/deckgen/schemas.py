@@ -265,6 +265,15 @@ DEVELOPMENT_CARDS_SCHEMA = {
     },
 }
 
+IMAGE_CRITIQUE_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["rating"],
+    "properties": {
+        "rating": {"type": "integer", "minimum": 0, "maximum": 100},
+    },
+}
+
 DEVELOPMENT_CARD_RESPONSE_SCHEMA = {
     **DEVELOPMENT_CARD_SCHEMA,
     "properties": {

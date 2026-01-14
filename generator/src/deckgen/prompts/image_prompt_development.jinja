@@ -5,6 +5,7 @@ Locale visuals (optional motifs): {{ locale_visuals | join(", ") }}
 Card format notes (concise): {{ image_outline_text }}
 
 Title (verbatim): "{{ card.title }}"
+Short description (verbatim): "{{ card.short_description }}"
 Description (verbatim): "{{ card.description }}"
 Stage label: "STAGE {{ card.stage }}"
 Arrows up/down: {{ card.arrows_up }} up, {{ card.arrows_down }} down
@@ -13,8 +14,8 @@ Severity: {{ card.severity }}/5
 Layout & styling:
 - Render the entire card with rounded corners, subtle bevel, and a thin outer border; the card should fill nearly the full frame with a small white margin behind it.
 - Use a refined tabletop-card layout like a premium board-game card; crisp typography and precise alignment.
-- Keep the layout minimalist: a single title line and a single description block only (no repeated titles, no extra labels).
-- Place the title in a clean top band; place the description in the central body with high legibility and proper line breaks.
+- Keep the layout minimalist: a single title line plus a short-description line and a compact description block (no repeated titles, no extra labels).
+- Place the title in a clean top band; place the short description directly beneath it; place the description in the central body with high legibility and proper line breaks.
 - If the description includes an imperative rule sentence (e.g., "Draw 2 cards next stage."), render that sentence as a subtle rule line within the description block (still plain text, no extra labels).
 - Place "STAGE {{ card.stage }}" in the upper-left corner as a small badge.
 - In the upper-right corner, show stacked caret icons: {{ card.arrows_up }} green up-carets and {{ card.arrows_down }} red down-carets; if both are zero, use a single neutral gray line.
