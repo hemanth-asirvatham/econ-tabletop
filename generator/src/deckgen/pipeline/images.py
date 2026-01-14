@@ -59,11 +59,17 @@ def _generate_images_sync(
     runtime_cfg = resolved.get("runtime", {})
     text_cfg = resolved.get("models", {}).get("text", {})
     prompt_path = runtime_cfg.get("prompt_path")
-    model = image_cfg.get("model")
+    model = image_cfg.get("model") or "gpt-image-1.5"
     size = image_cfg.get("size")
     quality = image_cfg.get("quality") or "high"
     background = image_cfg.get("background")
     api = image_cfg.get("api", "images")
+    if api != "images":
+        console.print("[yellow]Overriding image API to 'images' for consistent generation.[/yellow]")
+        api = "images"
+    if model != "gpt-image-1.5":
+        console.print("[yellow]Overriding image model to gpt-image-1.5 for consistent generation.[/yellow]")
+        model = "gpt-image-1.5"
     responses_model = image_cfg.get("responses_model") or model or "gpt-5.2"
     critique_model = text_cfg.get("model") or responses_model or "gpt-5.2"
     reference_policy = image_cfg.get("reference_policy_image")
@@ -73,7 +79,7 @@ def _generate_images_sync(
     image_batch_size = runtime_cfg.get("image_batch_size", 150)
     concurrency = runtime_cfg.get("concurrency_image", 4)
     candidate_count = runtime_cfg.get("image_candidate_count", 10)
-    reference_multiplier = runtime_cfg.get("image_reference_candidate_multiplier", 3)
+    reference_multiplier = runtime_cfg.get("image_reference_candidate_multiplier", 5)
     critique_concurrency = runtime_cfg.get("concurrency_text", 4)
     image_timeout_s = _resolve_timeout_seconds(runtime_cfg.get("image_timeout_s"))
     critique_timeout_s = _resolve_timeout_seconds(runtime_cfg.get("critique_timeout_s"))
@@ -187,11 +193,17 @@ async def generate_images_async(
     runtime_cfg = resolved.get("runtime", {})
     text_cfg = resolved.get("models", {}).get("text", {})
     prompt_path = runtime_cfg.get("prompt_path")
-    model = image_cfg.get("model")
+    model = image_cfg.get("model") or "gpt-image-1.5"
     size = image_cfg.get("size")
     quality = image_cfg.get("quality") or "high"
     background = image_cfg.get("background")
     api = image_cfg.get("api", "images")
+    if api != "images":
+        console.print("[yellow]Overriding image API to 'images' for consistent generation.[/yellow]")
+        api = "images"
+    if model != "gpt-image-1.5":
+        console.print("[yellow]Overriding image model to gpt-image-1.5 for consistent generation.[/yellow]")
+        model = "gpt-image-1.5"
     responses_model = image_cfg.get("responses_model") or model or "gpt-5.2"
     critique_model = text_cfg.get("model") or responses_model or "gpt-5.2"
     reference_policy = image_cfg.get("reference_policy_image")
@@ -201,7 +213,7 @@ async def generate_images_async(
     image_batch_size = runtime_cfg.get("image_batch_size", 150)
     concurrency = runtime_cfg.get("concurrency_image", 4)
     candidate_count = runtime_cfg.get("image_candidate_count", 10)
-    reference_multiplier = runtime_cfg.get("image_reference_candidate_multiplier", 3)
+    reference_multiplier = runtime_cfg.get("image_reference_candidate_multiplier", 5)
     critique_concurrency = runtime_cfg.get("concurrency_text", 4)
     image_timeout_s = _resolve_timeout_seconds(runtime_cfg.get("image_timeout_s"))
     critique_timeout_s = _resolve_timeout_seconds(runtime_cfg.get("critique_timeout_s"))
@@ -516,6 +528,9 @@ async def _score_candidates_async(
     )
 
 
+_CANDIDATE_KEEP_COUNT = 2
+
+
 def _select_best_candidates(tasks: list[dict[str, Any]], scores: list[int]) -> None:
     grouped: dict[str, list[tuple[dict[str, Any], int]]] = {}
     for task, score in zip(tasks, scores):
@@ -529,7 +544,20 @@ def _select_best_candidates(tasks: list[dict[str, Any]], scores: list[int]) -> N
         final_path = chosen_task["final_out_path"]
         final_path.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(chosen_task["out_path"], final_path)
+
+        sorted_entries = sorted(entries, key=lambda entry: entry[1], reverse=True)
+        keep_limit = max(0, min(_CANDIDATE_KEEP_COUNT, len(sorted_entries) - 1))
+        keep_paths: set[Path] = set()
+        for task, _ in sorted_entries:
+            if task["out_path"] == chosen_task["out_path"]:
+                continue
+            keep_paths.add(task["out_path"])
+            if len(keep_paths) >= keep_limit:
+                break
+
         for task, _ in entries:
+            if task["out_path"] in keep_paths:
+                continue
             if task["out_path"].exists():
                 task["out_path"].unlink(missing_ok=True)
 

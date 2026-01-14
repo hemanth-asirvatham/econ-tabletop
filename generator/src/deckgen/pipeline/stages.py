@@ -418,7 +418,50 @@ def _normalize_dev_cards(
         if directive == "quantitative_indicator" and card.get("short_description"):
             if not any(char.isdigit() for char in card["short_description"]):
                 card["short_description"] = f"{card['short_description']} (+1.0%)"
+        _normalize_valence_icons(card)
     return normalized
+
+
+def _normalize_valence_icons(card: dict[str, Any]) -> None:
+    arrows_up = _normalize_arrow_count(card.get("arrows_up", 0))
+    arrows_down = _normalize_arrow_count(card.get("arrows_down", 0))
+    valence = str(card.get("valence") or "mixed").lower()
+
+    if valence == "positive":
+        arrows_down = 0
+        if arrows_up == 0:
+            arrows_up = 1
+    elif valence == "negative":
+        arrows_up = 0
+        if arrows_down == 0:
+            arrows_down = 1
+    else:
+        arrows_up = 0
+        arrows_down = 0
+
+    if arrows_up > 0:
+        card["valence"] = "positive"
+    elif arrows_down > 0:
+        card["valence"] = "negative"
+    else:
+        card["valence"] = "mixed"
+
+    card["arrows_up"] = arrows_up
+    card["arrows_down"] = arrows_down
+
+
+def _normalize_arrow_count(value: Any) -> int:
+    try:
+        count = int(value or 0)
+    except (TypeError, ValueError):
+        return 0
+    if count <= 0:
+        return 0
+    if count == 2:
+        return 1
+    if count >= 3:
+        return 3
+    return 1
 
 
 def _prior_stage_card_ids(stage_index: int, stage_counts: list[int]) -> list[str]:

@@ -41,22 +41,27 @@ Output JSON schema:
 }
 
 Content constraints:
-- Title: 2-4 words, no subtitle or extra punctuation.
-- short_description: <= 90 characters; summarize the effect succinctly.
-- description: 1-2 sentences, <= 220 characters total.
+- Title: 2-4 words, simple and punchy (no subtitle, no colon).
+- short_description: <= 60 characters; minimalist summary.
+- description: 1 short sentence, <= 140 characters total.
 - If effects is non-empty (powerup), include an explicit imperative rule sentence in the description (e.g., "Draw 2 development cards now.").
 - If activation.type is conditional, include a brief conditional clause in the description.
+- Valence icons: never show both green and red; use only one direction or neutral.
+- arrows_up: 0, 1, or 3 only; arrows_down: 0, 1, or 3 only.
+- If valence is positive, use arrows_up (1=slightly positive, 3=very positive) and set arrows_down=0.
+- If valence is negative, use arrows_down (1=slightly negative, 3=very negative) and set arrows_up=0.
+- If valence is mixed, set arrows_up=0 and arrows_down=0 (neutral line on the card).
 
 Example:
 {
   "id": "dev_stage0_local_office_ai_copilots",
   "stage": 0,
-  "title": "Copilots Spread Across Office Work",
-  "short_description": "Early productivity gains appear in high-income service roles.",
-  "description": "AI copilots become standard in finance and legal workflows, raising output per worker. Firms reinvest savings into new AI tooling rather than hiring. Wage gaps widen between AI-augmented and non-augmented roles.",
-  "valence": "mixed",
-  "arrows_up": 2,
-  "arrows_down": 1,
+  "title": "Office Copilots",
+  "short_description": "Productivity lifts in white-collar teams.",
+  "description": "Copilots speed routine work and lift output per worker.",
+  "valence": "positive",
+  "arrows_up": 1,
+  "arrows_down": 0,
   "severity": 3,
   "tags": ["productivity_growth", "wage_dispersion"],
   "thread_id": "office_copilots",
