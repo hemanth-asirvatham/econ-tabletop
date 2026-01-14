@@ -12,11 +12,20 @@ export function ScoreHud({ activeDevelopments }: Props) {
   const net = positiveScore - negativeScore;
 
   return (
-    <div style={{ background: "#1e293b", padding: 12, borderRadius: 8 }}>
-      <strong style={{ color: "#f8fafc" }}>Score</strong>
-      <div style={{ color: "#e2e8f0" }}>Active positives: {positiveScore}</div>
-      <div style={{ color: "#e2e8f0" }}>Active negatives: {negativeScore}</div>
-      <div style={{ color: "#e2e8f0" }}>Net score: {net}</div>
+    <div className="score">
+      <strong>Score</strong>
+      <div className="score__row">
+        <span>Active positives</span>
+        <span>{positiveScore}</span>
+      </div>
+      <div className="score__row">
+        <span>Active negatives</span>
+        <span>{negativeScore}</span>
+      </div>
+      <div className="score__row score__row--net">
+        <span>Net score</span>
+        <span>{net}</span>
+      </div>
     </div>
   );
 }

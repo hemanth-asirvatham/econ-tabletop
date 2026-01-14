@@ -71,39 +71,55 @@ export default function App() {
   }
 
   return (
-    <div style={{ background: "#020617", minHeight: "100vh", color: "#e2e8f0", padding: 24 }}>
-      <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div>
-          <h1 style={{ margin: 0 }}>Econ Tabletop</h1>
-          <p style={{ marginTop: 4, color: "#94a3b8" }}>AI/AGI economy simulation</p>
+    <div className="app">
+      <header className="app__header">
+        <div className="app__branding">
+          <span className="app__eyebrow">Tabletop Simulation</span>
+          <h1>Econ Tabletop</h1>
+          <p>AI/AGI economy simulation · tactile policy play</p>
         </div>
-        <button onClick={resetSession}>Reset Session</button>
+        <div className="app__header-actions">
+          <button className="btn btn--ghost" onClick={resetSession}>
+            Reset Session
+          </button>
+        </div>
       </header>
 
       {!setupReady ? (
-        <section style={{ marginTop: 24, display: "grid", gap: 16, maxWidth: 640 }}>
-          <h2>Setup</h2>
-          <button onClick={loadDeck}>Load Deck from Local Server</button>
-          <label>
-            Players
-            <input
-              type="number"
-              value={state.settings.players}
-              onChange={(e) => updateSettings({ players: Number(e.target.value) })}
-            />
-          </label>
-          <label>
-            Hand size
-            <input
-              type="number"
-              value={state.settings.handSize}
-              onChange={(e) => updateSettings({ handSize: Number(e.target.value) })}
-            />
-          </label>
+        <section className="panel panel--setup">
+          <div className="panel__header">
+            <h2>Setup</h2>
+            <p>Load the card deck and tune the baseline round settings.</p>
+          </div>
+          <div className="panel__body panel__body--stack">
+            <button className="btn btn--primary" onClick={loadDeck}>
+              Load Deck from Local Server
+            </button>
+            <label className="field">
+              <span>Players</span>
+              <input
+                type="number"
+                value={state.settings.players}
+                onChange={(e) => updateSettings({ players: Number(e.target.value) })}
+              />
+            </label>
+            <label className="field">
+              <span>Hand size</span>
+              <input
+                type="number"
+                value={state.settings.handSize}
+                onChange={(e) => updateSettings({ handSize: Number(e.target.value) })}
+              />
+            </label>
+          </div>
         </section>
       ) : (
-        <main style={{ marginTop: 24, display: "grid", gap: 24 }}>
-          <section style={{ display: "flex", gap: 16, alignItems: "center" }}>
+        <main className="app__main">
+          <aside className="panel panel--controls">
+            <div className="panel__header">
+              <h2>Round Controls</h2>
+              <p>Deal, draw, and advance the stage.</p>
+            </div>
             <DeckControls
               onDeal={() => dispatch({ type: "DEAL_STAGE" })}
               onDrawRound={() => dispatch({ type: "DRAW_ROUND" })}
@@ -119,31 +135,41 @@ export default function App() {
               onRedo={() => dispatch({ type: "REDO" })}
             />
             <ScoreHud activeDevelopments={activeDevelopments} />
+          </aside>
+
+          <section className="tabletop">
+            <div className="tabletop__header">
+              <h2>Policy Table</h2>
+              <p>Drag policy cards from your hand, then attach development cards to active policies.</p>
+            </div>
+            <Table
+              faceUp={state.faceUp}
+              faceDown={state.faceDown}
+              dormant={state.dormant}
+              implemented={state.implemented}
+              attachments={state.attachments}
+              imageBaseUrl={DECK_BASE_URL}
+              selectedDevId={state.selectedDevId}
+              selectedPolicyId={state.selectedPolicyId}
+              onSelectDev={(id) => dispatch({ type: "SELECT_DEV", payload: { devId: id } })}
+              onSelectPolicy={(id) => dispatch({ type: "SELECT_POLICY", payload: { policyId: id } })}
+              onAttach={(policyId, devId) => dispatch({ type: "ATTACH_DEV", payload: { policyId, devId } })}
+              onPlayPolicy={(policyId) => dispatch({ type: "PLAY_POLICY", payload: { policyId } })}
+            />
           </section>
 
-          <PlayerHand
-            hand={state.hand}
-            imageBaseUrl={DECK_BASE_URL}
-            selectedPolicyId={state.selectedPolicyId}
-            onSelectPolicy={(id) => dispatch({ type: "SELECT_POLICY", payload: { policyId: id } })}
-          />
+          <aside className="panel panel--log">
+            <EventLog log={state.log} />
+          </aside>
 
-          <Table
-            faceUp={state.faceUp}
-            faceDown={state.faceDown}
-            dormant={state.dormant}
-            implemented={state.implemented}
-            attachments={state.attachments}
-            imageBaseUrl={DECK_BASE_URL}
-            selectedDevId={state.selectedDevId}
-            selectedPolicyId={state.selectedPolicyId}
-            onSelectDev={(id) => dispatch({ type: "SELECT_DEV", payload: { devId: id } })}
-            onSelectPolicy={(id) => dispatch({ type: "SELECT_POLICY", payload: { policyId: id } })}
-            onAttach={(policyId, devId) => dispatch({ type: "ATTACH_DEV", payload: { policyId, devId } })}
-            onPlayPolicy={(policyId) => dispatch({ type: "PLAY_POLICY", payload: { policyId } })}
-          />
-
-          <EventLog log={state.log} />
+          <section className="panel panel--hand">
+            <PlayerHand
+              hand={state.hand}
+              imageBaseUrl={DECK_BASE_URL}
+              selectedPolicyId={state.selectedPolicyId}
+              onSelectPolicy={(id) => dispatch({ type: "SELECT_POLICY", payload: { policyId: id } })}
+            />
+          </section>
         </main>
       )}
     </div>

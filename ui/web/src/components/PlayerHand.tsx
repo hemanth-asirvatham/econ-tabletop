@@ -6,13 +6,17 @@ type Props = {
   imageBaseUrl: string;
   selectedPolicyId: string | null;
   onSelectPolicy: (id: string) => void;
+  className?: string;
 };
 
-export function PlayerHand({ hand, imageBaseUrl, selectedPolicyId, onSelectPolicy }: Props) {
+export function PlayerHand({ hand, imageBaseUrl, selectedPolicyId, onSelectPolicy, className }: Props) {
   return (
-    <section>
-      <h3 style={{ color: "#f8fafc" }}>Player Hand</h3>
-      <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+    <section className={className ? `hand ${className}` : "hand"}>
+      <div className="hand__header">
+        <h3>Player Hand</h3>
+        <p>Drag a policy card into the table center to implement it.</p>
+      </div>
+      <div className="hand__cards">
         {hand.map((policy) => (
           <Card
             key={policy.id}
