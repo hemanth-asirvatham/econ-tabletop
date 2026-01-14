@@ -6,13 +6,21 @@ import asyncio
 import base64
 import concurrent.futures
 import glob
+import json
+import random
+import shutil
 
 from rich.console import Console
 from tqdm import tqdm
 
 from deckgen.config import resolve_config
+from deckgen.schemas import IMAGE_CRITIQUE_SCHEMA
+from deckgen.utils.asyncio_utils import run_async
 from deckgen.utils.cache import cache_dir_for
 from deckgen.utils.openai_client import OpenAIClient
+from deckgen.utils.parallel import gather_with_concurrency
+from deckgen.utils.prompts import render_prompt
+from deckgen.utils.utility_functions import dummy_image_critique
 
 console = Console()
 
@@ -48,17 +56,23 @@ def _generate_images_sync(
     resolved = resolve_config(config)
     image_cfg = resolved.get("models", {}).get("image", {})
     runtime_cfg = resolved.get("runtime", {})
+    text_cfg = resolved.get("models", {}).get("text", {})
+    prompt_path = runtime_cfg.get("prompt_path")
     model = image_cfg.get("model")
     size = image_cfg.get("size")
     background = image_cfg.get("background")
     api = image_cfg.get("api", "images")
     responses_model = image_cfg.get("responses_model") or model or "gpt-5.2"
+    critique_model = text_cfg.get("model") or responses_model or "gpt-5.2"
     reference_policy = image_cfg.get("reference_policy_image")
     reference_dev = image_cfg.get("reference_development_image")
     resume = runtime_cfg.get("resume", True)
     cache_requests = runtime_cfg.get("cache_requests", False)
     image_batch_size = runtime_cfg.get("image_batch_size", 150)
     concurrency = runtime_cfg.get("concurrency_image", 4)
+    candidate_count = runtime_cfg.get("image_candidate_count", 25)
+    reference_multiplier = runtime_cfg.get("image_reference_candidate_multiplier", 3)
+    critique_concurrency = runtime_cfg.get("concurrency_text", 4)
 
     console.print(f"[cyan]Generating {len(policies)} policy images and {len(developments)} development images.[/cyan]")
     policy_dir = out_dir / "images" / "policy"
@@ -82,47 +96,62 @@ def _generate_images_sync(
         client=client,
         model=model,
         responses_model=responses_model,
+        critique_model=critique_model,
+        critique_reasoning_effort=text_cfg.get("reasoning_effort"),
+        critique_store=text_cfg.get("store", False),
+        candidate_count=candidate_count,
+        reference_multiplier=reference_multiplier,
+        critique_concurrency=critique_concurrency,
+        prompt_path=prompt_path,
+        size=size,
+        background=background,
+        cache_dir=cache_dir,
+        resume=resume,
+        regen_concurrency=concurrency,
+    )
+
+    candidate_tasks = _build_candidate_tasks(
+        cards=policies,
+        card_type="policy",
+        out_dir=policy_dir,
+        candidate_count=candidate_count,
+        reference_images=policy_ref_paths,
+        client=client,
+        model=model,
+        responses_model=responses_model,
+        api=api,
+        size=size,
+        background=background,
+        cache_dir=cache_dir,
+        resume=resume,
+    ) + _build_candidate_tasks(
+        cards=developments,
+        card_type="development",
+        out_dir=dev_dir,
+        candidate_count=candidate_count,
+        reference_images=dev_ref_paths,
+        client=client,
+        model=model,
+        responses_model=responses_model,
+        api=api,
         size=size,
         background=background,
         cache_dir=cache_dir,
         resume=resume,
     )
 
-    policy_tasks = [
-        {
-            "card": card,
-            "out_path": policy_dir / f"{card['id']}.png",
-            "reference_images": policy_ref_paths,
-            "client": client,
-            "model": model,
-            "responses_model": responses_model,
-            "api": api,
-            "size": size,
-            "background": background,
-            "cache_dir": cache_dir,
-            "resume": resume,
-        }
-        for card in policies
-    ]
-    dev_tasks = [
-        {
-            "card": card,
-            "out_path": dev_dir / f"{card['id']}.png",
-            "reference_images": dev_ref_paths,
-            "client": client,
-            "model": model,
-            "responses_model": responses_model,
-            "api": api,
-            "size": size,
-            "background": background,
-            "cache_dir": cache_dir,
-            "resume": resume,
-        }
-        for card in developments
-    ]
-
-    all_tasks = policy_tasks + dev_tasks
-    _run_batches(all_tasks, image_batch_size, concurrency, desc="Card images")
+    _run_batches(candidate_tasks, image_batch_size, concurrency, desc="Card image candidates")
+    _finalize_best_candidates(
+        tasks=candidate_tasks,
+        client=client,
+        prompt_path=prompt_path,
+        model=critique_model,
+        reasoning_effort=text_cfg.get("reasoning_effort"),
+        store=text_cfg.get("store", False),
+        cache_dir=cache_dir,
+        concurrency=critique_concurrency,
+        desc="Card image critiques",
+    )
 
 
 def _run_async_in_thread(coro: Coroutine[Any, Any, None]) -> None:
@@ -140,17 +169,23 @@ async def generate_images_async(
     resolved = resolve_config(config)
     image_cfg = resolved.get("models", {}).get("image", {})
     runtime_cfg = resolved.get("runtime", {})
+    text_cfg = resolved.get("models", {}).get("text", {})
+    prompt_path = runtime_cfg.get("prompt_path")
     model = image_cfg.get("model")
     size = image_cfg.get("size")
     background = image_cfg.get("background")
     api = image_cfg.get("api", "images")
     responses_model = image_cfg.get("responses_model") or model or "gpt-5.2"
+    critique_model = text_cfg.get("model") or responses_model or "gpt-5.2"
     reference_policy = image_cfg.get("reference_policy_image")
     reference_dev = image_cfg.get("reference_development_image")
     resume = runtime_cfg.get("resume", True)
     cache_requests = runtime_cfg.get("cache_requests", False)
     image_batch_size = runtime_cfg.get("image_batch_size", 150)
     concurrency = runtime_cfg.get("concurrency_image", 4)
+    candidate_count = runtime_cfg.get("image_candidate_count", 25)
+    reference_multiplier = runtime_cfg.get("image_reference_candidate_multiplier", 3)
+    critique_concurrency = runtime_cfg.get("concurrency_text", 4)
 
     console.print(f"[cyan]Generating {len(policies)} policy images and {len(developments)} development images.[/cyan]")
     policy_dir = out_dir / "images" / "policy"
@@ -174,47 +209,62 @@ async def generate_images_async(
         client=client,
         model=model,
         responses_model=responses_model,
+        critique_model=critique_model,
+        critique_reasoning_effort=text_cfg.get("reasoning_effort"),
+        critique_store=text_cfg.get("store", False),
+        candidate_count=candidate_count,
+        reference_multiplier=reference_multiplier,
+        critique_concurrency=critique_concurrency,
+        prompt_path=prompt_path,
+        size=size,
+        background=background,
+        cache_dir=cache_dir,
+        resume=resume,
+        regen_concurrency=concurrency,
+    )
+
+    candidate_tasks = _build_candidate_tasks(
+        cards=policies,
+        card_type="policy",
+        out_dir=policy_dir,
+        candidate_count=candidate_count,
+        reference_images=policy_ref_paths,
+        client=client,
+        model=model,
+        responses_model=responses_model,
+        api=api,
+        size=size,
+        background=background,
+        cache_dir=cache_dir,
+        resume=resume,
+    ) + _build_candidate_tasks(
+        cards=developments,
+        card_type="development",
+        out_dir=dev_dir,
+        candidate_count=candidate_count,
+        reference_images=dev_ref_paths,
+        client=client,
+        model=model,
+        responses_model=responses_model,
+        api=api,
         size=size,
         background=background,
         cache_dir=cache_dir,
         resume=resume,
     )
 
-    policy_tasks = [
-        {
-            "card": card,
-            "out_path": policy_dir / f"{card['id']}.png",
-            "reference_images": policy_ref_paths,
-            "client": client,
-            "model": model,
-            "responses_model": responses_model,
-            "api": api,
-            "size": size,
-            "background": background,
-            "cache_dir": cache_dir,
-            "resume": resume,
-        }
-        for card in policies
-    ]
-    dev_tasks = [
-        {
-            "card": card,
-            "out_path": dev_dir / f"{card['id']}.png",
-            "reference_images": dev_ref_paths,
-            "client": client,
-            "model": model,
-            "responses_model": responses_model,
-            "api": api,
-            "size": size,
-            "background": background,
-            "cache_dir": cache_dir,
-            "resume": resume,
-        }
-        for card in developments
-    ]
-
-    all_tasks = policy_tasks + dev_tasks
-    await _run_batches_async(all_tasks, image_batch_size, concurrency, desc="Card images")
+    await _run_batches_async(candidate_tasks, image_batch_size, concurrency, desc="Card image candidates")
+    await _finalize_best_candidates_async(
+        tasks=candidate_tasks,
+        client=client,
+        prompt_path=prompt_path,
+        model=critique_model,
+        reasoning_effort=text_cfg.get("reasoning_effort"),
+        store=text_cfg.get("store", False),
+        cache_dir=cache_dir,
+        concurrency=critique_concurrency,
+        desc="Card image critiques",
+    )
 
 
 def _generate_card_image(
@@ -288,6 +338,269 @@ def _generate_card_image(
         out_path.write_bytes(base64.b64decode(_DUMMY_PNG_BASE64))
 
 
+def _build_candidate_tasks(
+    *,
+    cards: list[dict[str, Any]],
+    card_type: str,
+    out_dir: Path,
+    candidate_count: int,
+    reference_images: list[Path] | None,
+    client: OpenAIClient,
+    model: str | None,
+    responses_model: str | None,
+    api: str,
+    size: str | None,
+    background: str | None,
+    cache_dir: Path | None,
+    resume: bool,
+    final_suffix: str = "",
+) -> list[dict[str, Any]]:
+    tasks: list[dict[str, Any]] = []
+    if not cards or candidate_count <= 0:
+        return tasks
+    candidate_dir = out_dir / "candidates"
+    candidate_dir.mkdir(parents=True, exist_ok=True)
+    for card in cards:
+        final_out_path = out_dir / f"{card['id']}{final_suffix}.png"
+        for idx in range(candidate_count):
+            candidate_path = candidate_dir / f"{card['id']}{final_suffix}_cand_{idx:02d}.png"
+            tasks.append(
+                {
+                    "card": card,
+                    "out_path": candidate_path,
+                    "final_out_path": final_out_path,
+                    "card_type": card_type,
+                    "reference_images": reference_images,
+                    "client": client,
+                    "model": model,
+                    "responses_model": responses_model,
+                    "api": api,
+                    "size": size,
+                    "background": background,
+                    "cache_dir": cache_dir,
+                    "resume": resume,
+                }
+            )
+    return tasks
+
+
+def _finalize_best_candidates(
+    *,
+    tasks: list[dict[str, Any]],
+    client: OpenAIClient,
+    prompt_path: str | None,
+    model: str | None,
+    reasoning_effort: str | None,
+    store: bool,
+    cache_dir: Path | None,
+    concurrency: int,
+    desc: str,
+) -> None:
+    if not tasks:
+        return
+    run_async(
+        _finalize_best_candidates_async(
+            tasks=tasks,
+            client=client,
+            prompt_path=prompt_path,
+            model=model,
+            reasoning_effort=reasoning_effort,
+            store=store,
+            cache_dir=cache_dir,
+            concurrency=concurrency,
+            desc=desc,
+        )
+    )
+
+
+async def _finalize_best_candidates_async(
+    *,
+    tasks: list[dict[str, Any]],
+    client: OpenAIClient,
+    prompt_path: str | None,
+    model: str | None,
+    reasoning_effort: str | None,
+    store: bool,
+    cache_dir: Path | None,
+    concurrency: int,
+    desc: str,
+) -> None:
+    if not tasks:
+        return
+    console.print(f"[cyan]{desc}: scoring {len(tasks)} candidates[/cyan]")
+    scores = await _score_candidates_async(
+        tasks=tasks,
+        client=client,
+        prompt_path=prompt_path,
+        model=model,
+        reasoning_effort=reasoning_effort,
+        store=store,
+        cache_dir=cache_dir,
+        concurrency=concurrency,
+    )
+    _select_best_candidates(tasks, scores)
+
+
+async def _score_candidates_async(
+    *,
+    tasks: list[dict[str, Any]],
+    client: OpenAIClient,
+    prompt_path: str | None,
+    model: str | None,
+    reasoning_effort: str | None,
+    store: bool,
+    cache_dir: Path | None,
+    concurrency: int,
+) -> list[int]:
+    resolved_concurrency = _resolve_concurrency(len(tasks), concurrency)
+    return await gather_with_concurrency(
+        resolved_concurrency,
+        [
+            lambda task=task: _critique_image_task(
+                task=task,
+                client=client,
+                prompt_path=prompt_path,
+                model=model,
+                reasoning_effort=reasoning_effort,
+                store=store,
+                cache_dir=cache_dir,
+            )
+            for task in tasks
+        ],
+    )
+
+
+def _select_best_candidates(tasks: list[dict[str, Any]], scores: list[int]) -> None:
+    grouped: dict[str, list[tuple[dict[str, Any], int]]] = {}
+    for task, score in zip(tasks, scores):
+        card_id = task["card"]["id"]
+        grouped.setdefault(card_id, []).append((task, score))
+
+    for card_id, entries in grouped.items():
+        max_score = max(score for _, score in entries)
+        top_entries = [task for task, score in entries if score == max_score]
+        chosen_task = random.choice(top_entries)
+        final_path = chosen_task["final_out_path"]
+        final_path.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(chosen_task["out_path"], final_path)
+        for task, _ in entries:
+            if task["out_path"].exists():
+                task["out_path"].unlink(missing_ok=True)
+
+    _cleanup_candidate_dirs(tasks)
+
+
+def _cleanup_candidate_dirs(tasks: list[dict[str, Any]]) -> None:
+    candidate_dirs = {task["out_path"].parent for task in tasks}
+    for candidate_dir in candidate_dirs:
+        if candidate_dir.exists() and not any(candidate_dir.iterdir()):
+            candidate_dir.rmdir()
+
+
+async def _critique_image_task(
+    *,
+    task: dict[str, Any],
+    client: OpenAIClient,
+    prompt_path: str | None,
+    model: str | None,
+    reasoning_effort: str | None,
+    store: bool,
+    cache_dir: Path | None,
+) -> int:
+    out_path = task["out_path"]
+    if not out_path.exists() or out_path.stat().st_size == 0:
+        return 0
+    card = task["card"]
+    card_type = task["card_type"]
+    if client.use_dummy or not client.api_key:
+        return int(dummy_image_critique(card=card, card_type=card_type).get("rating", 0))
+    prompt = render_prompt(
+        "image_critique.jinja",
+        prompt_path=prompt_path,
+        card=card,
+        card_type=card_type,
+    )
+    payload = _build_image_critique_payload(
+        prompt=prompt,
+        model=model,
+        image_path=out_path,
+        reasoning_effort=reasoning_effort,
+        store=store,
+    )
+    response = await client.responses_async(payload)
+    if cache_dir:
+        client.save_payload(cache_dir, f"image_critique_{card['id']}_{out_path.stem}", payload, response)
+    parsed = _parse_image_critique_response(response)
+    if parsed is None:
+        return 0
+    return int(parsed.get("rating", 0))
+
+
+def _build_image_critique_payload(
+    *,
+    prompt: str,
+    model: str | None,
+    image_path: Path,
+    reasoning_effort: str | None,
+    store: bool,
+) -> dict[str, Any]:
+    return {
+        "model": model,
+        "input": [
+            {
+                "role": "user",
+                "content": [
+                    {"type": "input_text", "text": prompt},
+                    {"type": "input_image", "image_url": _encode_image_data_url(image_path)},
+                ],
+            }
+        ],
+        "text": {
+            "format": {
+                "type": "json_schema",
+                "name": "image_critique",
+                "schema": IMAGE_CRITIQUE_SCHEMA,
+                "strict": True,
+            }
+        },
+        "store": store,
+        **({"reasoning": {"effort": reasoning_effort}} if reasoning_effort else {}),
+    }
+
+
+def _parse_image_critique_response(response: dict[str, Any]) -> dict[str, Any] | None:
+    for output in response.get("output", []):
+        for item in output.get("content", []):
+            if item.get("json") and isinstance(item["json"], dict):
+                return item["json"]
+            text = item.get("text") or item.get("json")
+            if text:
+                try:
+                    parsed = json.loads(text)
+                except json.JSONDecodeError:
+                    return None
+                if isinstance(parsed, dict):
+                    return parsed
+    return None
+
+
+def _encode_image_data_url(path: Path) -> str:
+    mime = _guess_image_mime(path)
+    data = base64.b64encode(path.read_bytes()).decode("utf-8")
+    return f"data:{mime};base64,{data}"
+
+
+def _guess_image_mime(path: Path) -> str:
+    suffix = path.suffix.lower()
+    if suffix in {".jpg", ".jpeg"}:
+        return "image/jpeg"
+    if suffix == ".webp":
+        return "image/webp"
+    if suffix == ".png":
+        return "image/png"
+    return "application/octet-stream"
+
+
 def _prepare_reference_images(
     *,
     api: str,
@@ -300,53 +613,100 @@ def _prepare_reference_images(
     client: OpenAIClient,
     model: str | None,
     responses_model: str | None,
+    critique_model: str | None,
+    critique_reasoning_effort: str | None,
+    critique_store: bool,
+    candidate_count: int,
+    reference_multiplier: int,
+    critique_concurrency: int,
+    prompt_path: str | None,
     size: str | None,
     background: str | None,
     cache_dir: Path | None,
     resume: bool,
+    regen_concurrency: int,
 ) -> tuple[list[Path] | None, list[Path] | None]:
-    policy_ref_paths = _resolve_reference_images(
-        reference_policy,
-        policy_dir,
-        policies,
-        client,
-        model,
-        responses_model,
-        api,
-        size,
-        background,
-        cache_dir,
-        resume,
-    )
-    dev_ref_paths = _resolve_reference_images(
-        reference_dev,
-        dev_dir,
-        developments,
-        client,
-        model,
-        responses_model,
-        api,
-        size,
-        background,
-        cache_dir,
-        resume,
-    )
+    policy_ref_paths = _resolve_reference_paths(reference_policy)
+    dev_ref_paths = _resolve_reference_paths(reference_dev)
+
+    reference_tasks: list[dict[str, Any]] = []
+    policy_reference_out: Path | None = None
+    dev_reference_out: Path | None = None
+
+    reference_candidate_count = max(1, candidate_count * max(1, reference_multiplier))
+
+    if policy_ref_paths is None and policies:
+        reference_card = policies[0]
+        policy_reference_out = policy_dir / f"{reference_card['id']}_reference.png"
+        reference_tasks.extend(
+            _build_candidate_tasks(
+                cards=[reference_card],
+                card_type="policy",
+                out_dir=policy_dir,
+                candidate_count=reference_candidate_count,
+                reference_images=None,
+                client=client,
+                model=model,
+                responses_model=responses_model,
+                api=api,
+                size=size,
+                background=background,
+                cache_dir=cache_dir,
+                resume=resume,
+                final_suffix="_reference",
+            )
+        )
+
+    if dev_ref_paths is None and developments:
+        reference_card = developments[0]
+        dev_reference_out = dev_dir / f"{reference_card['id']}_reference.png"
+        reference_tasks.extend(
+            _build_candidate_tasks(
+                cards=[reference_card],
+                card_type="development",
+                out_dir=dev_dir,
+                candidate_count=reference_candidate_count,
+                reference_images=None,
+                client=client,
+                model=model,
+                responses_model=responses_model,
+                api=api,
+                size=size,
+                background=background,
+                cache_dir=cache_dir,
+                resume=resume,
+                final_suffix="_reference",
+            )
+        )
+
+    if reference_tasks:
+        _run_batches(
+            reference_tasks,
+            batch_size=len(reference_tasks),
+            concurrency=regen_concurrency,
+            desc="Reference image candidates",
+        )
+        _finalize_best_candidates(
+            tasks=reference_tasks,
+            client=client,
+            prompt_path=prompt_path,
+            model=critique_model,
+            reasoning_effort=critique_reasoning_effort,
+            store=critique_store,
+            cache_dir=cache_dir,
+            concurrency=critique_concurrency,
+            desc="Reference image critiques",
+        )
+
+    if policy_ref_paths is None and policy_reference_out is not None:
+        policy_ref_paths = [policy_reference_out]
+    if dev_ref_paths is None and dev_reference_out is not None:
+        dev_ref_paths = [dev_reference_out]
+
     return policy_ref_paths, dev_ref_paths
 
 
-def _resolve_reference_images(
-    reference_path: str | None,
-    out_dir: Path,
-    cards: list[dict[str, Any]],
-    client: OpenAIClient,
-    model: str | None,
-    responses_model: str | None,
-    api: str,
-    size: str | None,
-    background: str | None,
-    cache_dir: Path | None,
-    resume: bool,
-) -> list[Path] | None:
+def _resolve_reference_paths(reference_path: str | None) -> list[Path] | None:
     if reference_path:
         reference_paths = _gather_reference_paths(reference_path)
         if reference_paths:
@@ -354,24 +714,7 @@ def _resolve_reference_images(
         console.print(
             "[yellow]Reference image(s) not found or empty. Generating a fresh reference.[/yellow]"
         )
-    if not cards:
-        return None
-    reference_card = cards[0]
-    reference_out = out_dir / f"{reference_card['id']}_reference.png"
-    _generate_card_image(
-        card=reference_card,
-        out_path=reference_out,
-        reference_images=None,
-        client=client,
-        model=model,
-        responses_model=responses_model,
-        api=api,
-        size=size,
-        background=background,
-        cache_dir=cache_dir,
-        resume=resume,
-    )
-    return [reference_out]
+    return None
 
 
 def _gather_reference_paths(reference_path: str) -> list[Path]:
@@ -430,7 +773,9 @@ def _run_batches(
         console.print(f"[cyan]{desc}: batch {batch_index + 1}/{total_batches}[/cyan]")
         max_workers = _resolve_concurrency(len(batch), concurrency)
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-            futures = [executor.submit(_generate_card_image, **task) for task in batch]
+            futures = [
+                executor.submit(_generate_card_image, **_strip_generation_task(task)) for task in batch
+            ]
             for _ in tqdm(concurrent.futures.as_completed(futures), total=len(futures), desc=desc):
                 pass
 
@@ -452,7 +797,7 @@ async def _run_batches_async(
 
         async def _run_task(task: dict[str, Any]) -> None:
             async with semaphore:
-                await asyncio.to_thread(_generate_card_image, **task)
+                await asyncio.to_thread(_generate_card_image, **_strip_generation_task(task))
 
         coros = [_run_task(task) for task in batch]
         for coro in tqdm(asyncio.as_completed(coros), total=len(coros), desc=desc):
@@ -462,6 +807,10 @@ async def _run_batches_async(
 def _chunked(items: list[dict[str, Any]], size: int) -> Iterable[list[dict[str, Any]]]:
     for i in range(0, len(items), size):
         yield items[i : i + size]
+
+
+def _strip_generation_task(task: dict[str, Any]) -> dict[str, Any]:
+    return {key: value for key, value in task.items() if key not in {"card_type", "final_out_path"}}
 
 
 def _resolve_batch_size(tasks: list[dict[str, Any]], batch_size: int) -> int:

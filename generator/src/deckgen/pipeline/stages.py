@@ -169,8 +169,7 @@ def generate_stage_cards(
         if not stage_cards:
             continue
         for card in stage_cards:
-            if not card.get("art_prompt"):
-                cards_needing_prompts.append(card)
+            cards_needing_prompts.append(card)
 
     if cards_needing_prompts:
         console.print("[cyan]Generating development art prompts in parallel.[/cyan]")
