@@ -40,6 +40,13 @@ Output JSON schema:
   "suggested_visibility": "faceup|facedown|either"
 }
 
+Content constraints:
+- Title: 2-4 words, no subtitle or extra punctuation.
+- short_description: <= 90 characters; summarize the effect succinctly.
+- description: 1-2 sentences, <= 220 characters total.
+- If effects is non-empty (powerup), include an explicit imperative rule sentence in the description (e.g., "Draw 2 development cards now.").
+- If activation.type is conditional, include a brief conditional clause in the description.
+
 Example:
 {
   "id": "dev_stage0_local_office_ai_copilots",
