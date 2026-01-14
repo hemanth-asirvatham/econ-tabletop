@@ -172,7 +172,7 @@ def dummy_simulation_outline(
     tags: list[str],
 ) -> str:
     tags_text = ", ".join(tags[:3]) if tags else "productivity_growth"
-    categories_text = ", ".join(categories[:3]) if categories else "labor, safety, innovation"
+    categories_text = ", ".join(categories[:3]) if categories else "Energy, R&D, Business"
     stage_lines = []
     for stage in stages:
         stage_lines.append(

@@ -18,12 +18,16 @@ console = Console()
 
 
 DEFAULT_CATEGORIES = [
-    "energy",
-    "science",
-    "defense",
-    "labor",
-    "governance",
-    "markets",
+    "Energy",
+    "R&D",
+    "Business",
+    "AI Safety",
+    "Macro",
+    "Finance",
+    "Defense",
+    "Statecraft",
+    "Infrastructure",
+    "Culture",
 ]
 
 DEFAULT_TAGS = [
@@ -149,22 +153,42 @@ def _normalize_taxonomy(payload: dict[str, Any], config: dict[str, Any]) -> dict
 
 def _normalize_category(category: str) -> str:
     alias_map = {
-        "energy systems": "energy",
-        "power and energy": "energy",
-        "science and research": "science",
-        "r&d": "science",
-        "defense and security": "defense",
-        "national security": "defense",
-        "labor market": "labor",
-        "workforce": "labor",
-        "governance and institutions": "governance",
-        "markets and competition": "markets",
+        "energy systems": "Energy",
+        "power and energy": "Energy",
+        "research and development": "R&D",
+        "research development": "R&D",
+        "r and d": "R&D",
+        "rnd": "R&D",
+        "industry": "Business",
+        "industry and commerce": "Business",
+        "commerce": "Business",
+        "ai safety": "AI Safety",
+        "ai alignment": "AI Safety",
+        "macroeconomics": "Macro",
+        "macro economy": "Macro",
+        "macro policy": "Macro",
+        "financial markets": "Finance",
+        "defense and security": "Defense",
+        "national security": "Defense",
+        "foreign policy": "Statecraft",
+        "diplomacy": "Statecraft",
+        "public infrastructure": "Infrastructure",
+        "critical infrastructure": "Infrastructure",
+        "cultural policy": "Culture",
     }
-    cleaned = category.strip().lower()
-    cleaned = alias_map.get(cleaned, cleaned)
-    cleaned = cleaned.replace("&", "and")
-    cleaned = cleaned.replace("/", "_").replace(" ", "_")
-    return cleaned
+
+    def _category_key(value: str) -> str:
+        cleaned = value.strip().lower()
+        cleaned = cleaned.replace("&", "and")
+        cleaned = cleaned.replace("/", " ")
+        cleaned = cleaned.replace("_", " ")
+        return " ".join(cleaned.split())
+
+    canonical_map = {_category_key(item): item for item in DEFAULT_CATEGORIES}
+    key = _category_key(category)
+    if key in alias_map:
+        return alias_map[key]
+    return canonical_map.get(key, category.strip())
 
 
 def _normalize_tag(tag: str) -> str:

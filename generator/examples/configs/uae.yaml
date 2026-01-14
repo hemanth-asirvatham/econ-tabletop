@@ -65,9 +65,8 @@ models:
     reference_policy_image: null
     reference_development_image: null
 runtime:
-  concurrency_text: 8
-  concurrency_image: 4
-  image_batch_size: 150
+  concurrency_text: 500
+  concurrency_image: 400
   resume: true
   cache_requests: true
   prompt_path: null
