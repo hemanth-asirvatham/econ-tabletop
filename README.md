@@ -133,7 +133,7 @@ et.run_all(config_dst, deck_dir)
 Key configurable parameters in the YAML:
 
 - `models.text`: `model`, `reasoning_effort`, `max_output_tokens`, `temperature`, `top_p`, `store`.
-- `models.image`: `model`, `size`, `background`, `reference_policy_image`, `reference_development_image`.
+- `models.image`: `api`, `model`, `size`, `quality`, `background`, `reference_policy_image`, `reference_development_image`.
 - `runtime`: `concurrency_text`, `concurrency_image`, `image_batch_size`, `resume`, `cache_requests`, `prompt_path`.
 - `deck_sizes`: total policies and per-stage developments.
 - `mix_targets`: balance of positive/negative/conditional/supersedes/powerups/quant indicators.
@@ -256,7 +256,8 @@ Art is generated via `POST /v1/images/generations`:
   "model": "gpt-image-1.5",
   "prompt": "<image prompt>",
   "size": "1536x1024",
-  "background": "transparent"
+  "quality": "high",
+  "background": null
 }
 ```
 

@@ -81,10 +81,11 @@ DEFAULT_CONFIG = {
             "store": False,
         },
         "image": {
-            "api": "responses",
+            "api": "images",
             "model": "gpt-image-1.5",
             "responses_model": "gpt-5.2",
             "size": "1536x1024",
+            "quality": "high",
             "background": None,
             "reference_policy_image": None,
             "reference_development_image": None,

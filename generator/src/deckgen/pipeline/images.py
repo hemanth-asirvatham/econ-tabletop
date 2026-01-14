@@ -61,6 +61,7 @@ def _generate_images_sync(
     prompt_path = runtime_cfg.get("prompt_path")
     model = image_cfg.get("model")
     size = image_cfg.get("size")
+    quality = image_cfg.get("quality") or "high"
     background = image_cfg.get("background")
     api = image_cfg.get("api", "images")
     responses_model = image_cfg.get("responses_model") or model or "gpt-5.2"
@@ -107,6 +108,7 @@ def _generate_images_sync(
         critique_concurrency=critique_concurrency,
         prompt_path=prompt_path,
         size=size,
+        quality=quality,
         background=background,
         cache_dir=cache_dir,
         resume=resume,
@@ -126,6 +128,7 @@ def _generate_images_sync(
         responses_model=responses_model,
         api=api,
         size=size,
+        quality=quality,
         background=background,
         cache_dir=cache_dir,
         resume=resume,
@@ -140,6 +143,7 @@ def _generate_images_sync(
         responses_model=responses_model,
         api=api,
         size=size,
+        quality=quality,
         background=background,
         cache_dir=cache_dir,
         resume=resume,
@@ -185,6 +189,7 @@ async def generate_images_async(
     prompt_path = runtime_cfg.get("prompt_path")
     model = image_cfg.get("model")
     size = image_cfg.get("size")
+    quality = image_cfg.get("quality") or "high"
     background = image_cfg.get("background")
     api = image_cfg.get("api", "images")
     responses_model = image_cfg.get("responses_model") or model or "gpt-5.2"
@@ -231,6 +236,7 @@ async def generate_images_async(
         critique_concurrency=critique_concurrency,
         prompt_path=prompt_path,
         size=size,
+        quality=quality,
         background=background,
         cache_dir=cache_dir,
         resume=resume,
@@ -250,6 +256,7 @@ async def generate_images_async(
         responses_model=responses_model,
         api=api,
         size=size,
+        quality=quality,
         background=background,
         cache_dir=cache_dir,
         resume=resume,
@@ -264,6 +271,7 @@ async def generate_images_async(
         responses_model=responses_model,
         api=api,
         size=size,
+        quality=quality,
         background=background,
         cache_dir=cache_dir,
         resume=resume,
@@ -300,6 +308,7 @@ def _generate_card_image(
     responses_model: str | None,
     api: str,
     size: str | None,
+    quality: str | None,
     background: str | None,
     cache_dir: Path | None,
     resume: bool,
@@ -310,6 +319,8 @@ def _generate_card_image(
     payload: dict[str, Any] = {"model": model, "prompt": prompt}
     if size is not None:
         payload["size"] = size
+    if quality is not None:
+        payload["quality"] = quality
     if background is not None:
         payload["background"] = background
     response: dict[str, Any] | None = None
@@ -321,6 +332,7 @@ def _generate_card_image(
                 response_model=responses_model,
                 image_model=model,
                 size=size,
+                quality=quality,
                 background=background,
                 reference_images=reference_images,
             )
@@ -374,6 +386,7 @@ def _build_candidate_tasks(
     responses_model: str | None,
     api: str,
     size: str | None,
+    quality: str | None,
     background: str | None,
     cache_dir: Path | None,
     resume: bool,
@@ -400,6 +413,7 @@ def _build_candidate_tasks(
                     "responses_model": responses_model,
                     "api": api,
                     "size": size,
+                    "quality": quality,
                     "background": background,
                     "cache_dir": cache_dir,
                     "resume": resume,
@@ -666,6 +680,7 @@ def _prepare_reference_images(
     critique_concurrency: int,
     prompt_path: str | None,
     size: str | None,
+    quality: str | None,
     background: str | None,
     cache_dir: Path | None,
     resume: bool,
@@ -697,6 +712,7 @@ def _prepare_reference_images(
                 responses_model=responses_model,
                 api=api,
                 size=size,
+                quality=quality,
                 background=background,
                 cache_dir=cache_dir,
                 resume=resume,
@@ -719,6 +735,7 @@ def _prepare_reference_images(
                 responses_model=responses_model,
                 api=api,
                 size=size,
+                quality=quality,
                 background=background,
                 cache_dir=cache_dir,
                 resume=resume,
