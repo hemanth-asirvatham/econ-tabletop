@@ -71,38 +71,22 @@ def _generate_images_sync(
     cache_dir = cache_dir_for(out_dir) if cache_requests else None
     client = OpenAIClient()
 
-    if api == "responses":
-        if reference_policy or reference_dev:
-            console.print("[yellow]Reference images are ignored when using the responses image API.[/yellow]")
-        policy_ref_paths = None
-        dev_ref_paths = None
-    else:
-        policy_ref_paths = _resolve_reference_images(
-            reference_policy,
-            policy_dir,
-            policies,
-            client,
-            model,
-            responses_model,
-            api,
-            size,
-            background,
-            cache_dir,
-            resume,
-        )
-        dev_ref_paths = _resolve_reference_images(
-            reference_dev,
-            dev_dir,
-            developments,
-            client,
-            model,
-            responses_model,
-            api,
-            size,
-            background,
-            cache_dir,
-            resume,
-        )
+    policy_ref_paths, dev_ref_paths = _prepare_reference_images(
+        api=api,
+        reference_policy=reference_policy,
+        reference_dev=reference_dev,
+        policy_dir=policy_dir,
+        dev_dir=dev_dir,
+        policies=policies,
+        developments=developments,
+        client=client,
+        model=model,
+        responses_model=responses_model,
+        size=size,
+        background=background,
+        cache_dir=cache_dir,
+        resume=resume,
+    )
 
     policy_tasks = [
         {
@@ -179,38 +163,22 @@ async def generate_images_async(
     cache_dir = cache_dir_for(out_dir) if cache_requests else None
     client = OpenAIClient()
 
-    if api == "responses":
-        if reference_policy or reference_dev:
-            console.print("[yellow]Reference images are ignored when using the responses image API.[/yellow]")
-        policy_ref_paths = None
-        dev_ref_paths = None
-    else:
-        policy_ref_paths = _resolve_reference_images(
-            reference_policy,
-            policy_dir,
-            policies,
-            client,
-            model,
-            responses_model,
-            api,
-            size,
-            background,
-            cache_dir,
-            resume,
-        )
-        dev_ref_paths = _resolve_reference_images(
-            reference_dev,
-            dev_dir,
-            developments,
-            client,
-            model,
-            responses_model,
-            api,
-            size,
-            background,
-            cache_dir,
-            resume,
-        )
+    policy_ref_paths, dev_ref_paths = _prepare_reference_images(
+        api=api,
+        reference_policy=reference_policy,
+        reference_dev=reference_dev,
+        policy_dir=policy_dir,
+        dev_dir=dev_dir,
+        policies=policies,
+        developments=developments,
+        client=client,
+        model=model,
+        responses_model=responses_model,
+        size=size,
+        background=background,
+        cache_dir=cache_dir,
+        resume=resume,
+    )
 
     policy_tasks = [
         {
@@ -280,6 +248,7 @@ def _generate_card_image(
                 model=responses_model,
                 size=size,
                 background=background,
+                reference_images=reference_images,
             )
             response = client.responses(payload_for_cache)
         elif reference_images:
@@ -317,6 +286,52 @@ def _generate_card_image(
             f"Saving placeholder. Reason: {exc}[/yellow]"
         )
         out_path.write_bytes(base64.b64decode(_DUMMY_PNG_BASE64))
+
+
+def _prepare_reference_images(
+    *,
+    api: str,
+    reference_policy: str | None,
+    reference_dev: str | None,
+    policy_dir: Path,
+    dev_dir: Path,
+    policies: list[dict[str, Any]],
+    developments: list[dict[str, Any]],
+    client: OpenAIClient,
+    model: str | None,
+    responses_model: str | None,
+    size: str | None,
+    background: str | None,
+    cache_dir: Path | None,
+    resume: bool,
+) -> tuple[list[Path] | None, list[Path] | None]:
+    policy_ref_paths = _resolve_reference_images(
+        reference_policy,
+        policy_dir,
+        policies,
+        client,
+        model,
+        responses_model,
+        api,
+        size,
+        background,
+        cache_dir,
+        resume,
+    )
+    dev_ref_paths = _resolve_reference_images(
+        reference_dev,
+        dev_dir,
+        developments,
+        client,
+        model,
+        responses_model,
+        api,
+        size,
+        background,
+        cache_dir,
+        resume,
+    )
+    return policy_ref_paths, dev_ref_paths
 
 
 def _resolve_reference_images(
