@@ -1,4 +1,4 @@
-Create a 3:2 horizontal POLICY card illustration with baked-in text.
+Create a 3:2 horizontal POLICY card illustration with baked-in text and full card frame.
 
 Scenario context: {{ scenario_injection or "(none)" }}
 Locale visuals (optional motifs): {{ locale_visuals | join(", ") }}
@@ -11,9 +11,11 @@ Budget level: {{ card.cost.budget_level }}/5
 Complexity: {{ card.cost.implementation_complexity }}/5
 
 Layout & styling:
-- Title in a clean top band; description in the body with high legibility.
+- Render the entire card with rounded corners, subtle bevel, and a thin outer border; the card should fill nearly the full frame with a small white margin behind it.
+- Use a refined tabletop-card layout like a premium board-game card; crisp typography and precise alignment.
+- Title in a clean top band; description in the body with high legibility and proper line breaks.
 - Small "POLICY" label in an upper corner.
 - Include labeled score chips/bars (IMPACT, BUDGET, COMPLEXITY) with filled dots or bars matching the numbers above.
-- Minimalist background motif reinforcing the policy theme; thin line icons; generous whitespace.
-- Muted palette (2–3 colors), soft gradients, subtle texture; avoid photorealism.
-- Only show the specified text/labels; no extra readable text.
+- Place an illustrative scene panel or motif band that matches the theme, with a Victoria 3 impressionist art style unless the card format notes override it.
+- Use rich color but keep UI elements high-contrast; no photorealism; elegant texture.
+- Only show the specified text/labels; no extra readable text. Ensure perfect text rendering.

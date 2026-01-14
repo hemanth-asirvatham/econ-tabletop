@@ -409,10 +409,12 @@ def _run_batches(
 ) -> None:
     if not tasks:
         return
-    total_batches = (len(tasks) + batch_size - 1) // batch_size
-    for batch_index, batch in enumerate(_chunked(tasks, batch_size)):
+    resolved_batch_size = _resolve_batch_size(tasks, batch_size)
+    total_batches = (len(tasks) + resolved_batch_size - 1) // resolved_batch_size
+    for batch_index, batch in enumerate(_chunked(tasks, resolved_batch_size)):
         console.print(f"[cyan]{desc}: batch {batch_index + 1}/{total_batches}[/cyan]")
-        with concurrent.futures.ThreadPoolExecutor(max_workers=concurrency) as executor:
+        max_workers = _resolve_concurrency(len(batch), concurrency)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
             futures = [executor.submit(_generate_card_image, **task) for task in batch]
             for _ in tqdm(concurrent.futures.as_completed(futures), total=len(futures), desc=desc):
                 pass
@@ -427,10 +429,11 @@ async def _run_batches_async(
 ) -> None:
     if not tasks:
         return
-    total_batches = (len(tasks) + batch_size - 1) // batch_size
-    for batch_index, batch in enumerate(_chunked(tasks, batch_size)):
+    resolved_batch_size = _resolve_batch_size(tasks, batch_size)
+    total_batches = (len(tasks) + resolved_batch_size - 1) // resolved_batch_size
+    for batch_index, batch in enumerate(_chunked(tasks, resolved_batch_size)):
         console.print(f"[cyan]{desc}: batch {batch_index + 1}/{total_batches}[/cyan]")
-        semaphore = asyncio.Semaphore(concurrency)
+        semaphore = asyncio.Semaphore(_resolve_concurrency(len(batch), concurrency))
 
         async def _run_task(task: dict[str, Any]) -> None:
             async with semaphore:
@@ -444,3 +447,15 @@ async def _run_batches_async(
 def _chunked(items: list[dict[str, Any]], size: int) -> Iterable[list[dict[str, Any]]]:
     for i in range(0, len(items), size):
         yield items[i : i + size]
+
+
+def _resolve_batch_size(tasks: list[dict[str, Any]], batch_size: int) -> int:
+    if batch_size <= 0:
+        return len(tasks)
+    return max(1, batch_size)
+
+
+def _resolve_concurrency(task_count: int, concurrency: int) -> int:
+    if concurrency <= 0:
+        return task_count
+    return max(1, min(concurrency, task_count))
