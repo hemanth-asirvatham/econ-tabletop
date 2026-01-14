@@ -248,6 +248,7 @@ def _generate_card_image(
                 model=responses_model,
                 size=size,
                 background=background,
+                reference_images=reference_images,
             )
             response = client.responses(payload_for_cache)
         elif reference_images:
@@ -304,10 +305,6 @@ def _prepare_reference_images(
     cache_dir: Path | None,
     resume: bool,
 ) -> tuple[list[Path] | None, list[Path] | None]:
-    if api == "responses":
-        if reference_policy or reference_dev:
-            console.print("[yellow]Reference images are ignored when using the responses image API.[/yellow]")
-        return None, None
     policy_ref_paths = _resolve_reference_images(
         reference_policy,
         policy_dir,

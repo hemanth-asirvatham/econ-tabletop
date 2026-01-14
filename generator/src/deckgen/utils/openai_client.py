@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 import json
 import os
 from pathlib import Path
@@ -194,6 +195,7 @@ class OpenAIClient:
         model: str | None,
         size: str | None,
         background: str | None,
+        reference_images: list[Path] | None = None,
         store: bool = False,
     ) -> dict[str, Any]:
         tool: dict[str, Any] = {"type": "image_generation"}
@@ -201,9 +203,22 @@ class OpenAIClient:
             tool["size"] = size
         if background:
             tool["background"] = background
+        input_payload: str | list[dict[str, Any]]
+        if reference_images:
+            content: list[dict[str, Any]] = [{"type": "input_text", "text": prompt}]
+            for image_path in reference_images:
+                content.append(
+                    {
+                        "type": "input_image",
+                        "image_url": _encode_image_data_url(image_path),
+                    }
+                )
+            input_payload = [{"role": "user", "content": content}]
+        else:
+            input_payload = format_text_input(model, prompt)
         return {
             "model": model,
-            "input": format_text_input(model, prompt),
+            "input": input_payload,
             "tools": [tool],
             "tool_choice": {"type": "image_generation"},
             "store": store,
@@ -236,3 +251,9 @@ def _guess_image_mime(path: Path) -> str:
     if suffix == ".png":
         return "image/png"
     return "application/octet-stream"
+
+
+def _encode_image_data_url(path: Path) -> str:
+    mime = _guess_image_mime(path)
+    data = base64.b64encode(path.read_bytes()).decode("utf-8")
+    return f"data:{mime};base64,{data}"
