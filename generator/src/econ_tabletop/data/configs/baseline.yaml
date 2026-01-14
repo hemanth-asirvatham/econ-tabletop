@@ -46,7 +46,7 @@ gameplay_defaults:
   players_default: 4
 models:
   text:
-    model: "gpt-4.1-mini"
+    model: "gpt-5.2"
     reasoning_effort: "high"
     max_output_tokens: 2000
     temperature: 0.7
@@ -56,14 +56,14 @@ models:
     api: "responses"
     model: "gpt-image-1.5"
     responses_model: "gpt-5.2"
-    size: "1536x1024"
-    background: "transparent"
+    size: "2048x1365"
+    background: null
     reference_policy_image: null
     reference_development_image: null
 runtime:
-  concurrency_text: 8
-  concurrency_image: 4
-  image_batch_size: 150
+  concurrency_text: 500
+  concurrency_image: 500
+  image_batch_size: 500
   resume: true
   cache_requests: true
   prompt_path: null
