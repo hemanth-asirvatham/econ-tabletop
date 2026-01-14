@@ -5,17 +5,20 @@ Locale visuals (optional motifs): {{ locale_visuals | join(", ") }}
 Card format notes (concise): {{ image_outline_text }}
 
 Title (verbatim): "{{ card.title }}"
-Description (verbatim): "{{ card.short_description }}"
+Description (verbatim): "{{ card.description }}"
 Impact score: {{ card.impact_score }}/5
 Budget level: {{ card.cost.budget_level }}/5
-Complexity: {{ card.cost.implementation_complexity }}/5
+Time to impact: {{ card.timeline.time_to_impact }}
+Category (verbatim): "{{ card.category }}"
 
 Layout & styling:
 - Render the entire card with rounded corners, subtle bevel, and a thin outer border; the card should fill nearly the full frame with a small white margin behind it.
 - Use a refined tabletop-card layout like a premium board-game card; crisp typography and precise alignment.
-- Title in a clean top band; description in the body with high legibility and proper line breaks.
-- Small "POLICY" label in an upper corner.
-- Include labeled score chips/bars (IMPACT, BUDGET, COMPLEXITY) with filled dots or bars matching the numbers above.
-- Place an illustrative scene panel or motif band that matches the theme, with a Victoria 3 impressionist art style unless the card format notes override it.
+- Keep the layout minimalist: a single title line and a single description block only (no repeated titles, no extra labels).
+- Place the title in a clean top band; place the description in the central body with high legibility and proper line breaks.
+- Add a small category badge in one corner using the Category text verbatim.
+- Add three compact icon chips in a single corner or edge strip: money icon + filled stars/dots for budget level (no numbers), impact icon + filled stars/dots for impact score (no numbers), clock icon + short time-to-impact text (e.g., "TIME 1-2y").
+- Do not display implementation complexity anywhere.
+- Place an illustrative scene panel or full-background motif that matches the theme, with a Victoria 3 impressionist art style unless the card format notes override it.
 - Use rich color but keep UI elements high-contrast; no photorealism; elegant texture.
 - Only show the specified text/labels; no extra readable text. Ensure perfect text rendering.
