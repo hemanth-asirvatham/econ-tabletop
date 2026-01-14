@@ -84,7 +84,7 @@ DEFAULT_CONFIG = {
             "api": "responses",
             "model": "gpt-image-1.5",
             "responses_model": "gpt-5.2",
-            "size": "2048x1365",
+            "size": "1536x1024",
             "background": None,
             "reference_policy_image": None,
             "reference_development_image": None,
