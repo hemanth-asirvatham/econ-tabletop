@@ -9,6 +9,7 @@ import glob
 import json
 import random
 import shutil
+import time
 
 from rich.console import Console
 from tqdm import tqdm
@@ -73,6 +74,8 @@ def _generate_images_sync(
     candidate_count = runtime_cfg.get("image_candidate_count", 25)
     reference_multiplier = runtime_cfg.get("image_reference_candidate_multiplier", 3)
     critique_concurrency = runtime_cfg.get("concurrency_text", 4)
+    image_timeout_s = _resolve_timeout_seconds(runtime_cfg.get("image_timeout_s"))
+    critique_timeout_s = _resolve_timeout_seconds(runtime_cfg.get("critique_timeout_s"))
 
     console.print(f"[cyan]Generating {len(policies)} policy images and {len(developments)} development images.[/cyan]")
     policy_dir = out_dir / "images" / "policy"
@@ -108,6 +111,8 @@ def _generate_images_sync(
         cache_dir=cache_dir,
         resume=resume,
         regen_concurrency=concurrency,
+        image_timeout_s=image_timeout_s,
+        critique_timeout_s=critique_timeout_s,
     )
 
     candidate_tasks = _build_candidate_tasks(
@@ -140,7 +145,13 @@ def _generate_images_sync(
         resume=resume,
     )
 
-    _run_batches(candidate_tasks, image_batch_size, concurrency, desc="Card image candidates")
+    _run_batches(
+        candidate_tasks,
+        image_batch_size,
+        concurrency,
+        desc="Card image candidates",
+        timeout_s=image_timeout_s,
+    )
     _finalize_best_candidates(
         tasks=candidate_tasks,
         client=client,
@@ -151,6 +162,7 @@ def _generate_images_sync(
         cache_dir=cache_dir,
         concurrency=critique_concurrency,
         desc="Card image critiques",
+        timeout_s=critique_timeout_s,
     )
 
 
@@ -186,6 +198,8 @@ async def generate_images_async(
     candidate_count = runtime_cfg.get("image_candidate_count", 25)
     reference_multiplier = runtime_cfg.get("image_reference_candidate_multiplier", 3)
     critique_concurrency = runtime_cfg.get("concurrency_text", 4)
+    image_timeout_s = _resolve_timeout_seconds(runtime_cfg.get("image_timeout_s"))
+    critique_timeout_s = _resolve_timeout_seconds(runtime_cfg.get("critique_timeout_s"))
 
     console.print(f"[cyan]Generating {len(policies)} policy images and {len(developments)} development images.[/cyan]")
     policy_dir = out_dir / "images" / "policy"
@@ -221,6 +235,8 @@ async def generate_images_async(
         cache_dir=cache_dir,
         resume=resume,
         regen_concurrency=concurrency,
+        image_timeout_s=image_timeout_s,
+        critique_timeout_s=critique_timeout_s,
     )
 
     candidate_tasks = _build_candidate_tasks(
@@ -253,7 +269,13 @@ async def generate_images_async(
         resume=resume,
     )
 
-    await _run_batches_async(candidate_tasks, image_batch_size, concurrency, desc="Card image candidates")
+    await _run_batches_async(
+        candidate_tasks,
+        image_batch_size,
+        concurrency,
+        desc="Card image candidates",
+        timeout_s=image_timeout_s,
+    )
     await _finalize_best_candidates_async(
         tasks=candidate_tasks,
         client=client,
@@ -264,6 +286,7 @@ async def generate_images_async(
         cache_dir=cache_dir,
         concurrency=critique_concurrency,
         desc="Card image critiques",
+        timeout_s=critique_timeout_s,
     )
 
 
@@ -395,6 +418,7 @@ def _finalize_best_candidates(
     cache_dir: Path | None,
     concurrency: int,
     desc: str,
+    timeout_s: float | None = None,
 ) -> None:
     if not tasks:
         return
@@ -409,6 +433,7 @@ def _finalize_best_candidates(
             cache_dir=cache_dir,
             concurrency=concurrency,
             desc=desc,
+            timeout_s=timeout_s,
         )
     )
 
@@ -424,6 +449,7 @@ async def _finalize_best_candidates_async(
     cache_dir: Path | None,
     concurrency: int,
     desc: str,
+    timeout_s: float | None = None,
 ) -> None:
     if not tasks:
         return
@@ -437,6 +463,7 @@ async def _finalize_best_candidates_async(
         store=store,
         cache_dir=cache_dir,
         concurrency=concurrency,
+        timeout_s=timeout_s,
     )
     _select_best_candidates(tasks, scores)
 
@@ -451,6 +478,7 @@ async def _score_candidates_async(
     store: bool,
     cache_dir: Path | None,
     concurrency: int,
+    timeout_s: float | None = None,
 ) -> list[int]:
     resolved_concurrency = _resolve_concurrency(len(tasks), concurrency)
     return await gather_with_concurrency(
@@ -464,9 +492,12 @@ async def _score_candidates_async(
                 reasoning_effort=reasoning_effort,
                 store=store,
                 cache_dir=cache_dir,
+                timeout_s=timeout_s,
             )
             for task in tasks
         ],
+        timeout=timeout_s,
+        fallback=0,
     )
 
 
@@ -506,6 +537,7 @@ async def _critique_image_task(
     reasoning_effort: str | None,
     store: bool,
     cache_dir: Path | None,
+    timeout_s: float | None,
 ) -> int:
     out_path = task["out_path"]
     if not out_path.exists() or out_path.stat().st_size == 0:
@@ -527,7 +559,19 @@ async def _critique_image_task(
         reasoning_effort=reasoning_effort,
         store=store,
     )
-    response = await client.responses_async(payload)
+    try:
+        if timeout_s is not None and timeout_s > 0:
+            response = await asyncio.wait_for(client.responses_async(payload), timeout=timeout_s)
+        else:
+            response = await client.responses_async(payload)
+    except asyncio.TimeoutError:
+        console.print(f"[yellow]Image critique timed out for {card.get('id', 'card')}.[/yellow]")
+        return 0
+    except Exception as exc:  # noqa: BLE001 - keep image runs resilient
+        console.print(
+            f"[yellow]Image critique failed for {card.get('id', 'card')}. Reason: {exc}[/yellow]"
+        )
+        return 0
     if cache_dir:
         client.save_payload(cache_dir, f"image_critique_{card['id']}_{out_path.stem}", payload, response)
     parsed = _parse_image_critique_response(response)
@@ -625,6 +669,8 @@ def _prepare_reference_images(
     cache_dir: Path | None,
     resume: bool,
     regen_concurrency: int,
+    image_timeout_s: float | None,
+    critique_timeout_s: float | None,
 ) -> tuple[list[Path] | None, list[Path] | None]:
     policy_ref_paths = _resolve_reference_paths(reference_policy)
     dev_ref_paths = _resolve_reference_paths(reference_dev)
@@ -685,6 +731,7 @@ def _prepare_reference_images(
             batch_size=len(reference_tasks),
             concurrency=regen_concurrency,
             desc="Reference image candidates",
+            timeout_s=image_timeout_s,
         )
         _finalize_best_candidates(
             tasks=reference_tasks,
@@ -696,6 +743,7 @@ def _prepare_reference_images(
             cache_dir=cache_dir,
             concurrency=critique_concurrency,
             desc="Reference image critiques",
+            timeout_s=critique_timeout_s,
         )
 
     if policy_ref_paths is None and policy_reference_out is not None:
@@ -764,6 +812,7 @@ def _run_batches(
     concurrency: int,
     *,
     desc: str,
+    timeout_s: float | None = None,
 ) -> None:
     if not tasks:
         return
@@ -772,12 +821,41 @@ def _run_batches(
     for batch_index, batch in enumerate(_chunked(tasks, resolved_batch_size)):
         console.print(f"[cyan]{desc}: batch {batch_index + 1}/{total_batches}[/cyan]")
         max_workers = _resolve_concurrency(len(batch), concurrency)
-        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-            futures = [
-                executor.submit(_generate_card_image, **_strip_generation_task(task)) for task in batch
-            ]
-            for _ in tqdm(concurrent.futures.as_completed(futures), total=len(futures), desc=desc):
-                pass
+        executor = concurrent.futures.ThreadPoolExecutor(max_workers=max_workers)
+        futures = [
+            executor.submit(_generate_card_image, **_strip_generation_task(task)) for task in batch
+        ]
+        pending = set(futures)
+        start_times = {future: time.monotonic() for future in futures}
+        with tqdm(total=len(futures), desc=desc) as progress:
+            try:
+                while pending:
+                    done, pending = concurrent.futures.wait(
+                        pending,
+                        timeout=0.2,
+                        return_when=concurrent.futures.FIRST_COMPLETED,
+                    )
+                    for future in done:
+                        try:
+                            future.result()
+                        except Exception as exc:  # noqa: BLE001 - best-effort image runs
+                            console.print(f"[yellow]Image task failed. Reason: {exc}[/yellow]")
+                        progress.update(1)
+                    if timeout_s is None or timeout_s <= 0:
+                        continue
+                    now = time.monotonic()
+                    timed_out = [
+                        future
+                        for future in pending
+                        if now - start_times.get(future, now) > timeout_s
+                    ]
+                    for future in timed_out:
+                        future.cancel()
+                        pending.discard(future)
+                        progress.update(1)
+                        console.print("[yellow]Image task timed out; skipping remaining work for that task.[/yellow]")
+            finally:
+                executor.shutdown(wait=False, cancel_futures=True)
 
 
 async def _run_batches_async(
@@ -786,6 +864,7 @@ async def _run_batches_async(
     concurrency: int,
     *,
     desc: str,
+    timeout_s: float | None = None,
 ) -> None:
     if not tasks:
         return
@@ -797,7 +876,16 @@ async def _run_batches_async(
 
         async def _run_task(task: dict[str, Any]) -> None:
             async with semaphore:
-                await asyncio.to_thread(_generate_card_image, **_strip_generation_task(task))
+                try:
+                    thread_task = asyncio.to_thread(_generate_card_image, **_strip_generation_task(task))
+                    if timeout_s is not None and timeout_s > 0:
+                        await asyncio.wait_for(thread_task, timeout=timeout_s)
+                    else:
+                        await thread_task
+                except asyncio.TimeoutError:
+                    console.print("[yellow]Image task timed out; skipping remaining work for that task.[/yellow]")
+                except Exception as exc:  # noqa: BLE001 - best-effort image runs
+                    console.print(f"[yellow]Image task failed. Reason: {exc}[/yellow]")
 
         coros = [_run_task(task) for task in batch]
         for coro in tqdm(asyncio.as_completed(coros), total=len(coros), desc=desc):
@@ -823,3 +911,15 @@ def _resolve_concurrency(task_count: int, concurrency: int) -> int:
     if concurrency <= 0:
         return task_count
     return max(1, min(concurrency, task_count))
+
+
+def _resolve_timeout_seconds(value: Any) -> float | None:
+    try:
+        if value is None:
+            return None
+        parsed = float(value)
+    except (TypeError, ValueError):
+        return None
+    if parsed <= 0:
+        return None
+    return parsed

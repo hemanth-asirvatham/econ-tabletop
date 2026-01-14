@@ -96,6 +96,8 @@ DEFAULT_CONFIG = {
         "image_batch_size": 500,
         "image_candidate_count": 25,
         "image_reference_candidate_multiplier": 3,
+        "image_timeout_s": 300,
+        "critique_timeout_s": 150,
         "resume": True,
         "cache_requests": True,
         "prompt_path": None,
