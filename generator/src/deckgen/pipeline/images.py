@@ -71,7 +71,7 @@ def _generate_images_sync(
     cache_requests = runtime_cfg.get("cache_requests", False)
     image_batch_size = runtime_cfg.get("image_batch_size", 150)
     concurrency = runtime_cfg.get("concurrency_image", 4)
-    candidate_count = runtime_cfg.get("image_candidate_count", 25)
+    candidate_count = runtime_cfg.get("image_candidate_count", 10)
     reference_multiplier = runtime_cfg.get("image_reference_candidate_multiplier", 3)
     critique_concurrency = runtime_cfg.get("concurrency_text", 4)
     image_timeout_s = _resolve_timeout_seconds(runtime_cfg.get("image_timeout_s"))
@@ -195,7 +195,7 @@ async def generate_images_async(
     cache_requests = runtime_cfg.get("cache_requests", False)
     image_batch_size = runtime_cfg.get("image_batch_size", 150)
     concurrency = runtime_cfg.get("concurrency_image", 4)
-    candidate_count = runtime_cfg.get("image_candidate_count", 25)
+    candidate_count = runtime_cfg.get("image_candidate_count", 10)
     reference_multiplier = runtime_cfg.get("image_reference_candidate_multiplier", 3)
     critique_concurrency = runtime_cfg.get("concurrency_text", 4)
     image_timeout_s = _resolve_timeout_seconds(runtime_cfg.get("image_timeout_s"))
@@ -318,7 +318,8 @@ def _generate_card_image(
         if api == "responses":
             payload_for_cache = client.build_image_responses_payload(
                 prompt=prompt,
-                model=responses_model,
+                response_model=responses_model,
+                image_model=model,
                 size=size,
                 background=background,
                 reference_images=reference_images,
