@@ -135,6 +135,7 @@ def deck_builder(
     top_p: float | None = None,
     store: bool | None = None,
     image_size: str | None = None,
+    image_quality: str | None = None,
     image_background: str | None = None,
     reference_policy_image: str | None = None,
     reference_development_image: str | None = None,
@@ -174,6 +175,7 @@ def deck_builder(
         top_p: Top-p sampling for text model.
         store: Whether to store text responses.
         image_size: Image generation size.
+        image_quality: Image generation quality setting.
         image_background: Image background setting.
         reference_policy_image: Path to a reference policy card image.
         reference_development_image: Path to a reference development card image.
@@ -215,6 +217,7 @@ def deck_builder(
         top_p=top_p,
         store=store,
         image_size=image_size,
+        image_quality=image_quality,
         image_background=image_background,
         reference_policy_image=reference_policy_image,
         reference_development_image=reference_development_image,
@@ -366,6 +369,7 @@ def _build_config(
     top_p: float | None = None,
     store: bool | None = None,
     image_size: str | None = None,
+    image_quality: str | None = None,
     image_background: str | None = None,
     reference_policy_image: str | None = None,
     reference_development_image: str | None = None,
@@ -426,6 +430,8 @@ def _build_config(
         image_model["responses_model"] = image_responses_model
     if image_size is not None:
         image_model["size"] = image_size
+    if image_quality is not None:
+        image_model["quality"] = image_quality
     if image_background is not None:
         image_model["background"] = image_background
     if reference_policy_image is not None:

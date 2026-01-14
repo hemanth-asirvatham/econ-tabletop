@@ -140,6 +140,7 @@ class OpenAIClient:
         response_model: str | None,
         image_model: str | None,
         size: str | None,
+        quality: str | None,
         background: str | None,
         store: bool = False,
     ) -> dict[str, Any]:
@@ -148,6 +149,7 @@ class OpenAIClient:
             response_model=response_model,
             image_model=image_model,
             size=size,
+            quality=quality,
             background=background,
             store=store,
         )
@@ -197,16 +199,24 @@ class OpenAIClient:
         response_model: str | None,
         image_model: str | None,
         size: str | None,
+        quality: str | None,
         background: str | None,
         reference_images: list[Path] | None = None,
         store: bool = False,
     ) -> dict[str, Any]:
-        resolved_image_model = image_model or "gpt-image-1.5"
+        resolved_image_model = image_model or "gpt-image-1"
+        if resolved_image_model == "gpt-image-1.5":
+            console.print(
+                "[yellow]Responses image generation does not support gpt-image-1.5; "
+                "using gpt-image-1 instead.[/yellow]"
+            )
+            resolved_image_model = "gpt-image-1"
         tool: dict[str, Any] = {
             "type": "image_generation",
             "model": resolved_image_model,
-            "quality": "high",
         }
+        if quality:
+            tool["quality"] = quality
         if size:
             tool["size"] = size
         if background:
