@@ -137,14 +137,16 @@ class OpenAIClient:
         self,
         *,
         prompt: str,
-        model: str | None,
+        response_model: str | None,
+        image_model: str | None,
         size: str | None,
         background: str | None,
         store: bool = False,
     ) -> dict[str, Any]:
         payload = self.build_image_responses_payload(
             prompt=prompt,
-            model=model,
+            response_model=response_model,
+            image_model=image_model,
             size=size,
             background=background,
             store=store,
@@ -192,13 +194,19 @@ class OpenAIClient:
         self,
         *,
         prompt: str,
-        model: str | None,
+        response_model: str | None,
+        image_model: str | None,
         size: str | None,
         background: str | None,
         reference_images: list[Path] | None = None,
         store: bool = False,
     ) -> dict[str, Any]:
-        tool: dict[str, Any] = {"type": "image_generation"}
+        resolved_image_model = image_model or "gpt-image-1.5"
+        tool: dict[str, Any] = {
+            "type": "image_generation",
+            "model": resolved_image_model,
+            "quality": "high",
+        }
         if size:
             tool["size"] = size
         if background:
@@ -215,9 +223,9 @@ class OpenAIClient:
                 )
             input_payload = [{"role": "user", "content": content}]
         else:
-            input_payload = format_text_input(model, prompt)
+            input_payload = format_text_input(response_model, prompt)
         return {
-            "model": model,
+            "model": response_model,
             "input": input_payload,
             "tools": [tool],
             "tool_choice": {"type": "image_generation"},

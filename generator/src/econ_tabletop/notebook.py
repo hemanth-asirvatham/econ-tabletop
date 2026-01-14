@@ -141,7 +141,7 @@ def deck_builder(
     concurrency_text: int | None = None,
     concurrency_image: int | None = None,
     image_batch_size: int | None = None,
-    image_candidate_count: int | None = None,
+    image_candidate_count: int | None = 10,
     image_reference_candidate_multiplier: int | None = None,
     resume: bool = True,
     cache_requests: bool | None = None,
