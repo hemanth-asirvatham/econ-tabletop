@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Coroutine, Iterable
+from typing import Any, Coroutine
 import asyncio
 import base64
 import concurrent.futures
@@ -9,7 +9,6 @@ import glob
 import json
 import random
 import shutil
-import time
 
 from rich.console import Console
 from tqdm import tqdm
@@ -76,9 +75,8 @@ def _generate_images_sync(
     reference_dev = image_cfg.get("reference_development_image")
     resume = runtime_cfg.get("resume", True)
     cache_requests = runtime_cfg.get("cache_requests", False)
-    image_batch_size = runtime_cfg.get("image_batch_size", 150)
     concurrency = runtime_cfg.get("concurrency_image", 4)
-    candidate_count = runtime_cfg.get("image_candidate_count", 10)
+    candidate_count = runtime_cfg.get("image_candidate_count", 8)
     reference_multiplier = runtime_cfg.get("image_reference_candidate_multiplier", 5)
     critique_concurrency = runtime_cfg.get("concurrency_text", 4)
     image_timeout_s = _resolve_timeout_seconds(runtime_cfg.get("image_timeout_s"))
@@ -155,9 +153,8 @@ def _generate_images_sync(
         resume=resume,
     )
 
-    _run_batches(
+    _run_generation_tasks(
         candidate_tasks,
-        image_batch_size,
         concurrency,
         desc="Card image candidates",
         timeout_s=image_timeout_s,
@@ -210,9 +207,8 @@ async def generate_images_async(
     reference_dev = image_cfg.get("reference_development_image")
     resume = runtime_cfg.get("resume", True)
     cache_requests = runtime_cfg.get("cache_requests", False)
-    image_batch_size = runtime_cfg.get("image_batch_size", 150)
     concurrency = runtime_cfg.get("concurrency_image", 4)
-    candidate_count = runtime_cfg.get("image_candidate_count", 10)
+    candidate_count = runtime_cfg.get("image_candidate_count", 8)
     reference_multiplier = runtime_cfg.get("image_reference_candidate_multiplier", 5)
     critique_concurrency = runtime_cfg.get("concurrency_text", 4)
     image_timeout_s = _resolve_timeout_seconds(runtime_cfg.get("image_timeout_s"))
@@ -289,9 +285,8 @@ async def generate_images_async(
         resume=resume,
     )
 
-    await _run_batches_async(
+    await _run_generation_tasks_async(
         candidate_tasks,
-        image_batch_size,
         concurrency,
         desc="Card image candidates",
         timeout_s=image_timeout_s,
@@ -772,10 +767,9 @@ def _prepare_reference_images(
         )
 
     if reference_tasks:
-        _run_batches(
+        _run_generation_tasks(
             reference_tasks,
-            batch_size=len(reference_tasks),
-            concurrency=regen_concurrency,
+            regen_concurrency,
             desc="Reference image candidates",
             timeout_s=image_timeout_s,
         )
@@ -852,9 +846,8 @@ def _list_image_files(directory: Path) -> list[Path]:
     return files
 
 
-def _run_batches(
+def _run_generation_tasks(
     tasks: list[dict[str, Any]],
-    batch_size: int,
     concurrency: int,
     *,
     desc: str,
@@ -862,95 +855,51 @@ def _run_batches(
 ) -> None:
     if not tasks:
         return
-    resolved_batch_size = _resolve_batch_size(tasks, batch_size)
-    total_batches = (len(tasks) + resolved_batch_size - 1) // resolved_batch_size
-    for batch_index, batch in enumerate(_chunked(tasks, resolved_batch_size)):
-        console.print(f"[cyan]{desc}: batch {batch_index + 1}/{total_batches}[/cyan]")
-        max_workers = _resolve_concurrency(len(batch), concurrency)
-        executor = concurrent.futures.ThreadPoolExecutor(max_workers=max_workers)
-        futures = [
-            executor.submit(_generate_card_image, **_strip_generation_task(task)) for task in batch
-        ]
-        pending = set(futures)
-        start_times = {future: time.monotonic() for future in futures}
-        with tqdm(total=len(futures), desc=desc) as progress:
+    run_async(
+        _run_generation_tasks_async(
+            tasks,
+            concurrency,
+            desc=desc,
+            timeout_s=timeout_s,
+        )
+    )
+
+
+async def _run_generation_tasks_async(
+    tasks: list[dict[str, Any]],
+    concurrency: int,
+    *,
+    desc: str,
+    timeout_s: float | None = None,
+) -> None:
+    if not tasks:
+        return
+    resolved_concurrency = _resolve_concurrency(len(tasks), concurrency)
+    console.print(
+        f"[cyan]{desc}: running {len(tasks)} tasks with concurrency {resolved_concurrency}[/cyan]"
+    )
+    semaphore = asyncio.Semaphore(resolved_concurrency)
+
+    async def _run_task(task: dict[str, Any]) -> None:
+        async with semaphore:
             try:
-                while pending:
-                    done, pending = concurrent.futures.wait(
-                        pending,
-                        timeout=0.2,
-                        return_when=concurrent.futures.FIRST_COMPLETED,
-                    )
-                    for future in done:
-                        try:
-                            future.result()
-                        except Exception as exc:  # noqa: BLE001 - best-effort image runs
-                            console.print(f"[yellow]Image task failed. Reason: {exc}[/yellow]")
-                        progress.update(1)
-                    if timeout_s is None or timeout_s <= 0:
-                        continue
-                    now = time.monotonic()
-                    timed_out = [
-                        future
-                        for future in pending
-                        if now - start_times.get(future, now) > timeout_s
-                    ]
-                    for future in timed_out:
-                        future.cancel()
-                        pending.discard(future)
-                        progress.update(1)
-                        console.print("[yellow]Image task timed out; skipping remaining work for that task.[/yellow]")
-            finally:
-                executor.shutdown(wait=False, cancel_futures=True)
+                thread_task = asyncio.to_thread(_generate_card_image, **_strip_generation_task(task))
+                if timeout_s is not None and timeout_s > 0:
+                    await asyncio.wait_for(thread_task, timeout=timeout_s)
+                else:
+                    await thread_task
+            except asyncio.TimeoutError:
+                console.print("[yellow]Image task timed out; skipping remaining work for that task.[/yellow]")
+            except Exception as exc:  # noqa: BLE001 - best-effort image runs
+                console.print(f"[yellow]Image task failed. Reason: {exc}[/yellow]")
 
-
-async def _run_batches_async(
-    tasks: list[dict[str, Any]],
-    batch_size: int,
-    concurrency: int,
-    *,
-    desc: str,
-    timeout_s: float | None = None,
-) -> None:
-    if not tasks:
-        return
-    resolved_batch_size = _resolve_batch_size(tasks, batch_size)
-    total_batches = (len(tasks) + resolved_batch_size - 1) // resolved_batch_size
-    for batch_index, batch in enumerate(_chunked(tasks, resolved_batch_size)):
-        console.print(f"[cyan]{desc}: batch {batch_index + 1}/{total_batches}[/cyan]")
-        semaphore = asyncio.Semaphore(_resolve_concurrency(len(batch), concurrency))
-
-        async def _run_task(task: dict[str, Any]) -> None:
-            async with semaphore:
-                try:
-                    thread_task = asyncio.to_thread(_generate_card_image, **_strip_generation_task(task))
-                    if timeout_s is not None and timeout_s > 0:
-                        await asyncio.wait_for(thread_task, timeout=timeout_s)
-                    else:
-                        await thread_task
-                except asyncio.TimeoutError:
-                    console.print("[yellow]Image task timed out; skipping remaining work for that task.[/yellow]")
-                except Exception as exc:  # noqa: BLE001 - best-effort image runs
-                    console.print(f"[yellow]Image task failed. Reason: {exc}[/yellow]")
-
-        coros = [_run_task(task) for task in batch]
-        for coro in tqdm(asyncio.as_completed(coros), total=len(coros), desc=desc):
-            await coro
-
-
-def _chunked(items: list[dict[str, Any]], size: int) -> Iterable[list[dict[str, Any]]]:
-    for i in range(0, len(items), size):
-        yield items[i : i + size]
+    coros = [_run_task(task) for task in tasks]
+    for coro in tqdm(asyncio.as_completed(coros), total=len(coros), desc=desc):
+        await coro
 
 
 def _strip_generation_task(task: dict[str, Any]) -> dict[str, Any]:
     return {key: value for key, value in task.items() if key not in {"card_type", "final_out_path"}}
-
-
-def _resolve_batch_size(tasks: list[dict[str, Any]], batch_size: int) -> int:
-    if batch_size <= 0:
-        return len(tasks)
-    return max(1, batch_size)
 
 
 def _resolve_concurrency(task_count: int, concurrency: int) -> int:

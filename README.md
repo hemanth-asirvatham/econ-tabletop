@@ -70,7 +70,7 @@ If you only want to generate without printable PDFs, you can skip the print step
 et.deck_builder(deck_dir, print_pdf=False)
 ```
 
-Image generation runs concurrently based on `concurrency_image` and `image_batch_size`. In notebook
+Image generation runs concurrently based on `concurrency_image`. In notebook
 environments with an active event loop, image generation automatically runs in a worker thread to
 preserve async parallelism while still exposing a synchronous API. Increase `concurrency_image` to
 drive more parallel image requests.
@@ -134,7 +134,7 @@ Key configurable parameters in the YAML:
 
 - `models.text`: `model`, `reasoning_effort`, `max_output_tokens`, `temperature`, `top_p`, `store`.
 - `models.image`: `api`, `model`, `size`, `quality`, `background`, `reference_policy_image`, `reference_development_image`.
-- `runtime`: `concurrency_text`, `concurrency_image`, `image_batch_size`, `resume`, `cache_requests`, `prompt_path`.
+- `runtime`: `concurrency_text`, `concurrency_image`, `image_candidate_count`, `image_timeout_s`, `critique_timeout_s`, `resume`, `cache_requests`, `prompt_path`.
 - `deck_sizes`: total policies and per-stage developments.
 - `mix_targets`: balance of positive/negative/conditional/supersedes/powerups/quant indicators.
 - `gameplay_defaults`: parameters surfaced to the UI for play setup.

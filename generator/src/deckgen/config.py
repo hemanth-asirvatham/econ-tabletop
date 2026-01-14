@@ -93,9 +93,8 @@ DEFAULT_CONFIG = {
     },
     "runtime": {
         "concurrency_text": 500,
-        "concurrency_image": 500,
-        "image_batch_size": 500,
-        "image_candidate_count": 10,
+        "concurrency_image": 400,
+        "image_candidate_count": 8,
         "image_reference_candidate_multiplier": 5,
         "image_timeout_s": 300,
         "critique_timeout_s": 150,
