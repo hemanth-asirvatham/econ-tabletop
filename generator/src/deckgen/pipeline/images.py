@@ -7,6 +7,7 @@ import base64
 import concurrent.futures
 import glob
 import json
+import math
 import random
 import shutil
 
@@ -77,7 +78,7 @@ def _generate_images_sync(
     resume = runtime_cfg.get("resume", True)
     cache_requests = runtime_cfg.get("cache_requests", False)
     concurrency = runtime_cfg.get("concurrency_image", 4)
-    candidate_count = runtime_cfg.get("image_candidate_count", 8)
+    candidate_count = _normalize_candidate_count(runtime_cfg.get("image_candidate_count", 8))
     reference_multiplier = runtime_cfg.get("image_reference_candidate_multiplier", 5)
     critique_concurrency = runtime_cfg.get("concurrency_text", 4)
     image_timeout_s = _resolve_timeout_seconds(runtime_cfg.get("image_timeout_s"))
@@ -210,7 +211,7 @@ async def generate_images_async(
     resume = runtime_cfg.get("resume", True)
     cache_requests = runtime_cfg.get("cache_requests", False)
     concurrency = runtime_cfg.get("concurrency_image", 4)
-    candidate_count = runtime_cfg.get("image_candidate_count", 8)
+    candidate_count = _normalize_candidate_count(runtime_cfg.get("image_candidate_count", 8))
     reference_multiplier = runtime_cfg.get("image_reference_candidate_multiplier", 5)
     critique_concurrency = runtime_cfg.get("concurrency_text", 4)
     image_timeout_s = _resolve_timeout_seconds(runtime_cfg.get("image_timeout_s"))
@@ -307,10 +308,10 @@ async def generate_images_async(
     )
 
 
-def _generate_card_image(
+def _generate_card_images(
     *,
     card: dict[str, Any],
-    out_path: Path,
+    out_paths: list[Path],
     reference_images: list[Path] | None,
     client: OpenAIClient,
     model: str | None,
@@ -322,10 +323,17 @@ def _generate_card_image(
     cache_dir: Path | None,
     resume: bool,
 ) -> None:
-    if resume and out_path.exists() and out_path.stat().st_size > 0:
+    if not out_paths:
+        return
+    pending_paths = [
+        path for path in out_paths if not (resume and path.exists() and path.stat().st_size > 0)
+    ]
+    if not pending_paths:
         return
     prompt = card.get("art_prompt") or f"Horizontal illustration for {card.get('title', 'card')}."
     payload: dict[str, Any] = {"model": model, "prompt": prompt}
+    if api == "images":
+        payload["n"] = len(pending_paths)
     if size is not None:
         payload["size"] = size
     if quality is not None:
@@ -336,6 +344,12 @@ def _generate_card_image(
     payload_for_cache = payload
     try:
         if api == "responses":
+            if len(pending_paths) > 1:
+                console.print(
+                    "[yellow]Responses API image generation does not support batching; "
+                    "limiting to one output.[/yellow]"
+                )
+                pending_paths = pending_paths[:1]
             payload_for_cache = client.build_image_responses_payload(
                 prompt=prompt,
                 response_model=responses_model,
@@ -362,25 +376,31 @@ def _generate_card_image(
             f"[red]Image generation failed for {card.get('id', 'card')}. "
             f"Saving placeholder. Reason: {exc}[/red]"
         )
-        out_path.write_bytes(base64.b64decode(_DUMMY_PNG_BASE64))
+        for path in pending_paths:
+            path.write_bytes(base64.b64decode(_DUMMY_PNG_BASE64))
         return
 
     if response is None:
-        out_path.write_bytes(base64.b64decode(_DUMMY_PNG_BASE64))
+        for path in pending_paths:
+            path.write_bytes(base64.b64decode(_DUMMY_PNG_BASE64))
         return
 
     if cache_dir:
-        client.save_payload(cache_dir, f"image_{card['id']}", payload_for_cache, response)
+        cache_name = f"image_{card['id']}_{pending_paths[0].stem}"
+        client.save_payload(cache_dir, cache_name, payload_for_cache, response)
 
-    data = client.extract_image_b64(response) or _DUMMY_PNG_BASE64
-    try:
-        out_path.write_bytes(base64.b64decode(data))
-    except Exception as exc:  # noqa: BLE001 - guard against corrupt payloads
-        console.print(
-            f"[yellow]Invalid image data for {card.get('id', 'card')}. "
-            f"Saving placeholder. Reason: {exc}[/yellow]"
-        )
-        out_path.write_bytes(base64.b64decode(_DUMMY_PNG_BASE64))
+    data_list = _extract_image_b64_list(client, response)
+    if not data_list:
+        data_list = []
+    for path, data in zip(pending_paths, data_list + [_DUMMY_PNG_BASE64] * len(pending_paths)):
+        try:
+            path.write_bytes(base64.b64decode(data))
+        except Exception as exc:  # noqa: BLE001 - guard against corrupt payloads
+            console.print(
+                f"[yellow]Invalid image data for {card.get('id', 'card')}. "
+                f"Saving placeholder. Reason: {exc}[/yellow]"
+            )
+            path.write_bytes(base64.b64decode(_DUMMY_PNG_BASE64))
 
 
 def _build_candidate_tasks(
@@ -739,7 +759,9 @@ def _prepare_reference_images(
     policy_reference_out: Path | None = None
     dev_reference_out: Path | None = None
 
-    reference_candidate_count = max(1, candidate_count * max(1, reference_multiplier))
+    reference_candidate_count = _normalize_candidate_count(
+        max(1, candidate_count * max(1, reference_multiplier))
+    )
 
     if policy_ref_paths is None and policies:
         reference_card = policies[0]
@@ -880,7 +902,7 @@ def _run_generation_tasks(
         return
     run_async(
         _run_generation_tasks_async(
-            tasks,
+            _build_generation_batches(tasks),
             concurrency,
             desc=desc,
             timeout_s=timeout_s,
@@ -906,7 +928,7 @@ async def _run_generation_tasks_async(
     async def _run_task(task: dict[str, Any]) -> None:
         async with semaphore:
             try:
-                thread_task = asyncio.to_thread(_generate_card_image, **_strip_generation_task(task))
+                thread_task = asyncio.to_thread(_generate_card_images, **task)
                 if timeout_s is not None and timeout_s > 0:
                     await asyncio.wait_for(thread_task, timeout=timeout_s)
                 else:
@@ -921,13 +943,59 @@ async def _run_generation_tasks_async(
         await coro
 
 
-def _strip_generation_task(task: dict[str, Any]) -> dict[str, Any]:
-    return {
-        key: value
-        for key, value in task.items()
-        if key
-        not in {"card_type", "final_out_path", "alias_out_paths", "is_reference", "reference_image"}
-    }
+def _build_generation_batches(tasks: list[dict[str, Any]], max_batch_size: int = 10) -> list[dict[str, Any]]:
+    grouped: dict[tuple[Any, ...], list[dict[str, Any]]] = {}
+    for task in tasks:
+        if task.get("resume") and task["out_path"].exists() and task["out_path"].stat().st_size > 0:
+            continue
+        reference_images = tuple(str(path) for path in (task.get("reference_images") or []))
+        key = (
+            task["card"]["id"],
+            task.get("is_reference", False),
+            task.get("api"),
+            task.get("model"),
+            task.get("responses_model"),
+            task.get("size"),
+            task.get("quality"),
+            task.get("background"),
+            reference_images,
+        )
+        grouped.setdefault(key, []).append(task)
+
+    batches: list[dict[str, Any]] = []
+    for grouped_tasks in grouped.values():
+        grouped_tasks.sort(key=lambda item: item["out_path"].name)
+        api = grouped_tasks[0].get("api")
+        batch_size = max_batch_size if api == "images" else 1
+        for idx in range(0, len(grouped_tasks), batch_size):
+            chunk = grouped_tasks[idx : idx + batch_size]
+            first = chunk[0]
+            batches.append(
+                {
+                    "card": first["card"],
+                    "out_paths": [item["out_path"] for item in chunk],
+                    "reference_images": first.get("reference_images"),
+                    "client": first["client"],
+                    "model": first.get("model"),
+                    "responses_model": first.get("responses_model"),
+                    "api": api,
+                    "size": first.get("size"),
+                    "quality": first.get("quality"),
+                    "background": first.get("background"),
+                    "cache_dir": first.get("cache_dir"),
+                    "resume": first.get("resume", False),
+                }
+            )
+    return batches
+
+
+def _extract_image_b64_list(client: OpenAIClient, response: dict[str, Any]) -> list[str]:
+    if "data" in response:
+        data = response.get("data") or []
+        if isinstance(data, list):
+            return [item.get("b64_json") for item in data if isinstance(item, dict) and item.get("b64_json")]
+    extracted = client.extract_image_b64(response)
+    return [extracted] if extracted else []
 
 
 def _resolve_concurrency(task_count: int, concurrency: int) -> int:
@@ -946,3 +1014,14 @@ def _resolve_timeout_seconds(value: Any) -> float | None:
     if parsed <= 0:
         return None
     return parsed
+
+
+def _normalize_candidate_count(value: Any, *, batch_size: int = 10) -> int:
+    try:
+        count = int(value or 0)
+    except (TypeError, ValueError):
+        return 1
+    count = max(1, count)
+    if count <= batch_size:
+        return count
+    return int(math.ceil(count / batch_size) * batch_size)

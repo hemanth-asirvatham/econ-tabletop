@@ -205,10 +205,7 @@ def _normalize_policy_cards(
         if card.get("category") not in categories:
             card["category"] = categories[0]
         if "political_capital" not in card:
-            if "impact_score" in card:
-                card["political_capital"] = card.get("impact_score")
-            else:
-                card["political_capital"] = 3
+            card["political_capital"] = 3
         card_tags = card.get("tags") or [tags[0]]
         card["tags"] = [tag for tag in card_tags if tag in tags] or [tags[0]]
         if not card.get("addresses_tags"):

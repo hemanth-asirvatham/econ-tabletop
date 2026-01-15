@@ -8,7 +8,7 @@ Title (verbatim): "{{ card.title }}"
 Short description (verbatim): "{{ card.short_description }}"
 Description (verbatim): "{{ card.description }}"
 Stage label: "{{ card.stage }}"
-Impact score: {{ card.impact_score }} (map to caret count)
+Impact score: {{ card.impact_score }} (map to arrow count)
 Arrows up/down: {{ card.arrows_up }} up, {{ card.arrows_down }} down
 Card type: {{ card.card_type }}
 
@@ -19,8 +19,9 @@ Layout & styling:
 - If the description includes an imperative rule sentence (e.g., "Draw 2 cards next stage."), render that sentence as a subtle rule line within the description block (still plain text, no extra labels).
 - If any text includes **double-asterisk markers**, render the wrapped text in bold WITHOUT the asterisks.
 - Place the stage number only (e.g., "2") in the upper-left corner as a small badge.
-- In the upper-right corner, show stacked caret icons: the count must match the impact score magnitude exactly ({{ card.impact_score }}), using green up-carets for positive and red down-carets for negative. If impact score is zero, use a single neutral gray line.
+- In the upper-right corner, show a horizontal row of minimalist arrow icons (side-by-side, not stacked). The count must match the impact score magnitude exactly ({{ card.impact_score }}): use green up arrows for positive and red down arrows for negative. If impact score is zero, use a single neutral gray line "—".
+- Use the literal arrow glyphs to convey shape: ↑ ↑ ↑ (for 3 up), ↓ ↓ (for 2 down), — (for zero).
 - If card_type is "power", add a subtle power accent (e.g., faint glow border or small lightning icon near the title). No extra text labels.
 - Place an illustrative scene panel or full-background motif that matches the theme, with a Victoria 3 impressionist art style unless the card format notes override it.
 - Use rich color but keep UI elements high-contrast; no photorealism; elegant texture.
-- Only show the specified text/labels (stage number, title, short description, description, caret stack); no extra readable text. Ensure perfect text rendering.
+- Only show the specified text/labels (stage number, title, short description, description, arrow row); no extra readable text. Ensure perfect text rendering.

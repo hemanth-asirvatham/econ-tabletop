@@ -57,6 +57,8 @@ Constraints:
 - Use the simulation outline to maintain an optimistic skew and stage-appropriate progressions.
 - Write concrete, realistic titles/descriptions; avoid vague consulting-speak.
 - Keep descriptions accessible to a smart lay audience: minimize jargon and add a clarifying phrase if a term is niche.
+- Frame each development as a world-state fact (what changed, who is affected, and how it shows up in everyday life).
+- Favor broad, legible titles over overly specific program names; make the core idea instantly understandable.
 - Include a wide spread of scale and domain (small operational shifts, sector-wide changes, infrastructure or governance impacts).
 - Use 1-3 tags per card from the allowed list.
 - Title: 2-4 words, simple and punchy (no subtitle, no colon).
@@ -82,23 +84,24 @@ Constraints:
   - MODIFY_MAX_POLICIES_THIS_ROUND {delta}: change how many policies can be implemented this round.
 - For quantitative_indicator: include at least one numeric indicator in the short_description (e.g., "+1.5%" or "3x").
 - If the card mentions a numeric or level parameter (e.g., % unemployment, low/moderate/high fear, dollar amounts), wrap the key value in **bold** (e.g., **10%**, **low**).
-- impact_score: integer from -4 to 4 (0 allowed). Use mostly positive values; +/-4 should be rare and dramatic.
-- Spread impact_score magnitudes across 0–3 with only occasional 4s; do not cluster all cards at the same value.
+- impact_score: integer from -5 to 5 (0 allowed). Use mostly positive values; +/-4 and +/-5 should be rare and dramatic.
+- Spread impact_score magnitudes across 0–3 with only occasional 4s or 5s; do not cluster all cards at the same value.
 - Map impact_score to icons: if >0 set arrows_up=impact_score; if <0 set arrows_down=abs(impact_score); if 0 set both to 0.
+- Make the mapping explicit: impact_score=-2 means arrows_down=2 and arrows_up=0.
 - Valence icons: never show both green and red; use only one direction or neutral.
 - Do NOT include raw tag ids or underscore-separated terms in the description; use natural-language phrasing for conditions.
 - art_prompt should be a concise instruction for a horizontal card illustration (no need to include title text here; it will be added later).
 
 Example development archetypes to inspire breadth (do NOT copy verbatim; keep stage-appropriate):
-- Stage 0/1: "Uplift in Coding Productivity" (two green up-carets), "Public Fear" (**low**) with one red down-caret,
-  "Lowered Language Barriers" (one green up-caret).
-- Stage 2/3: "Companionship for Elderly" (one green up-caret), "Rising Energy Costs" (one red down-caret),
+- Stage 0/1: "Uplift in Coding Productivity" (two green up arrows), "Public Fear" (**low**) with one red down arrow,
+  "Lowered Language Barriers" (one green up arrow).
+- Stage 2/3: "Companionship for Elderly" (one green up arrow), "Rising Energy Costs" (one red down arrow),
   "AI Research Acceleration" (powerup: draw **2** cards from next stage),
-  "Fully Automated Computer-Based Work" (three green up-carets),
+  "Fully Automated Computer-Based Work" (three green up arrows),
   "Job Loss" (**10%** unemployment in cognitive labor),
-  "Autonomous Vehicles" (two green up-carets),
+  "Autonomous Vehicles" (two green up arrows),
   "Export Control" (powerup: nullify best policy relying on foreign semi flows).
-- Late stages: "Commonplace Personal Robotics" (three green up-carets), "Novel Medical Research" (positive).
+- Late stages: "Commonplace Personal Robotics" (three green up arrows), "Novel Medical Research" (positive).
 
 Example (single card shown):
 {

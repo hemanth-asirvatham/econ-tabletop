@@ -44,17 +44,20 @@ Output JSON schema:
 
 Content constraints:
 - Title: 2-4 words, simple and punchy (no subtitle, no colon).
+- Favor broad, plain-language titles that signal a recognizable world-state shift (avoid overly specific program names or insider jargon).
 - short_description: <= 60 characters; minimalist summary.
 - description: 1 short sentence, <= 140 characters total.
 - Use concrete, realistic phrasing; avoid vague consulting-speak.
 - Keep descriptions accessible to a smart lay audience; avoid niche jargon without quick clarification.
+- Frame developments as observable conditions in the world (what changed, for whom, and how it shows up).
 - If the card mentions a numeric or level parameter (e.g., % unemployment, low/moderate/high fear, dollar amounts), wrap the key value in **bold** (e.g., **10%**, **low**).
 - If effects is non-empty (powerup), include an explicit imperative rule sentence in the description (e.g., "Draw 2 development cards now.").
 - If effects is non-empty, set card_type="power"; otherwise set card_type="standard".
 - If activation.type is conditional, include a brief conditional clause in the description.
 - If supersedes is set, include a plain-English clause in the description explaining what prior development is being replaced (do NOT include the raw card id).
-- impact_score: integer from -4 to 4 (0 allowed). Use mostly positive values; +/-4 should be rare and dramatic.
+- impact_score: integer from -5 to 5 (0 allowed). Use mostly positive values; +/-4 and +/-5 should be rare and dramatic, indicating extreme shifts.
 - Map impact_score to icons: if >0 set arrows_up=impact_score; if <0 set arrows_down=abs(impact_score); if 0 set both to 0.
+- Make the mapping explicit: impact_score=-3 means arrows_down=3 and arrows_up=0 (three red down arrows).
 - Valence icons: never show both green and red; use only one direction or neutral.
 - Do NOT include raw tag ids or underscore-separated terms in the description; use natural-language phrasing for conditions.
 
@@ -81,15 +84,15 @@ Example:
 }
 
 Example development archetypes to inspire breadth (do NOT copy verbatim; keep stage-appropriate):
-- Stage 0/1: "Uplift in Coding Productivity" (two green up-carets), "Public Fear" (**low**) with one red down-caret,
-  "Lowered Language Barriers" (one green up-caret).
-- Stage 2/3: "Companionship for Elderly" (one green up-caret), "Rising Energy Costs" (one red down-caret),
+- Stage 0/1: "Uplift in Coding Productivity" (two green up arrows), "Public Fear" (**low**) with one red down arrow,
+  "Lowered Language Barriers" (one green up arrow).
+- Stage 2/3: "Companionship for Elderly" (one green up arrow), "Rising Energy Costs" (one red down arrow),
   "AI Research Acceleration" (powerup: draw **2** cards from next stage),
-  "Fully Automated Computer-Based Work" (three green up-carets),
+  "Fully Automated Computer-Based Work" (three green up arrows),
   "Job Loss" (**10%** unemployment in cognitive labor),
-  "Autonomous Vehicles" (two green up-carets),
+  "Autonomous Vehicles" (two green up arrows),
   "Export Control" (powerup: nullify best policy relying on foreign semi flows).
-- Late stages: "Commonplace Personal Robotics" (three green up-carets), "Novel Medical Research" (positive).
+- Late stages: "Commonplace Personal Robotics" (three green up arrows), "Novel Medical Research" (positive).
 
 Effects vocabulary (use when needed, especially for powerups):
 - DRAW_DEV_NOW {count, stage_offset}: immediately reveal additional development cards this round.

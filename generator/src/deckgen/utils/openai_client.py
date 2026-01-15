@@ -117,7 +117,8 @@ class OpenAIClient:
                 console.print("[yellow]ECON_TABLETOP_DUMMY_OPENAI enabled. Returning dummy image response.[/yellow]")
             else:
                 console.print("[yellow]OPENAI_API_KEY not set. Returning dummy image response.[/yellow]")
-            return {"data": [{"b64_json": ""}]}
+            count = _parse_image_count(payload.get("n"))
+            return {"data": [{"b64_json": ""} for _ in range(count)]}
         resp = self.client.post(f"{self.base_url}/images/generations", headers=self._headers(), json=payload)
         try:
             resp.raise_for_status()
@@ -161,7 +162,8 @@ class OpenAIClient:
                 console.print("[yellow]ECON_TABLETOP_DUMMY_OPENAI enabled. Returning dummy image response.[/yellow]")
             else:
                 console.print("[yellow]OPENAI_API_KEY not set. Returning dummy image response.[/yellow]")
-            return {"data": [{"b64_json": ""}]}
+            count = _parse_image_count(payload.get("n"))
+            return {"data": [{"b64_json": ""} for _ in range(count)]}
         if not image_paths:
             raise ValueError("images_edit requires at least one reference image path.")
         files = [
@@ -275,3 +277,11 @@ def _encode_image_data_url(path: Path) -> str:
     mime = _guess_image_mime(path)
     data = base64.b64encode(path.read_bytes()).decode("utf-8")
     return f"data:{mime};base64,{data}"
+
+
+def _parse_image_count(value: Any) -> int:
+    try:
+        parsed = int(value or 1)
+    except (TypeError, ValueError):
+        return 1
+    return max(1, parsed)
