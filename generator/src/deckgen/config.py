@@ -11,7 +11,7 @@ import yaml
 DEFAULT_CONFIG = {
     "scenario": {
         "name": "Baseline",
-        "injection": "",
+        "additional_instructions": "",
         "tone": "realistic, policy-relevant, grounded",
         "locale_visuals": [],
     },
@@ -94,10 +94,10 @@ DEFAULT_CONFIG = {
     },
     "runtime": {
         "concurrency_text": 500,
-        "concurrency_image": 300,
-        "image_candidate_count": 8,
-        "image_reference_candidate_multiplier": 5,
-        "image_timeout_s": 400,
+        "concurrency_image": 200,
+        "image_candidate_count": 5,
+        "image_reference_candidate_multiplier": 8,
+        "image_timeout_s": 450,
         "critique_timeout_s": 150,
         "resume": True,
         "cache_requests": True,

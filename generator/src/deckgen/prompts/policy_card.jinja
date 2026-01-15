@@ -1,7 +1,7 @@
 You are generating a single PolicyCard JSON object using structured outputs.
 
-Scenario Context:
-{{ scenario_injection or "(none)" }}
+Additional instructions:
+{{ additional_instructions or "(none)" }}
 
 Tone: {{ scenario_tone }}
 
@@ -30,7 +30,7 @@ Output JSON schema:
     "time_to_launch": "IMMEDIATE|WEEKS|MONTHS|1-2Y|3-5Y",
     "time_to_impact": "IMMEDIATE|WEEKS|MONTHS|1-2Y|3-5Y"
   },
-  "impact_score": 1,
+  "political_capital": 1,
   "tags": ["string"],
   "addresses_tags": ["string"],
   "side_effect_tags": ["string"],
@@ -46,8 +46,11 @@ Content constraints:
 - short_description: <= 60 characters; minimalist summary.
 - description: 1 short sentence, <= 140 characters total.
 - Use concrete, actionable policy language with a clear lever and target.
+- Keep descriptions accessible to a smart lay audience; avoid niche jargon without quick clarification.
 - If the card mentions a numeric parameter (e.g., dollars, %, headcount, unemployment), wrap the key value in **bold** (e.g., **$250B**, **10%**).
 - Include explicit costs or tradeoffs in some descriptions (e.g., budgetary burden, energy price impacts, reduced openness).
+- political_capital reflects political effort/consensus required (1=easy win, 5=highly contentious).
+- Set political_capital across LOW/MED/HIGH (1-2 low, 3 medium, 4-5 high) and avoid always choosing the same level.
 
 Example policy archetypes to inspire breadth (do NOT copy verbatim; make them distinct and realistic):
 - Sovereign Compute Initiative (e.g., invest **$250B** in domestic data centers; allow multiple variants at different values).
@@ -76,7 +79,7 @@ Example:
     "time_to_launch": "MONTHS",
     "time_to_impact": "1-2Y"
   },
-  "impact_score": 3,
+  "political_capital": 3,
   "tags": ["workforce_reskilling", "employment_transition"],
   "addresses_tags": ["job_displacement", "skills_mismatch"],
   "side_effect_tags": ["fiscal_burden"],

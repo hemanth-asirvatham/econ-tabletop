@@ -31,6 +31,7 @@ def generate_simulation_outline(
     mix_targets = resolved.get("mix_targets", {})
     categories = taxonomy.get("categories", [])
     tags = taxonomy.get("tags", [])
+    additional_instructions = scenario.get("additional_instructions", scenario.get("injection", ""))
 
     outline_txt_path = out_dir / "meta" / "simulation_outline.txt"
     outline_md_path = out_dir / "meta" / "simulation_outline.md"
@@ -45,7 +46,7 @@ def generate_simulation_outline(
     outline_prompt = render_prompt(
         "simulation_outline.jinja",
         prompt_path=prompt_path,
-        scenario_injection=scenario.get("injection", ""),
+        additional_instructions=additional_instructions,
         stages=stages,
         deck_sizes=deck_sizes,
         categories=categories,

@@ -1,7 +1,7 @@
 You are generating a list of PolicyCard JSON objects using structured outputs.
 
-Scenario Context:
-{{ scenario_injection or "(none)" }}
+Additional instructions:
+{{ additional_instructions or "(none)" }}
 
 Tone: {{ scenario_tone }}
 
@@ -38,7 +38,7 @@ Output JSON schema:
         "time_to_launch": "IMMEDIATE|WEEKS|MONTHS|1-2Y|3-5Y",
         "time_to_impact": "IMMEDIATE|WEEKS|MONTHS|1-2Y|3-5Y"
       },
-      "impact_score": 1,
+      "political_capital": 1,
       "tags": ["string"],
       "addresses_tags": ["string"],
       "side_effect_tags": ["string"],
@@ -60,6 +60,7 @@ Constraints:
 - Use 1-3 tags per card; addresses_tags must overlap with the card tags.
 - Use grounded, policy-relevant language; avoid sci-fi or sensationalism.
 - Write crisp, concrete titles/descriptions; avoid vague consulting-speak.
+- Keep descriptions accessible to a smart lay audience: minimize jargon and add a clarifying phrase if a term is niche.
 - Title: 2-4 words, simple and punchy (no subtitle, no colon).
 - short_description: <= 60 characters; minimalist summary.
 - description: 1 short sentence, <= 140 characters total.
@@ -67,6 +68,8 @@ Constraints:
 - Use the simulation outline to keep policy variety and stage relevance coherent.
 - Include a broad mix of policy scale (pilot programs, national reforms, cross-border coordination) and domain (compute, workforce,
   AI safety, macro, finance, R&D, public-sector modernization, industrial policy, standards).
+- political_capital reflects political effort/consensus required (1=easy win, 5=highly contentious).
+- Distribute cost and political capital across LOW/MED/HIGH (1-2 low, 3 medium, 4-5 high) without clustering; include easy wins and heavy lifts.
 - If the card mentions a numeric parameter (e.g., dollars, %, headcount, unemployment), wrap the key value in **bold** (e.g., **$250B**, **10%**).
 - Ensure some descriptions include explicit costs or tradeoffs that affect gameplay occasionally (budget strain, energy price impact, compliance burden).
 - Ensure at least a few cards mirror concrete policy archetypes (e.g., compute procurement initiative, retraining vouchers, AGI tax policy,
@@ -103,7 +106,7 @@ Example (single card shown):
         "time_to_launch": "MONTHS",
         "time_to_impact": "1-2Y"
       },
-      "impact_score": 3,
+      "political_capital": 3,
       "tags": ["workforce_reskilling", "employment_transition"],
       "addresses_tags": ["job_displacement", "skills_mismatch"],
       "side_effect_tags": ["fiscal_burden"],

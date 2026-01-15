@@ -1,6 +1,6 @@
 scenario:
   name: "UAE Policymaker Workshop"
-  injection: "This scenario is for UAE policymakers focused on economic diversification, public-sector transformation, and responsible AI deployment."
+  additional_instructions: "This scenario is for UAE policymakers focused on economic diversification, public-sector transformation, and responsible AI deployment."
   tone: "realistic, policy-relevant, grounded"
   locale_visuals:
     - "Gulf architecture"
@@ -66,7 +66,10 @@ models:
     reference_development_image: null
 runtime:
   concurrency_text: 500
-  concurrency_image: 400
+  concurrency_image: 200
+  image_candidate_count: 5
+  image_reference_candidate_multiplier: 8
+  image_timeout_s: 450
   resume: true
   cache_requests: true
   prompt_path: null

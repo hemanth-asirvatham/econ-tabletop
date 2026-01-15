@@ -1,7 +1,7 @@
 You are generating a list of DevelopmentCard JSON objects using structured outputs.
 
-Scenario Context:
-{{ scenario_injection or "(none)" }}
+Additional instructions:
+{{ additional_instructions or "(none)" }}
 
 Stage:
 {{ stage | tojson }}
@@ -32,6 +32,7 @@ Output JSON schema:
       "arrows_up": 0,
       "arrows_down": 0,
       "severity": 1,
+      "card_type": "standard|power",
       "tags": ["string"],
       "thread_id": "string",
       "supersedes": "string or null",
@@ -55,6 +56,8 @@ Constraints:
 - Keep outcomes grounded and stage-appropriate; avoid sci-fi leaps.
 - Use the simulation outline to maintain an optimistic skew and stage-appropriate progressions.
 - Write concrete, realistic titles/descriptions; avoid vague consulting-speak.
+- Keep descriptions accessible to a smart lay audience: minimize jargon and add a clarifying phrase if a term is niche.
+- Include a wide spread of scale and domain (small operational shifts, sector-wide changes, infrastructure or governance impacts).
 - Use 1-3 tags per card from the allowed list.
 - Title: 2-4 words, simple and punchy (no subtitle, no colon).
 - short_description: <= 60 characters; minimalist summary.
@@ -65,6 +68,7 @@ Constraints:
 - For conditional: set activation.type=conditional and include at least one required_policy_tags item.
 - For powerup: include a non-empty effects list with meaningful parameters.
 - For powerup: include an explicit imperative rule sentence in the description (e.g., "Draw 2 development cards now.").
+- Set card_type="power" for powerups; otherwise use card_type="standard".
 - For conditional: include a brief conditional clause in the description.
 - Include at least 2 powerup cards per stage; prioritize common powerups:
   - Research acceleration: draw and play 2 development cards from the next stage (DRAW_DEV_NEXT_STAGE_NOW + count 2).
@@ -79,8 +83,10 @@ Constraints:
 - For quantitative_indicator: include at least one numeric indicator in the short_description (e.g., "+1.5%" or "3x").
 - If the card mentions a numeric or level parameter (e.g., % unemployment, low/moderate/high fear, dollar amounts), wrap the key value in **bold** (e.g., **10%**, **low**).
 - impact_score: integer from -4 to 4 (0 allowed). Use mostly positive values; +/-4 should be rare and dramatic.
+- Spread impact_score magnitudes across 0–3 with only occasional 4s; do not cluster all cards at the same value.
 - Map impact_score to icons: if >0 set arrows_up=impact_score; if <0 set arrows_down=abs(impact_score); if 0 set both to 0.
 - Valence icons: never show both green and red; use only one direction or neutral.
+- Do NOT include raw tag ids or underscore-separated terms in the description; use natural-language phrasing for conditions.
 - art_prompt should be a concise instruction for a horizontal card illustration (no need to include title text here; it will be added later).
 
 Example development archetypes to inspire breadth (do NOT copy verbatim; keep stage-appropriate):
@@ -108,6 +114,7 @@ Example (single card shown):
       "arrows_up": 1,
       "arrows_down": 0,
       "severity": 3,
+      "card_type": "standard",
       "tags": ["productivity_growth", "wage_dispersion"],
       "thread_id": "office_copilots",
       "supersedes": null,

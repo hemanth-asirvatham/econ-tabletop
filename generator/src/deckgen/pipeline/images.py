@@ -409,6 +409,9 @@ def _build_candidate_tasks(
     candidate_dir.mkdir(parents=True, exist_ok=True)
     for card in cards:
         final_out_path = out_dir / f"{card['id']}{final_suffix}.png"
+        alias_out_paths: list[Path] = []
+        if card_type == "development" and card.get("card_type") == "power":
+            alias_out_paths.append(out_dir / f"power_{card['id']}{final_suffix}.png")
         reference_image = reference_images[0] if reference_images else None
         for idx in range(candidate_count):
             candidate_path = candidate_dir / f"{card['id']}{final_suffix}_cand_{idx:02d}.png"
@@ -417,6 +420,7 @@ def _build_candidate_tasks(
                     "card": card,
                     "out_path": candidate_path,
                     "final_out_path": final_out_path,
+                    "alias_out_paths": alias_out_paths,
                     "card_type": card_type,
                     "reference_images": reference_images,
                     "reference_image": reference_image,
@@ -545,6 +549,9 @@ def _select_best_candidates(tasks: list[dict[str, Any]], scores: list[int]) -> N
         final_path = chosen_task["final_out_path"]
         final_path.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(chosen_task["out_path"], final_path)
+        for alias_path in chosen_task.get("alias_out_paths", []):
+            alias_path.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(chosen_task["out_path"], alias_path)
 
         sorted_entries = sorted(entries, key=lambda entry: entry[1], reverse=True)
         keep_limit = max(0, min(_CANDIDATE_KEEP_COUNT, len(sorted_entries) - 1))
@@ -918,7 +925,8 @@ def _strip_generation_task(task: dict[str, Any]) -> dict[str, Any]:
     return {
         key: value
         for key, value in task.items()
-        if key not in {"card_type", "final_out_path", "is_reference", "reference_image"}
+        if key
+        not in {"card_type", "final_out_path", "alias_out_paths", "is_reference", "reference_image"}
     }
 
 

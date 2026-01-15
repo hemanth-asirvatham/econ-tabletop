@@ -15,7 +15,7 @@ Reference card image is provided for style/format matching (do NOT copy its text
 {% endif %}
 {% if card_type == "policy" -%}
 - Category badge text: "{{ card.category }}"
-- Impact score: {{ card.impact_score }}/5
+- Political capital: {{ card.political_capital }}/5
 - Budget level: {{ card.cost.budget_level }}/5
 - Time-to-impact label: "{{ card.timeline.time_to_impact }}"
 {% else -%}
@@ -23,6 +23,7 @@ Reference card image is provided for style/format matching (do NOT copy its text
 - Arrows up: {{ card.arrows_up }}
 - Arrows down: {{ card.arrows_down }}
 - Severity: {{ card.severity }}/5
+- Card type: {{ card.card_type }}
 {% endif %}
 
 Inspection checklist (be extremely nitpicky; reserve 95+ only for near-perfect):
@@ -31,12 +32,13 @@ Inspection checklist (be extremely nitpicky; reserve 95+ only for near-perfect):
 3) Typography is legible and correctly rendered (no garbling).
 4) The card fills the landscape frame edge-to-edge with a complete border (no tiny card floating in empty space).
 5) Title is short and placed near the top; description is short and placed closer to the bottom.
-6) Policy cards: show a bottom row with Cost, Time, Impact, Category; include the exact category text; no stage badge or caret icons.
+6) Policy cards: show a bottom row with Cost, Time, Political Capital, Category; include the exact category text; no stage badge or caret icons.
 7) Development cards: show the stage number only (upper-left), correct up/down caret counts (or neutral gray line if both zero), and severity dots/bars count; no policy-only icons.
 8) Development cards: never show both green up-carets and red down-carets at the same time.
-9) If any text uses **bold markers**, the asterisks are NOT visible and the wrapped text is bolded.
-10) Imagery is clean, high-quality, and matches the art direction; no blurring or awkward cropping.
-11) If a reference image is provided, the candidate matches its overall style and layout conventions.
+9) If card_type is "power", a subtle power accent is visible (glow border or small lightning icon) without extra text.
+10) If any text uses **bold markers**, the asterisks are NOT visible and the wrapped text is bolded.
+11) Imagery is clean, high-quality, and matches the art direction; no blurring or awkward cropping.
+12) If a reference image is provided, the candidate matches its overall style and layout conventions.
 
 Scoring guidance:
 - 100 = absolutely perfect, museum-quality card with flawless text and exact icon counts.
@@ -52,7 +54,7 @@ Output format (JSON only):
 Examples:
 
 Example A (policy, correct):
-Input summary: Title "Green Grid", short description "Grid upgrades", category "Energy", impact 4/5, budget 2/5, time "1-2Y".
+Input summary: Title "Green Grid", short description "Grid upgrades", category "Energy", political capital 4/5, budget 2/5, time "1-2Y".
 Output:
 { "rating": 98 }
 

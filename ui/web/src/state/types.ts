@@ -13,7 +13,7 @@ export type PolicyCard = {
     time_to_launch: string;
     time_to_impact: string;
   };
-  impact_score: number;
+  political_capital: number;
   tags: string[];
   addresses_tags: string[];
   side_effect_tags: string[];
@@ -34,6 +34,7 @@ export type DevelopmentCard = {
   arrows_up: number;
   arrows_down: number;
   severity: number;
+  card_type: "standard" | "power";
   tags: string[];
   thread_id: string;
   supersedes: string | null;

@@ -1,7 +1,7 @@
 You are generating a single DevelopmentCard JSON object using structured outputs.
 
-Scenario Context:
-{{ scenario_injection or "(none)" }}
+Additional instructions:
+{{ additional_instructions or "(none)" }}
 
 Stage:
 {{ stage | tojson }}
@@ -27,6 +27,7 @@ Output JSON schema:
   "arrows_up": 0,
   "arrows_down": 0,
   "severity": 1,
+  "card_type": "standard|power",
   "tags": ["string"],
   "thread_id": "string",
   "supersedes": "string or null",
@@ -46,13 +47,16 @@ Content constraints:
 - short_description: <= 60 characters; minimalist summary.
 - description: 1 short sentence, <= 140 characters total.
 - Use concrete, realistic phrasing; avoid vague consulting-speak.
+- Keep descriptions accessible to a smart lay audience; avoid niche jargon without quick clarification.
 - If the card mentions a numeric or level parameter (e.g., % unemployment, low/moderate/high fear, dollar amounts), wrap the key value in **bold** (e.g., **10%**, **low**).
 - If effects is non-empty (powerup), include an explicit imperative rule sentence in the description (e.g., "Draw 2 development cards now.").
+- If effects is non-empty, set card_type="power"; otherwise set card_type="standard".
 - If activation.type is conditional, include a brief conditional clause in the description.
 - If supersedes is set, include a plain-English clause in the description explaining what prior development is being replaced (do NOT include the raw card id).
 - impact_score: integer from -4 to 4 (0 allowed). Use mostly positive values; +/-4 should be rare and dramatic.
 - Map impact_score to icons: if >0 set arrows_up=impact_score; if <0 set arrows_down=abs(impact_score); if 0 set both to 0.
 - Valence icons: never show both green and red; use only one direction or neutral.
+- Do NOT include raw tag ids or underscore-separated terms in the description; use natural-language phrasing for conditions.
 
 Example:
 {
@@ -66,6 +70,7 @@ Example:
   "arrows_up": 1,
   "arrows_down": 0,
   "severity": 3,
+  "card_type": "standard",
   "tags": ["productivity_growth", "wage_dispersion"],
   "thread_id": "office_copilots",
   "supersedes": null,

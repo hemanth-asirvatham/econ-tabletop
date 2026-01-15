@@ -37,6 +37,7 @@ def generate_policies(
     total = resolved["deck_sizes"]["policies_total"]
     tags = taxonomy["tags"]
     categories = taxonomy["categories"]
+    additional_instructions = scenario.get("additional_instructions", scenario.get("injection", ""))
     client = OpenAIClient()
     cache_dir = cache_dir_for(out_dir) if runtime.get("cache_requests", False) else None
 
@@ -50,7 +51,7 @@ def generate_policies(
         blueprint_prompt = render_prompt(
             "policy_blueprint.jinja",
             prompt_path=prompt_path,
-            scenario_injection=scenario.get("injection", ""),
+            additional_instructions=additional_instructions,
             scenario_tone=scenario.get("tone", ""),
             target_count=total,
             categories=categories,
@@ -73,7 +74,7 @@ def generate_policies(
         cards_prompt = render_prompt(
             "policy_cards.jinja",
             prompt_path=prompt_path,
-            scenario_injection=scenario.get("injection", ""),
+            additional_instructions=additional_instructions,
             scenario_tone=scenario.get("tone", ""),
             categories=categories,
             tags=tags,
@@ -105,7 +106,7 @@ def generate_policies(
             "image_prompt_policy.jinja",
             prompt_path=prompt_path,
             card=card,
-            scenario_injection=scenario.get("injection", ""),
+            additional_instructions=additional_instructions,
             locale_visuals=scenario.get("locale_visuals", []),
             image_outline_text=image_outline_text or "",
         ).strip()
@@ -189,7 +190,7 @@ def _normalize_policy_cards(
                 "category": category,
                 "cost": {"budget_level": 3, "implementation_complexity": 3, "notes": "Balanced fiscal impact."},
                 "timeline": {"time_to_launch": "MONTHS", "time_to_impact": "1-2Y"},
-                "impact_score": 3,
+                "political_capital": 3,
                 "tags": [tag],
                 "addresses_tags": [tag],
                 "side_effect_tags": [],
@@ -203,6 +204,11 @@ def _normalize_policy_cards(
     for card in normalized:
         if card.get("category") not in categories:
             card["category"] = categories[0]
+        if "political_capital" not in card:
+            if "impact_score" in card:
+                card["political_capital"] = card.get("impact_score")
+            else:
+                card["political_capital"] = 3
         card_tags = card.get("tags") or [tags[0]]
         card["tags"] = [tag for tag in card_tags if tag in tags] or [tags[0]]
         if not card.get("addresses_tags"):
