@@ -915,7 +915,11 @@ async def _run_generation_tasks_async(
 
 
 def _strip_generation_task(task: dict[str, Any]) -> dict[str, Any]:
-    return {key: value for key, value in task.items() if key not in {"card_type", "final_out_path"}}
+    return {
+        key: value
+        for key, value in task.items()
+        if key not in {"card_type", "final_out_path", "is_reference", "reference_image"}
+    }
 
 
 def _resolve_concurrency(task_count: int, concurrency: int) -> int:
