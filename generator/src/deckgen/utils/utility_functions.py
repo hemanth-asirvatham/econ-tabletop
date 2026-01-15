@@ -158,9 +158,9 @@ def dummy_image_outline() -> str:
         [
             "- 3:2 horizontal card that fills the frame with a full border.",
             "- Title near top; short description near bottom; text is minimal and highly legible.",
-            "- Policy cards: no stage/carets; bottom row with Cost, Time, Political Capital, Category labels.",
-            "- Development cards: stage number upper-left; caret stack upper-right; neutral gray line if zero.",
-            "- Outcome indicators: green up-carets or red down-carets only (never both); caret count matches score (1-4).",
+            "- Policy cards: no stage/arrows; bottom row with Cost, Time, Political Capital, Category labels.",
+            "- Development cards: stage number upper-left; arrow row upper-right; neutral gray line if zero.",
+            "- Outcome indicators: green up arrows or red down arrows only (never both); arrow count matches score (1-5).",
             "- Score chips/bars for SEVERITY using filled dots (1–5).",
             "- Minimalist line-art motifs; muted palette; generous whitespace; no extra text.",
         ]
@@ -225,8 +225,8 @@ def dummy_simulation_outline(
             "- Use DRAW_DEV_NOW and MODIFY_DEV_DRAW_NEXT_ROUND sparingly.",
             "",
             "6) Card Formatting (policy + development layout, valence iconography)",
-            "- Development: stage number upper-left; carets upper-right (green or red only; neutral gray line if zero, 1-4 stack).",
-            "- Policy: no stage/carets; bottom row with Cost, Time, Political Capital, Category labels.",
+            "- Development: stage number upper-left; arrows upper-right (green or red only; neutral gray line if zero, 1-5 row).",
+            "- Policy: no stage/arrows; bottom row with Cost, Time, Political Capital, Category labels.",
             "",
             "7) Art Direction (minimalist, lightly impressionist; Victoria 3-style vibe)",
             "- Muted palette, thin-line icons, generous whitespace.",

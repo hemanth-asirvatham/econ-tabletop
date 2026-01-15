@@ -492,11 +492,7 @@ def _normalize_arrow_count(value: Any) -> int:
         return 0
     if count <= 0:
         return 0
-    if count == 2:
-        return 2
-    if count >= 4:
-        return 4
-    return 1 if count == 1 else 3
+    return min(5, count)
 
 
 def _normalize_impact_score(value: Any) -> int | None:
@@ -506,14 +502,14 @@ def _normalize_impact_score(value: Any) -> int | None:
         score = int(value)
     except (TypeError, ValueError):
         return None
-    return max(-4, min(4, score))
+    return max(-5, min(5, score))
 
 
 def _impact_score_from_arrows(arrows_up: int, arrows_down: int) -> int:
     if arrows_up > 0 and arrows_down == 0:
-        return max(1, min(4, arrows_up))
+        return max(1, min(5, arrows_up))
     if arrows_down > 0 and arrows_up == 0:
-        return -max(1, min(4, arrows_down))
+        return -max(1, min(5, arrows_down))
     return 0
 
 
