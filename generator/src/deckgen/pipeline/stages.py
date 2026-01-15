@@ -49,6 +49,7 @@ def generate_stage_cards(
     tags = taxonomy["tags"]
     stages = resolved.get("stages", {}).get("definitions", [])
     stage_counts = resolved["deck_sizes"]["developments_per_stage"]
+    additional_instructions = scenario.get("additional_instructions", scenario.get("injection", ""))
     client = OpenAIClient()
     cache_dir = cache_dir_for(out_dir) if runtime.get("cache_requests", False) else None
 
@@ -62,6 +63,7 @@ def generate_stage_cards(
         stage_path = out_dir / "cards" / f"developments.stage{stage_index}.jsonl"
         if reuse_existing and stage_path.exists():
             stage_cards = read_jsonl(stage_path)
+            _ensure_card_types(stage_cards)
             if len(stage_cards) != count:
                 console.print(
                     f"[yellow]Stage {stage_index} has {len(stage_cards)} cards on disk; "
@@ -86,7 +88,7 @@ def generate_stage_cards(
             blueprint_prompt = render_prompt(
                 "stage_blueprint.jinja",
                 prompt_path=prompt_path,
-                scenario_injection=scenario.get("injection", ""),
+                additional_instructions=additional_instructions,
                 stage=stage_def,
                 tags=tags,
                 mix_targets=resolved.get("mix_targets", {}),
@@ -121,7 +123,7 @@ def generate_stage_cards(
             cards_prompt = render_prompt(
                 "development_cards.jinja",
                 prompt_path=prompt_path,
-                scenario_injection=scenario.get("injection", ""),
+                additional_instructions=additional_instructions,
                 stage=stage_def,
                 tags=tags,
                 beats=beats,
@@ -179,7 +181,7 @@ def generate_stage_cards(
                 "image_prompt_development.jinja",
                 prompt_path=prompt_path,
                 card=card,
-                scenario_injection=scenario.get("injection", ""),
+                additional_instructions=additional_instructions,
                 locale_visuals=scenario.get("locale_visuals", []),
                 image_outline_text=image_outline_text or "",
             ).strip()
@@ -222,6 +224,7 @@ def generate_stage_cards(
     summaries.extend(summary_results)
 
     for stage_index, stage_cards in stage_cards_by_index.items():
+        _ensure_card_types(stage_cards)
         for card in stage_cards:
             Draft202012Validator(DEVELOPMENT_CARD_SCHEMA).validate(card)
         write_jsonl(out_dir / "cards" / f"developments.stage{stage_index}.jsonl", stage_cards)
@@ -248,7 +251,7 @@ def _generate_stage_summary(
     summary_prompt = render_prompt(
         "stage_summary.jinja",
         prompt_path=prompt_path,
-        scenario_injection=scenario.get("injection", ""),
+        additional_instructions=scenario.get("additional_instructions", scenario.get("injection", "")),
         stage=stage_def,
         cards=stage_cards,
         outline_text=outline_text,
@@ -282,7 +285,7 @@ async def _generate_stage_summary_async(
     summary_prompt = render_prompt(
         "stage_summary.jinja",
         prompt_path=prompt_path,
-        scenario_injection=scenario.get("injection", ""),
+        additional_instructions=scenario.get("additional_instructions", scenario.get("injection", "")),
         stage=stage_def,
         cards=stage_cards,
         outline_text=outline_text,
@@ -389,6 +392,7 @@ def _normalize_dev_cards(
                 "arrows_up": 1,
                 "arrows_down": 0,
                 "severity": 3,
+                "card_type": "standard",
                 "tags": [tag],
                 "thread_id": beats[idx % len(beats)]["thread_id"],
                 "supersedes": None,
@@ -419,8 +423,20 @@ def _normalize_dev_cards(
         if directive == "quantitative_indicator" and card.get("short_description"):
             if not any(char.isdigit() for char in card["short_description"]):
                 card["short_description"] = f"{card['short_description']} (+1.0%)"
+        if not card.get("card_type"):
+            card["card_type"] = "power" if card.get("effects") else "standard"
+        if card.get("card_type") == "power" and not card.get("effects"):
+            card["effects"] = [{"type": "DRAW_DEV_NOW", "params": {"count": 1, "stage_offset": 0}}]
         _normalize_valence_icons(card)
     return normalized
+
+
+def _ensure_card_types(cards: list[dict[str, Any]]) -> None:
+    for card in cards:
+        if not card.get("card_type"):
+            card["card_type"] = "power" if card.get("effects") else "standard"
+        if card.get("card_type") == "power" and not card.get("effects"):
+            card["effects"] = [{"type": "DRAW_DEV_NOW", "params": {"count": 1, "stage_offset": 0}}]
 
 
 def _normalize_valence_icons(card: dict[str, Any]) -> None:

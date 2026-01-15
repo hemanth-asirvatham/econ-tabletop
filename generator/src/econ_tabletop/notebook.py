@@ -142,12 +142,13 @@ def deck_builder(
     reference_development_image: str | None = None,
     concurrency_text: int | None = None,
     concurrency_image: int | None = None,
-    image_candidate_count: int | None = 6,
+    image_candidate_count: int | None = 5,
     image_reference_candidate_multiplier: int | None = None,
     resume: bool = True,
     cache_requests: bool | None = None,
     prompt_path: str | None = None,
     scenario_name: str | None = None,
+    additional_instructions: str | None = None,
     scenario_injection: str | None = None,
     scenario_tone: str | None = None,
     locale_visuals: list[str] | None = None,
@@ -188,7 +189,8 @@ def deck_builder(
         cache_requests: Whether to store OpenAI request/response cache.
         prompt_path: Optional override path for prompt templates.
         scenario_name: Scenario label used in manifests.
-        scenario_injection: Additional prompt instruction injected into prompts.
+        additional_instructions: Extra prompt instruction injected into prompts.
+        scenario_injection: Deprecated alias for additional_instructions.
         scenario_tone: Style/tone guidance.
         locale_visuals: Locale/region visual motifs for art prompts.
         deck_sizes: Override deck sizes.
@@ -230,6 +232,7 @@ def deck_builder(
         cache_requests=cache_requests,
         prompt_path=prompt_path,
         scenario_name=scenario_name,
+        additional_instructions=additional_instructions,
         scenario_injection=scenario_injection,
         scenario_tone=scenario_tone,
         locale_visuals=locale_visuals,
@@ -382,6 +385,7 @@ def _build_config(
     cache_requests: bool | None = None,
     prompt_path: str | None = None,
     scenario_name: str | None = None,
+    additional_instructions: str | None = None,
     scenario_injection: str | None = None,
     scenario_tone: str | None = None,
     locale_visuals: list[str] | None = None,
@@ -395,8 +399,11 @@ def _build_config(
     scenario: dict[str, Any] = {}
     if scenario_name is not None:
         scenario["name"] = scenario_name
-    if scenario_injection is not None:
-        scenario["injection"] = scenario_injection
+    resolved_instructions = additional_instructions
+    if resolved_instructions is None and scenario_injection is not None:
+        resolved_instructions = scenario_injection
+    if resolved_instructions is not None:
+        scenario["additional_instructions"] = resolved_instructions
     if scenario_tone is not None:
         scenario["tone"] = scenario_tone
     if locale_visuals is not None:

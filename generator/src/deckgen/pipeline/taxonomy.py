@@ -67,6 +67,7 @@ def generate_taxonomy(config: dict[str, Any], out_dir: Path) -> dict[str, Any]:
     prompt_path = runtime.get("prompt_path")
     client = OpenAIClient()
     cache_dir = cache_dir_for(out_dir) if runtime.get("cache_requests", False) else None
+    additional_instructions = scenario.get("additional_instructions", scenario.get("injection", ""))
 
     if client.use_dummy:
         taxonomy = dummy_taxonomy(resolved)
@@ -74,7 +75,7 @@ def generate_taxonomy(config: dict[str, Any], out_dir: Path) -> dict[str, Any]:
         prompt = render_prompt(
             "taxonomy.jinja",
             prompt_path=prompt_path,
-            scenario_injection=scenario.get("injection", ""),
+            additional_instructions=additional_instructions,
             scenario_tone=scenario.get("tone", ""),
         )
         payload: dict[str, Any] = {

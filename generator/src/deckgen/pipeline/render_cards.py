@@ -19,7 +19,10 @@ def render_cards(policies: list[dict[str, Any]], developments: list[dict[str, An
     for card in tqdm(policies, desc="Rendering policy cards"):
         _render_card(card, policy_dir / f"{card['id']}.png", font, "POLICY")
     for card in tqdm(developments, desc="Rendering development cards"):
-        _render_card(card, dev_dir / f"{card['id']}.png", font, "DEVELOPMENT")
+        primary_path = dev_dir / f"{card['id']}.png"
+        _render_card(card, primary_path, font, "DEVELOPMENT")
+        if card.get("card_type") == "power":
+            _render_card(card, dev_dir / f"power_{card['id']}.png", font, "DEVELOPMENT")
 
 
 def _render_card(card: dict[str, Any], path: Path, font: ImageFont.ImageFont, label: str) -> None:

@@ -2,8 +2,8 @@ You are writing a single Simulation Outline document that will govern all downst
 
 Goal: Produce a detailed, well-structured outline with headings and bullet points (plain text only).
 
-Scenario Context (must be woven into the outline):
-{{ scenario_injection or "(none)" }}
+Additional instructions (must be woven into the outline):
+{{ additional_instructions or "(none)" }}
 
 Stages (authoritative definitions):
 {{ stages | tojson }}
@@ -50,10 +50,11 @@ Constraints:
 - Make policy examples diverse in scale and instrument (pilots, national programs, cross-border coordination, regulation, incentives, procurement).
 - Keep stage progression realistic and increasingly advanced; include smaller near-term outcomes/policies and larger longer-term ones with clear throughlines.
 - Ensure stage sections connect: outcomes, policies, and powerups should feel related across stages (early precursors -> mid-stage expansions -> late-stage shifts).
-- Reflect scenario context when provided (e.g., UAE localization).
+- Reflect additional instructions when provided (e.g., UAE localization).
+- Keep examples accessible to a smart lay audience, minimizing jargon with brief clarification where needed.
 - In "Card Formatting", specify a minimalist layout that fills the full landscape frame:
   - Development cards: stage number only in the upper-left; caret stack upper-right (green up or red down only, or neutral gray line if zero); title near top, short description near bottom.
-  - Policy cards: NO stage badge or carets; title near top, short description near bottom; a bottom row showing Cost, Time, Impact, Category with small icons and short labels (low/med/high; time label verbatim).
+  - Policy cards: NO stage badge or carets; title near top, short description near bottom; a bottom row showing Cost, Time, Political Capital, Category with small icons and short labels (low/med/high; time label verbatim).
   - Keep text minimal, readable, and high-contrast; no extra labels.
 - In "Powerup/Conditional Mechanics Guidance", explicitly list common powerups and require at least 2 per stage (research acceleration drawing next-stage cards; research slowdown removing highest-impact cards; policy bandwidth shifts).
 - Emphasize powerups should be grounded in reality and integrated with the stage narrative (not random gamey effects).

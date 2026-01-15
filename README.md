@@ -56,7 +56,7 @@ et.deck_builder(
     concurrency_image=6,
     concurrency_text=6,
     resume=True,
-    scenario_injection="Add UAE-specific policy context and examples.",
+    additional_instructions="Add UAE-specific policy context and examples.",
 )
 
 # Launch the local GUI for play/testing
@@ -134,11 +134,11 @@ Key configurable parameters in the YAML:
 
 - `models.text`: `model`, `reasoning_effort`, `max_output_tokens`, `temperature`, `top_p`, `store`.
 - `models.image`: `api`, `model`, `size`, `quality`, `background`, `reference_policy_image`, `reference_development_image`.
-- `runtime`: `concurrency_text`, `concurrency_image`, `image_candidate_count`, `image_timeout_s`, `critique_timeout_s`, `resume`, `cache_requests`, `prompt_path`.
+- `runtime`: `concurrency_text`, `concurrency_image`, `image_candidate_count`, `image_reference_candidate_multiplier`, `image_timeout_s`, `critique_timeout_s`, `resume`, `cache_requests`, `prompt_path`.
 - `deck_sizes`: total policies and per-stage developments.
 - `mix_targets`: balance of positive/negative/conditional/supersedes/powerups/quant indicators.
 - `gameplay_defaults`: parameters surfaced to the UI for play setup.
-- `scenario`: tone, locale visuals, and any scenario injection context.
+- `scenario`: tone, locale visuals, and any additional instructions.
 
 ### Output locations and saved artifacts
 
@@ -187,7 +187,7 @@ Key knobs:
 
 - `scenario`: optional scenario conditioning.
   - `name`: label used in manifests.
-  - `injection`: extra context injected into prompts.
+  - `additional_instructions`: extra context injected into prompts.
   - `tone`: stylistic target (e.g., "realistic, policy-relevant, grounded").
   - `locale_visuals`: list of regional motifs (affects art prompts).
 - `stages`: progression stages, with `time_horizon` and `capability_profile`.
@@ -287,6 +287,7 @@ decks/<deck_id>/
   images/
     policy/<policy_id>.png
     development/<dev_id>.png
+    development/power_<dev_id>.png (power cards only, optional alias)
   render/
     thumbs/
   print/
@@ -300,9 +301,9 @@ decks/<deck_id>/
     stage_summaries.json
 ```
 
-## Scenario Injection & Style References
+## Additional Instructions & Style References
 
-- Provide `scenario.injection` and `scenario.locale_visuals` to condition **both** text and art prompts.
+- Provide `scenario.additional_instructions` and `scenario.locale_visuals` to condition **both** text and art prompts.
 - Style references:
   - Place reference images under `generator/assets/style_refs/policy/` and `generator/assets/style_refs/development/`.
   - If no refs are present, the generator creates one policy reference and one development reference under `generator/assets/generated_refs/` and uses them as style anchors.

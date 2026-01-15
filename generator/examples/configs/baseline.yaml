@@ -1,6 +1,6 @@
 scenario:
   name: "Baseline Workshop"
-  injection: ""
+  additional_instructions: ""
   tone: "realistic, policy-relevant, grounded"
   locale_visuals: []
 stages:
@@ -63,7 +63,10 @@ models:
     reference_development_image: null
 runtime:
   concurrency_text: 500
-  concurrency_image: 400
+  concurrency_image: 200
+  image_candidate_count: 5
+  image_reference_candidate_multiplier: 8
+  image_timeout_s: 450
   resume: true
   cache_requests: true
   prompt_path: null

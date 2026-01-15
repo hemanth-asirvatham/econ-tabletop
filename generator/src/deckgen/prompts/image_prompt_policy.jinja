@@ -1,27 +1,27 @@
 Create a 3:2 horizontal POLICY card illustration with baked-in text and full card frame.
 
-Scenario context: {{ scenario_injection or "(none)" }}
+Additional instructions: {{ additional_instructions or "(none)" }}
 Locale visuals (optional motifs): {{ locale_visuals | join(", ") }}
 Card format notes (concise): {{ image_outline_text }}
 
 Title (verbatim): "{{ card.title }}"
 Short description (verbatim): "{{ card.short_description }}"
 Description (verbatim): "{{ card.description }}"
-Impact score: {{ card.impact_score }}/5
+Political capital: {{ card.political_capital }}/5
 Budget level: {{ card.cost.budget_level }}/5
 Time to impact: {{ card.timeline.time_to_impact }}
 Category (verbatim): "{{ card.category }}"
 
 Layout & styling:
-- Render the entire card with rounded corners, subtle bevel, and a thin outer border; the card should fill nearly the full 3:2 landscape frame.
+- Render the entire card with rounded corners, subtle bevel, and a thin outer border; the card should fill the 3:2 landscape frame edge-to-edge with no empty margin.
 - Use a refined tabletop-card layout like a premium board-game card; crisp typography and precise alignment.
 - Keep the layout minimalist: title near the top, a short-description line under it, and a compact description block nearer the bottom (no repeated titles, no extra labels).
 - If any text includes **double-asterisk markers**, render the wrapped text in bold WITHOUT the asterisks.
 - Do NOT add stage badges or caret icons on policy cards.
-- Place a single bottom-row strip with four compact sections (left to right): Cost, Time, Impact, Category.
+- Place a single bottom-row strip with four compact sections (left to right): Cost, Time, Political Capital, Category.
   - Cost: dollar-bill icon + text label LOW/MED/HIGH derived from budget level (1-2=LOW, 3=MED, 4-5=HIGH).
   - Time: clock icon + time-to-impact text verbatim.
-  - Impact: target icon + text label LOW/MED/HIGH derived from impact score (1-2=LOW, 3=MED, 4-5=HIGH).
+  - Political Capital: raised-fist (or capitol dome) icon + text label LOW/MED/HIGH derived from political capital (1-2=LOW, 3=MED, 4-5=HIGH).
   - Category: small badge using the Category text verbatim.
 - Place an illustrative scene or full-background motif that matches the theme, with a Victoria 3 impressionist art style unless the card format notes override it.
 - Use rich color but keep UI elements high-contrast; no photorealism; elegant texture.
