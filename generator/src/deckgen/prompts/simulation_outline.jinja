@@ -45,16 +45,18 @@ Stage subsection template (repeat for each stage):
 
 Constraints:
 - Use plain text only (no JSON). The output must be a single cohesive document.
-- Explicitly describe valence iconography: green up-caret stack (1 or 3), red down-caret stack (1 or 3), neutral gray line if zero; never show both red and green at once.
+- Explicitly describe valence iconography: impact score from -4 to 4 (0 allowed) mapped to caret stacks (1-4). Positive = green up-carets, negative = red down-carets, zero = neutral gray line; never show both red and green at once.
 - Ensure most development examples are positive/optimistic, with some mixed or negative for balance.
 - Make policy examples diverse in scale and instrument (pilots, national programs, cross-border coordination, regulation, incentives, procurement).
-- Keep stage progression realistic and increasingly advanced.
+- Keep stage progression realistic and increasingly advanced; include smaller near-term outcomes/policies and larger longer-term ones with clear throughlines.
+- Ensure stage sections connect: outcomes, policies, and powerups should feel related across stages (early precursors -> mid-stage expansions -> late-stage shifts).
 - Reflect scenario context when provided (e.g., UAE localization).
 - In "Card Formatting", specify a minimalist layout that fills the full landscape frame:
   - Development cards: stage number only in the upper-left; caret stack upper-right (green up or red down only, or neutral gray line if zero); title near top, short description near bottom.
   - Policy cards: NO stage badge or carets; title near top, short description near bottom; a bottom row showing Cost, Time, Impact, Category with small icons and short labels (low/med/high; time label verbatim).
   - Keep text minimal, readable, and high-contrast; no extra labels.
 - In "Powerup/Conditional Mechanics Guidance", explicitly list common powerups and require at least 2 per stage (research acceleration drawing next-stage cards; research slowdown removing highest-impact cards; policy bandwidth shifts).
+- Emphasize powerups should be grounded in reality and integrated with the stage narrative (not random gamey effects).
 
 Example output (truncated):
 # Simulation Outline
@@ -83,9 +85,9 @@ Example output (truncated):
   - AI Audit Liability Regime — Mandatory audits for high-risk models. Tags: safety_standards
   - Compute Procurement Sandbox — Government pre-buys compute capacity for SMEs. Tags: compute_access
 - Example development cards:
-  - Office Copilots — Early productivity gains (+1.2%); Valence: ↑ (positive). Tags: productivity_growth
-  - Public Service Copilot Rollout — Case backlog drops 15%; Valence: ↑↑↑ (positive). Powerup: DRAW_DEV_NOW +1.
-  - Chip Supply Pinch — Deployment delays in regulated sectors; Valence: ↓ (negative). Conditional: requires compute_policy tags.
+  - Office Copilots — Early productivity gains (+1.2%); Impact score: +1. Tags: productivity_growth
+  - Public Service Copilot Rollout — Case backlog drops 15%; Impact score: +3. Powerup: DRAW_DEV_NOW +1.
+  - Chip Supply Pinch — Deployment delays in regulated sectors; Impact score: -1. Conditional: requires compute_policy tags.
 - Art notes for this stage: Minimalist office skyline, muted teal and sand palette.
 
 3) Policy Variety & Examples

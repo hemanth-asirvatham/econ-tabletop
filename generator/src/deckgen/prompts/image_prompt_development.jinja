@@ -8,17 +8,16 @@ Title (verbatim): "{{ card.title }}"
 Short description (verbatim): "{{ card.short_description }}"
 Description (verbatim): "{{ card.description }}"
 Stage label: "{{ card.stage }}"
+Impact score: {{ card.impact_score }} (map to caret count)
 Arrows up/down: {{ card.arrows_up }} up, {{ card.arrows_down }} down
-Severity: {{ card.severity }}/5
 
 Layout & styling:
 - Render the entire card with rounded corners, subtle bevel, and a thin outer border; the card should fill nearly the full 3:2 landscape frame.
 - Use a refined tabletop-card layout like a premium board-game card; crisp typography and precise alignment.
-- Keep the layout minimalist: title near the top, a short-description line under it, and a compact description block nearer the bottom (no repeated titles, no extra labels).
+- Keep the layout minimalist: stage number in the upper-left, title near the top, a short-description line under it, and a compact description block nearer the bottom (no repeated titles, no extra labels).
 - If the description includes an imperative rule sentence (e.g., "Draw 2 cards next stage."), render that sentence as a subtle rule line within the description block (still plain text, no extra labels).
 - Place the stage number only (e.g., "2") in the upper-left corner as a small badge.
-- In the upper-right corner, show stacked caret icons: {{ card.arrows_up }} green up-carets or {{ card.arrows_down }} red down-carets; never show both colors. If both are zero, use a single neutral gray line.
-- Include a small severity indicator (SEVERITY) with filled dots or bars matching the score above.
+- In the upper-right corner, show stacked caret icons: the count must match the impact score magnitude ({{ card.impact_score }}), using green up-carets for positive and red down-carets for negative. If impact score is zero, use a single neutral gray line.
 - Place an illustrative scene panel or full-background motif that matches the theme, with a Victoria 3 impressionist art style unless the card format notes override it.
 - Use rich color but keep UI elements high-contrast; no photorealism; elegant texture.
-- Only show the specified text/labels; no extra readable text. Ensure perfect text rendering.
+- Only show the specified text/labels (stage number, title, short description, description, caret stack); no extra readable text. Ensure perfect text rendering.

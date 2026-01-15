@@ -136,12 +136,13 @@ def deck_builder(
     store: bool | None = None,
     image_size: str | None = None,
     image_quality: str | None = None,
+    image_reference_quality: str | None = None,
     image_background: str | None = None,
     reference_policy_image: str | None = None,
     reference_development_image: str | None = None,
     concurrency_text: int | None = None,
     concurrency_image: int | None = None,
-    image_candidate_count: int | None = 8,
+    image_candidate_count: int | None = 6,
     image_reference_candidate_multiplier: int | None = None,
     resume: bool = True,
     cache_requests: bool | None = None,
@@ -175,6 +176,7 @@ def deck_builder(
         store: Whether to store text responses.
         image_size: Image generation size.
         image_quality: Image generation quality setting.
+        image_reference_quality: Image generation quality for reference cards.
         image_background: Image background setting.
         reference_policy_image: Path to a reference policy card image.
         reference_development_image: Path to a reference development card image.
@@ -216,6 +218,7 @@ def deck_builder(
         store=store,
         image_size=image_size,
         image_quality=image_quality,
+        image_reference_quality=image_reference_quality,
         image_background=image_background,
         reference_policy_image=reference_policy_image,
         reference_development_image=reference_development_image,
@@ -367,6 +370,7 @@ def _build_config(
     store: bool | None = None,
     image_size: str | None = None,
     image_quality: str | None = None,
+    image_reference_quality: str | None = None,
     image_background: str | None = None,
     reference_policy_image: str | None = None,
     reference_development_image: str | None = None,
@@ -428,6 +432,8 @@ def _build_config(
         image_model["size"] = image_size
     if image_quality is not None:
         image_model["quality"] = image_quality
+    if image_reference_quality is not None:
+        image_model["reference_quality"] = image_reference_quality
     if image_background is not None:
         image_model["background"] = image_background
     if reference_policy_image is not None:
