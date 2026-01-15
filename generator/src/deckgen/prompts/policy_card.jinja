@@ -27,8 +27,8 @@ Output JSON schema:
     "notes": "string"
   },
   "timeline": {
-    "time_to_launch": "immediate|weeks|months|1-2y|3-5y",
-    "time_to_impact": "immediate|weeks|months|1-2y|3-5y"
+    "time_to_launch": "IMMEDIATE|WEEKS|MONTHS|1-2Y|3-5Y",
+    "time_to_impact": "IMMEDIATE|WEEKS|MONTHS|1-2Y|3-5Y"
   },
   "impact_score": 1,
   "tags": ["string"],
@@ -46,6 +46,19 @@ Content constraints:
 - short_description: <= 60 characters; minimalist summary.
 - description: 1 short sentence, <= 140 characters total.
 - Use concrete, actionable policy language with a clear lever and target.
+- If the card mentions a numeric parameter (e.g., dollars, %, headcount, unemployment), wrap the key value in **bold** (e.g., **$250B**, **10%**).
+- Include explicit costs or tradeoffs in some descriptions (e.g., budgetary burden, energy price impacts, reduced openness).
+
+Example policy archetypes to inspire breadth (do NOT copy verbatim; make them distinct and realistic):
+- Sovereign Compute Initiative (e.g., invest **$250B** in domestic data centers; allow multiple variants at different values).
+- Power Infrastructure Investment.
+- Offensive Cyber Capabilities.
+- Audit Training Data.
+- Ban Automation in X (specific sector or occupation).
+- Universal Basic Income (**$X** per month).
+- Wealth Tax (**X%**).
+- AI Company Tax.
+- Targeted employment schemes.
 
 Example:
 {
@@ -60,8 +73,8 @@ Example:
     "notes": "Public-private partnerships reduce fiscal burden."
   },
   "timeline": {
-    "time_to_launch": "months",
-    "time_to_impact": "1-2y"
+    "time_to_launch": "MONTHS",
+    "time_to_impact": "1-2Y"
   },
   "impact_score": 3,
   "tags": ["workforce_reskilling", "employment_transition"],

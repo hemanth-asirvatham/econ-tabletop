@@ -42,11 +42,11 @@ POLICY_CARD_SCHEMA = {
             "properties": {
                 "time_to_launch": {
                     "type": "string",
-                    "enum": ["immediate", "weeks", "months", "1-2y", "3-5y"],
+                    "enum": ["IMMEDIATE", "WEEKS", "MONTHS", "1-2Y", "3-5Y"],
                 },
                 "time_to_impact": {
                     "type": "string",
-                    "enum": ["immediate", "weeks", "months", "1-2y", "3-5y"],
+                    "enum": ["IMMEDIATE", "WEEKS", "MONTHS", "1-2Y", "3-5Y"],
                 },
             },
         },

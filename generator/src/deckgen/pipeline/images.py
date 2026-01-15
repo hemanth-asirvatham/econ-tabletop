@@ -390,6 +390,7 @@ def _build_candidate_tasks(
     out_dir: Path,
     candidate_count: int,
     reference_images: list[Path] | None,
+    is_reference: bool = False,
     client: OpenAIClient,
     model: str | None,
     responses_model: str | None,
@@ -408,6 +409,7 @@ def _build_candidate_tasks(
     candidate_dir.mkdir(parents=True, exist_ok=True)
     for card in cards:
         final_out_path = out_dir / f"{card['id']}{final_suffix}.png"
+        reference_image = reference_images[0] if reference_images else None
         for idx in range(candidate_count):
             candidate_path = candidate_dir / f"{card['id']}{final_suffix}_cand_{idx:02d}.png"
             tasks.append(
@@ -417,6 +419,8 @@ def _build_candidate_tasks(
                     "final_out_path": final_out_path,
                     "card_type": card_type,
                     "reference_images": reference_images,
+                    "reference_image": reference_image,
+                    "is_reference": is_reference,
                     "client": client,
                     "model": model,
                     "responses_model": responses_model,
@@ -584,6 +588,8 @@ async def _critique_image_task(
         return 0
     card = task["card"]
     card_type = task["card_type"]
+    is_reference = bool(task.get("is_reference"))
+    reference_image = None if is_reference else task.get("reference_image")
     if client.use_dummy or not client.api_key:
         return int(dummy_image_critique(card=card, card_type=card_type).get("rating", 0))
     prompt = render_prompt(
@@ -591,11 +597,13 @@ async def _critique_image_task(
         prompt_path=prompt_path,
         card=card,
         card_type=card_type,
+        reference_image_provided=bool(reference_image),
     )
     payload = _build_image_critique_payload(
         prompt=prompt,
         model=model,
         image_path=out_path,
+        reference_image_path=reference_image,
         reasoning_effort=reasoning_effort,
         store=store,
     )
@@ -625,18 +633,22 @@ def _build_image_critique_payload(
     prompt: str,
     model: str | None,
     image_path: Path,
+    reference_image_path: Path | None,
     reasoning_effort: str | None,
     store: bool,
 ) -> dict[str, Any]:
+    content: list[dict[str, Any]] = [
+        {"type": "input_text", "text": prompt},
+        {"type": "input_image", "image_url": _encode_image_data_url(image_path)},
+    ]
+    if reference_image_path:
+        content.append({"type": "input_image", "image_url": _encode_image_data_url(reference_image_path)})
     return {
         "model": model,
         "input": [
             {
                 "role": "user",
-                "content": [
-                    {"type": "input_text", "text": prompt},
-                    {"type": "input_image", "image_url": _encode_image_data_url(image_path)},
-                ],
+                "content": content,
             }
         ],
         "text": {
@@ -732,6 +744,7 @@ def _prepare_reference_images(
                 out_dir=policy_dir,
                 candidate_count=reference_candidate_count,
                 reference_images=None,
+                is_reference=True,
                 client=client,
                 model=model,
                 responses_model=responses_model,
@@ -755,6 +768,7 @@ def _prepare_reference_images(
                 out_dir=dev_dir,
                 candidate_count=reference_candidate_count,
                 reference_images=None,
+                is_reference=True,
                 client=client,
                 model=model,
                 responses_model=responses_model,

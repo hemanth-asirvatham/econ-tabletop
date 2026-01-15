@@ -46,6 +46,7 @@ Content constraints:
 - short_description: <= 60 characters; minimalist summary.
 - description: 1 short sentence, <= 140 characters total.
 - Use concrete, realistic phrasing; avoid vague consulting-speak.
+- If the card mentions a numeric or level parameter (e.g., % unemployment, low/moderate/high fear, dollar amounts), wrap the key value in **bold** (e.g., **10%**, **low**).
 - If effects is non-empty (powerup), include an explicit imperative rule sentence in the description (e.g., "Draw 2 development cards now.").
 - If activation.type is conditional, include a brief conditional clause in the description.
 - If supersedes is set, include a plain-English clause in the description explaining what prior development is being replaced (do NOT include the raw card id).
@@ -73,6 +74,17 @@ Example:
   "art_prompt": "Horizontal illustration of an office skyline with glowing AI overlays, clear space top-left for text, no readable text.",
   "suggested_visibility": "faceup"
 }
+
+Example development archetypes to inspire breadth (do NOT copy verbatim; keep stage-appropriate):
+- Stage 0/1: "Uplift in Coding Productivity" (two green up-carets), "Public Fear" (**low**) with one red down-caret,
+  "Lowered Language Barriers" (one green up-caret).
+- Stage 2/3: "Companionship for Elderly" (one green up-caret), "Rising Energy Costs" (one red down-caret),
+  "AI Research Acceleration" (powerup: draw **2** cards from next stage),
+  "Fully Automated Computer-Based Work" (three green up-carets),
+  "Job Loss" (**10%** unemployment in cognitive labor),
+  "Autonomous Vehicles" (two green up-carets),
+  "Export Control" (powerup: nullify best policy relying on foreign semi flows).
+- Late stages: "Commonplace Personal Robotics" (three green up-carets), "Novel Medical Research" (positive).
 
 Effects vocabulary (use when needed, especially for powerups):
 - DRAW_DEV_NOW {count, stage_offset}: immediately reveal additional development cards this round.
