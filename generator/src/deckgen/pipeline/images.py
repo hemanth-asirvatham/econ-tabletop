@@ -919,6 +919,8 @@ async def _run_generation_tasks_async(
 ) -> None:
     if not tasks:
         return
+    if tasks and "out_path" in tasks[0]:
+        tasks = _build_generation_batches(tasks)
     resolved_concurrency = _resolve_concurrency(len(tasks), concurrency)
     console.print(
         f"[cyan]{desc}: running {len(tasks)} tasks with concurrency {resolved_concurrency}[/cyan]"
