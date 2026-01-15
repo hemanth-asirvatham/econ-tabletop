@@ -35,8 +35,8 @@ Output JSON schema:
         "notes": "string"
       },
       "timeline": {
-        "time_to_launch": "immediate|weeks|months|1-2y|3-5y",
-        "time_to_impact": "immediate|weeks|months|1-2y|3-5y"
+        "time_to_launch": "IMMEDIATE|WEEKS|MONTHS|1-2Y|3-5Y",
+        "time_to_impact": "IMMEDIATE|WEEKS|MONTHS|1-2Y|3-5Y"
       },
       "impact_score": 1,
       "tags": ["string"],
@@ -67,10 +67,23 @@ Constraints:
 - Use the simulation outline to keep policy variety and stage relevance coherent.
 - Include a broad mix of policy scale (pilot programs, national reforms, cross-border coordination) and domain (compute, workforce,
   AI safety, macro, finance, R&D, public-sector modernization, industrial policy, standards).
+- If the card mentions a numeric parameter (e.g., dollars, %, headcount, unemployment), wrap the key value in **bold** (e.g., **$250B**, **10%**).
+- Ensure some descriptions include explicit costs or tradeoffs that affect gameplay occasionally (budget strain, energy price impact, compliance burden).
 - Ensure at least a few cards mirror concrete policy archetypes (e.g., compute procurement initiative, retraining vouchers, AGI tax policy,
   AI audit liability regime, cross-border chip export coordination).
 - art_prompt should be a concise instruction for a horizontal card illustration (no need to include title text here; it will be added later).
 - Keep descriptions under ~140 characters.
+
+Example policy archetypes to inspire breadth (do NOT copy verbatim; make them distinct and realistic):
+- Sovereign Compute Initiative (e.g., invest **$250B** in domestic data centers; allow multiple variants at different values).
+- Power Infrastructure Investment.
+- Offensive Cyber Capabilities.
+- Audit Training Data.
+- Ban Automation in X (specific sector or occupation).
+- Universal Basic Income (**$X** per month).
+- Wealth Tax (**X%**).
+- AI Company Tax.
+- Targeted employment schemes.
 
 Example (single card shown):
 {
@@ -87,8 +100,8 @@ Example (single card shown):
         "notes": "Public-private partnerships reduce fiscal burden."
       },
       "timeline": {
-        "time_to_launch": "months",
-        "time_to_impact": "1-2y"
+        "time_to_launch": "MONTHS",
+        "time_to_impact": "1-2Y"
       },
       "impact_score": 3,
       "tags": ["workforce_reskilling", "employment_transition"],

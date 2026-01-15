@@ -57,7 +57,7 @@ def dummy_policy_cards(
                     "implementation_complexity": 3,
                     "notes": "Balanced fiscal impact with shared responsibility.",
                 },
-                "timeline": {"time_to_launch": "months", "time_to_impact": "1-2y"},
+                "timeline": {"time_to_launch": "MONTHS", "time_to_impact": "1-2Y"},
                 "impact_score": 3,
                 "tags": [tag],
                 "addresses_tags": [tag],

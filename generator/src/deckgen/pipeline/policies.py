@@ -188,7 +188,7 @@ def _normalize_policy_cards(
                 "description": "A grounded policy initiative aligned with the scenario context.",
                 "category": category,
                 "cost": {"budget_level": 3, "implementation_complexity": 3, "notes": "Balanced fiscal impact."},
-                "timeline": {"time_to_launch": "months", "time_to_impact": "1-2y"},
+                "timeline": {"time_to_launch": "MONTHS", "time_to_impact": "1-2Y"},
                 "impact_score": 3,
                 "tags": [tag],
                 "addresses_tags": [tag],
