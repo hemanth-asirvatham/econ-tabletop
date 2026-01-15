@@ -23,6 +23,7 @@ Output JSON schema:
   "short_description": "string",
   "description": "string",
   "valence": "positive|negative|mixed",
+  "impact_score": 0,
   "arrows_up": 0,
   "arrows_down": 0,
   "severity": 1,
@@ -44,13 +45,13 @@ Content constraints:
 - Title: 2-4 words, simple and punchy (no subtitle, no colon).
 - short_description: <= 60 characters; minimalist summary.
 - description: 1 short sentence, <= 140 characters total.
+- Use concrete, realistic phrasing; avoid vague consulting-speak.
 - If effects is non-empty (powerup), include an explicit imperative rule sentence in the description (e.g., "Draw 2 development cards now.").
 - If activation.type is conditional, include a brief conditional clause in the description.
+- If supersedes is set, include a plain-English clause in the description explaining what prior development is being replaced (do NOT include the raw card id).
+- impact_score: integer from -4 to 4 (0 allowed). Use mostly positive values; +/-4 should be rare and dramatic.
+- Map impact_score to icons: if >0 set arrows_up=impact_score; if <0 set arrows_down=abs(impact_score); if 0 set both to 0.
 - Valence icons: never show both green and red; use only one direction or neutral.
-- arrows_up: 0, 1, or 3 only; arrows_down: 0, 1, or 3 only.
-- If valence is positive, use arrows_up (1=slightly positive, 3=very positive) and set arrows_down=0.
-- If valence is negative, use arrows_down (1=slightly negative, 3=very negative) and set arrows_up=0.
-- If valence is mixed, set arrows_up=0 and arrows_down=0 (neutral line on the card).
 
 Example:
 {
@@ -60,6 +61,7 @@ Example:
   "short_description": "Productivity lifts in white-collar teams.",
   "description": "Copilots speed routine work and lift output per worker.",
   "valence": "positive",
+  "impact_score": 1,
   "arrows_up": 1,
   "arrows_down": 0,
   "severity": 3,

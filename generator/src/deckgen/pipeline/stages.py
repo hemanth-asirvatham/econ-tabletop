@@ -384,9 +384,10 @@ def _normalize_dev_cards(
                 "title": f"Stage {stage_index} {tag.replace('_', ' ').title()} Shift",
                 "short_description": f"Observed shift in {tag.replace('_', ' ')}.",
                 "description": "Grounded development reflecting AI deployment trends and measurable economic impacts.",
-                "valence": "mixed",
-                "arrows_up": 2,
-                "arrows_down": 1,
+                "valence": "positive",
+                "impact_score": 1,
+                "arrows_up": 1,
+                "arrows_down": 0,
                 "severity": 3,
                 "tags": [tag],
                 "thread_id": beats[idx % len(beats)]["thread_id"],
@@ -423,31 +424,49 @@ def _normalize_dev_cards(
 
 
 def _normalize_valence_icons(card: dict[str, Any]) -> None:
-    arrows_up = _normalize_arrow_count(card.get("arrows_up", 0))
-    arrows_down = _normalize_arrow_count(card.get("arrows_down", 0))
-    valence = str(card.get("valence") or "mixed").lower()
-
-    if valence == "positive":
-        arrows_down = 0
-        if arrows_up == 0:
-            arrows_up = 1
-    elif valence == "negative":
-        arrows_up = 0
-        if arrows_down == 0:
-            arrows_down = 1
+    impact_score = _normalize_impact_score(card.get("impact_score"))
+    if impact_score is not None:
+        if impact_score > 0:
+            arrows_up = abs(impact_score)
+            arrows_down = 0
+            valence = "positive"
+        elif impact_score < 0:
+            arrows_up = 0
+            arrows_down = abs(impact_score)
+            valence = "negative"
+        else:
+            arrows_up = 0
+            arrows_down = 0
+            valence = "mixed"
     else:
-        arrows_up = 0
-        arrows_down = 0
+        arrows_up = _normalize_arrow_count(card.get("arrows_up", 0))
+        arrows_down = _normalize_arrow_count(card.get("arrows_down", 0))
+        valence = str(card.get("valence") or "mixed").lower()
 
-    if arrows_up > 0:
-        card["valence"] = "positive"
-    elif arrows_down > 0:
-        card["valence"] = "negative"
-    else:
-        card["valence"] = "mixed"
+        if valence == "positive":
+            arrows_down = 0
+            if arrows_up == 0:
+                arrows_up = 1
+        elif valence == "negative":
+            arrows_up = 0
+            if arrows_down == 0:
+                arrows_down = 1
+        else:
+            arrows_up = 0
+            arrows_down = 0
 
-    card["arrows_up"] = arrows_up
-    card["arrows_down"] = arrows_down
+        if arrows_up > 0:
+            valence = "positive"
+        elif arrows_down > 0:
+            valence = "negative"
+        else:
+            valence = "mixed"
+        impact_score = _impact_score_from_arrows(arrows_up, arrows_down)
+
+    card["valence"] = valence
+    card["impact_score"] = impact_score
+    card["arrows_up"] = _normalize_arrow_count(arrows_up)
+    card["arrows_down"] = _normalize_arrow_count(arrows_down)
 
 
 def _normalize_arrow_count(value: Any) -> int:
@@ -458,10 +477,28 @@ def _normalize_arrow_count(value: Any) -> int:
     if count <= 0:
         return 0
     if count == 2:
-        return 1
-    if count >= 3:
-        return 3
-    return 1
+        return 2
+    if count >= 4:
+        return 4
+    return 1 if count == 1 else 3
+
+
+def _normalize_impact_score(value: Any) -> int | None:
+    if value is None:
+        return None
+    try:
+        score = int(value)
+    except (TypeError, ValueError):
+        return None
+    return max(-4, min(4, score))
+
+
+def _impact_score_from_arrows(arrows_up: int, arrows_down: int) -> int:
+    if arrows_up > 0 and arrows_down == 0:
+        return max(1, min(4, arrows_up))
+    if arrows_down > 0 and arrows_up == 0:
+        return -max(1, min(4, arrows_down))
+    return 0
 
 
 def _prior_stage_card_ids(stage_index: int, stage_counts: list[int]) -> list[str]:

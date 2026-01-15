@@ -123,6 +123,7 @@ def dummy_development_cards(
                 "short_description": beat.get("beat") or f"Observed shift in {tag.replace('_', ' ')}.",
                 "description": "Grounded development reflecting AI deployment trends and economic impacts.",
                 "valence": "positive",
+                "impact_score": 1,
                 "arrows_up": 1,
                 "arrows_down": 0,
                 "severity": 3,
@@ -158,7 +159,7 @@ def dummy_image_outline() -> str:
             "- Title near top; short description near bottom; text is minimal and highly legible.",
             "- Policy cards: no stage/carets; bottom row with Cost, Time, Impact, Category labels.",
             "- Development cards: stage number upper-left; caret stack upper-right; neutral gray line if zero.",
-            "- Outcome indicators: green up-carets or red down-carets only (never both).",
+            "- Outcome indicators: green up-carets or red down-carets only (never both); caret count matches score (1-4).",
             "- Score chips/bars for SEVERITY using filled dots (1–5).",
             "- Minimalist line-art motifs; muted palette; generous whitespace; no extra text.",
         ]
@@ -197,7 +198,7 @@ def dummy_simulation_outline(
                     "- Example policy cards:",
                     f"  - Reskilling Vouchers — Targeted vouchers for mid-career workers. Tags: {tags_text}",
                     "- Example development cards:",
-                    "  - Copilots Spread Across Office Work — Early productivity gains (+1.2%); Valence: ↑↑ (mixed).",
+                    "  - Copilots Spread Across Office Work — Early productivity gains (+1.2%); Impact score: +2.",
                     "- Art notes for this stage: Minimalist skyline and circuit motifs with muted palette.",
                 ]
             )
@@ -223,7 +224,7 @@ def dummy_simulation_outline(
             "- Use DRAW_DEV_NOW and MODIFY_DEV_DRAW_NEXT_ROUND sparingly.",
             "",
             "6) Card Formatting (policy + development layout, valence iconography)",
-            "- Development: stage number upper-left; carets upper-right (green or red only; neutral gray line if zero).",
+            "- Development: stage number upper-left; carets upper-right (green or red only; neutral gray line if zero, 1-4 stack).",
             "- Policy: no stage/carets; bottom row with Cost, Time, Impact, Category labels.",
             "",
             "7) Art Direction (minimalist, lightly impressionist; Victoria 3-style vibe)",

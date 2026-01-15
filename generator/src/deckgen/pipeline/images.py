@@ -60,7 +60,8 @@ def _generate_images_sync(
     prompt_path = runtime_cfg.get("prompt_path")
     model = image_cfg.get("model") or "gpt-image-1.5"
     size = image_cfg.get("size")
-    quality = image_cfg.get("quality") or "high"
+    quality = image_cfg.get("quality") or "auto"
+    reference_quality = image_cfg.get("reference_quality") or quality
     background = image_cfg.get("background")
     api = image_cfg.get("api", "images")
     if api != "images":
@@ -112,7 +113,7 @@ def _generate_images_sync(
         critique_concurrency=critique_concurrency,
         prompt_path=prompt_path,
         size=size,
-        quality=quality,
+        reference_quality=reference_quality,
         background=background,
         cache_dir=cache_dir,
         resume=resume,
@@ -192,7 +193,8 @@ async def generate_images_async(
     prompt_path = runtime_cfg.get("prompt_path")
     model = image_cfg.get("model") or "gpt-image-1.5"
     size = image_cfg.get("size")
-    quality = image_cfg.get("quality") or "high"
+    quality = image_cfg.get("quality") or "auto"
+    reference_quality = image_cfg.get("reference_quality") or quality
     background = image_cfg.get("background")
     api = image_cfg.get("api", "images")
     if api != "images":
@@ -244,7 +246,7 @@ async def generate_images_async(
         critique_concurrency=critique_concurrency,
         prompt_path=prompt_path,
         size=size,
-        quality=quality,
+        reference_quality=reference_quality,
         background=background,
         cache_dir=cache_dir,
         resume=resume,
@@ -703,7 +705,7 @@ def _prepare_reference_images(
     critique_concurrency: int,
     prompt_path: str | None,
     size: str | None,
-    quality: str | None,
+    reference_quality: str | None,
     background: str | None,
     cache_dir: Path | None,
     resume: bool,
@@ -735,7 +737,7 @@ def _prepare_reference_images(
                 responses_model=responses_model,
                 api=api,
                 size=size,
-                quality=quality,
+                quality=reference_quality,
                 background=background,
                 cache_dir=cache_dir,
                 resume=resume,
@@ -758,7 +760,7 @@ def _prepare_reference_images(
                 responses_model=responses_model,
                 api=api,
                 size=size,
-                quality=quality,
+                quality=reference_quality,
                 background=background,
                 cache_dir=cache_dir,
                 resume=resume,
