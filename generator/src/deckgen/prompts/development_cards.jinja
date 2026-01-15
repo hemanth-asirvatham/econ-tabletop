@@ -90,6 +90,7 @@ Constraints:
 - Make the mapping explicit: impact_score=-2 means arrows_down=2 and arrows_up=0.
 - Valence icons: never show both green and red; use only one direction or neutral.
 - Do NOT include raw tag ids or underscore-separated terms in the description; use natural-language phrasing for conditions.
+- art_prompt must specify an edge-to-edge landscape illustration that fills the entire frame with no empty margins or floating card.
 - art_prompt should be a concise instruction for a horizontal card illustration (no need to include title text here; it will be added later).
 
 Example development archetypes to inspire breadth (do NOT copy verbatim; keep stage-appropriate):
@@ -123,7 +124,7 @@ Example (single card shown):
       "supersedes": null,
       "activation": {"type": "immediate", "required_policy_tags": []},
       "effects": [],
-      "art_prompt": "Horizontal illustration of an office skyline with glowing AI overlays, no readable text.",
+      "art_prompt": "Edge-to-edge horizontal illustration of an office skyline with glowing AI overlays, fills the entire landscape frame, no readable text.",
       "suggested_visibility": "faceup"
     }
   ]

@@ -60,6 +60,7 @@ Content constraints:
 - Make the mapping explicit: impact_score=-3 means arrows_down=3 and arrows_up=0 (three red down arrows).
 - Valence icons: never show both green and red; use only one direction or neutral.
 - Do NOT include raw tag ids or underscore-separated terms in the description; use natural-language phrasing for conditions.
+- art_prompt must specify an edge-to-edge landscape illustration that fills the entire frame with no empty margins or floating card.
 
 Example:
 {
@@ -79,7 +80,7 @@ Example:
   "supersedes": null,
   "activation": {"type": "immediate", "required_policy_tags": []},
   "effects": [],
-  "art_prompt": "Horizontal illustration of an office skyline with glowing AI overlays, clear space top-left for text, no readable text.",
+  "art_prompt": "Edge-to-edge horizontal illustration of an office skyline with glowing AI overlays, fills the entire landscape frame, clear space top-left for text, no readable text.",
   "suggested_visibility": "faceup"
 }
 
