@@ -171,8 +171,10 @@ class OpenAIClient:
             return {"data": [{"b64_json": ""} for _ in range(count)]}
         if not image_paths:
             raise ValueError("images_edit requires at least one reference image path.")
+        field_name = "image" if len(image_paths) == 1 else "image[]"
         files = [
-            ("image", (path.name, path.read_bytes(), _guess_image_mime(path))) for path in image_paths
+            (field_name, (path.name, path.read_bytes(), _guess_image_mime(path)))
+            for path in image_paths
         ]
         resp = self.client.post(
             f"{self.base_url}/images/edits",
