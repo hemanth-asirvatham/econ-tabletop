@@ -35,9 +35,8 @@ class OpenAIClient:
         self.project = os.environ.get("OPENAI_PROJECT", "").strip()
         env_dummy = os.environ.get("ECON_TABLETOP_DUMMY_OPENAI", "").strip().lower() in {"1", "true", "yes"}
         self.use_dummy = env_dummy if dummy is None else dummy
-        timeout_config = self._timeout_config()
-        self.client = httpx.Client(timeout=timeout_config)
-        self.async_client = httpx.AsyncClient(timeout=timeout_config)
+        self.timeout_config = self._timeout_config()
+        self.client = httpx.Client(timeout=self.timeout_config)
 
     def _timeout_config(self) -> httpx.Timeout:
         def _parse_timeout(value: str | None, *, default: float | None) -> float | None:
@@ -101,11 +100,12 @@ class OpenAIClient:
             else:
                 console.print("[yellow]OPENAI_API_KEY not set. Returning dummy response.[/yellow]")
             return {"output": [{"content": [{"type": "output_text", "text": json.dumps({})}]}]}
-        resp = await self.async_client.post(
-            f"{self.base_url}/responses",
-            headers=self._headers(),
-            json=payload,
-        )
+        async with httpx.AsyncClient(timeout=self.timeout_config) as async_client:
+            resp = await async_client.post(
+                f"{self.base_url}/responses",
+                headers=self._headers(),
+                json=payload,
+            )
         try:
             resp.raise_for_status()
         except httpx.HTTPStatusError:
