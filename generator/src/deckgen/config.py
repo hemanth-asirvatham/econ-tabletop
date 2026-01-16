@@ -94,14 +94,17 @@ DEFAULT_CONFIG = {
     },
     "runtime": {
         "concurrency_text": 500,
-        "concurrency_image": 100,
+        "concurrency_image": 40,
         "image_candidate_count": 8,
         "image_reference_candidate_multiplier": 8,
-        "image_timeout_s": 450,
+        "image_timeout_s": 480,
         "critique_timeout_s": 150,
+        "image_retry_limit": 2,
+        "critique_retry_limit": 2,
         "resume": True,
         "cache_requests": True,
         "prompt_path": None,
+        "outline_model": None,
     },
 }
 

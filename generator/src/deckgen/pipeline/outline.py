@@ -53,6 +53,10 @@ def generate_simulation_outline(
         tags=tags,
         mix_targets=mix_targets,
     )
+    outline_model_override = runtime.get("outline_model")
+    outline_model_cfg = dict(model_cfg)
+    if outline_model_override:
+        outline_model_cfg["model"] = outline_model_override
     outline_text = ""
     if client.use_dummy:
         outline_text = dummy_simulation_outline(
@@ -61,7 +65,7 @@ def generate_simulation_outline(
             tags=tags,
         )
     else:
-        outline_payload = _build_text_payload(outline_prompt, model_cfg)
+        outline_payload = _build_text_payload(outline_prompt, outline_model_cfg)
         outline_response = client.responses(outline_payload)
         if cache_dir:
             client.save_payload(cache_dir, "simulation_outline", outline_payload, outline_response)

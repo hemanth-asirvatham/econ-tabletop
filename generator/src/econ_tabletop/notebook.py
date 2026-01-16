@@ -129,6 +129,7 @@ def deck_builder(
     model_image: str | None = None,
     image_api: str | None = None,
     image_responses_model: str | None = None,
+    outline_model: str | None = None,
     reasoning_effort: str | None = None,
     max_output_tokens: int | None = None,
     temperature: float | None = None,
@@ -144,6 +145,8 @@ def deck_builder(
     concurrency_image: int | None = None,
     image_candidate_count: int | None = 8,
     image_reference_candidate_multiplier: int | None = None,
+    image_retry_limit: int | None = None,
+    critique_retry_limit: int | None = None,
     resume: bool = True,
     cache_requests: bool | None = None,
     prompt_path: str | None = None,
@@ -170,6 +173,7 @@ def deck_builder(
         model_image: Image model identifier.
         image_api: Image API selection ("responses" or "images").
         image_responses_model: Responses API model for image_generation tool calls.
+        outline_model: Optional override model for the simulation outline generation.
         reasoning_effort: Reasoning effort setting for text model.
         max_output_tokens: Max output tokens for text model.
         temperature: Sampling temperature for text model.
@@ -185,6 +189,8 @@ def deck_builder(
         concurrency_image: Image generation concurrency.
         image_candidate_count: Number of candidate images generated per card.
         image_reference_candidate_multiplier: Multiplier applied to reference candidates.
+        image_retry_limit: Retry limit for image generation timeouts/failures.
+        critique_retry_limit: Retry limit for image critique timeouts/failures.
         resume: Whether to resume/cache requests and reuse data.
         cache_requests: Whether to store OpenAI request/response cache.
         prompt_path: Optional override path for prompt templates.
@@ -213,6 +219,7 @@ def deck_builder(
         model_image=model_image,
         image_api=image_api,
         image_responses_model=image_responses_model,
+        outline_model=outline_model,
         reasoning_effort=reasoning_effort,
         max_output_tokens=max_output_tokens,
         temperature=temperature,
@@ -228,6 +235,8 @@ def deck_builder(
         concurrency_image=concurrency_image,
         image_candidate_count=image_candidate_count,
         image_reference_candidate_multiplier=image_reference_candidate_multiplier,
+        image_retry_limit=image_retry_limit,
+        critique_retry_limit=critique_retry_limit,
         resume=resume,
         cache_requests=cache_requests,
         prompt_path=prompt_path,
@@ -366,6 +375,7 @@ def _build_config(
     model_image: str | None = None,
     image_api: str | None = None,
     image_responses_model: str | None = None,
+    outline_model: str | None = None,
     reasoning_effort: str | None = None,
     max_output_tokens: int | None = None,
     temperature: float | None = None,
@@ -381,6 +391,8 @@ def _build_config(
     concurrency_image: int | None = None,
     image_candidate_count: int | None = None,
     image_reference_candidate_multiplier: int | None = None,
+    image_retry_limit: int | None = None,
+    critique_retry_limit: int | None = None,
     resume: bool | None = None,
     cache_requests: bool | None = None,
     prompt_path: str | None = None,
@@ -461,12 +473,18 @@ def _build_config(
         runtime["image_candidate_count"] = image_candidate_count
     if image_reference_candidate_multiplier is not None:
         runtime["image_reference_candidate_multiplier"] = image_reference_candidate_multiplier
+    if image_retry_limit is not None:
+        runtime["image_retry_limit"] = image_retry_limit
+    if critique_retry_limit is not None:
+        runtime["critique_retry_limit"] = critique_retry_limit
     if resume is not None:
         runtime["resume"] = resume
     if cache_requests is not None:
         runtime["cache_requests"] = cache_requests
     if prompt_path is not None:
         runtime["prompt_path"] = prompt_path
+    if outline_model is not None:
+        runtime["outline_model"] = outline_model
     if runtime:
         overrides["runtime"] = runtime
 
