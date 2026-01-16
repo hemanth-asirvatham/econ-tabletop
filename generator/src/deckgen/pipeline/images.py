@@ -667,7 +667,7 @@ async def _critique_image_task(
             )
             if attempts > retry_limit:
                 console.print(f"[red]{last_exc}[/red]")
-                raise last_exc
+                return 0
             console.print(
                 f"[yellow]Image critique timed out for {card.get('id', 'card')}; retrying "
                 f"({attempts}/{retry_limit}).[/yellow]"
@@ -681,20 +681,22 @@ async def _critique_image_task(
                     f"[red]Image critique failed for {card.get('id', 'card')}. "
                     f"Reason: {exc!r}[/red]"
                 )
-                raise
+                return 0
             console.print(
                 f"[yellow]Image critique failed for {card.get('id', 'card')}; retrying "
                 f"({attempts}/{retry_limit}). Reason: {exc!r}[/yellow]"
             )
             await asyncio.sleep(_retry_delay_s(attempts))
     if response is None:
-        raise RuntimeError(
-            "Image critique returned no response after retries."
-            f" Last error: {last_exc!r}"
+        console.print(
+            "[red]Image critique returned no response after retries."
+            f" Last error: {last_exc!r}[/red]"
         )
+        return 0
     parsed = _parse_image_critique_response(response)
     if parsed is None:
-        raise ValueError("Image critique response could not be parsed.")
+        console.print("[red]Image critique response could not be parsed.[/red]")
+        return 0
     return int(parsed.get("rating", 0))
 
 
