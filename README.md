@@ -64,6 +64,38 @@ session = et.run_simulation(deck_dir, npm_install=True)
 # session.stop()
 ```
 
+### Running the UI from a notebook install (common pitfall)
+
+`run_simulation()`/`launch_ui()` needs the **UI source folder** (`ui/`) to start the deck server and Vite app.
+If you installed via pip (e.g., `pip install git+...`), the package **does not** include the UI source, so the helper
+cannot auto-detect it and you'll see:
+
+```
+FileNotFoundError: Could not locate the ui/ directory.
+```
+
+**Fix**: clone the repo locally (or otherwise point to a checkout that contains `ui/`) and pass `ui_dir`:
+
+```python
+%pip install --force-reinstall git+https://github.com/hemanth-asirvatham/econ-tabletop.git@main
+
+# Make sure you have a local checkout that includes /ui
+# Example: git clone https://github.com/hemanth-asirvatham/econ-tabletop.git ~/src/econ-tabletop
+
+import econ_tabletop as et
+
+deck_dir = "/path/to/decks/my_run"
+ui_dir = "/path/to/econ-tabletop/ui"
+
+session = et.run_simulation(deck_dir, ui_dir=ui_dir, npm_install=True)
+# session.stop()
+```
+
+Notes:
+- You can run this from **any working directory** as long as `ui_dir` points to the repo checkout.
+- You need **Node.js + npm** installed for the UI (`npm install` will run if `npm_install=True`).
+- If you only want the API server (no Vite UI), use `et.start_deck_server(...)`.
+
 If you only want to generate without printable PDFs, you can skip the print step:
 
 ```python
@@ -74,6 +106,12 @@ Image generation runs concurrently based on `concurrency_image`. In notebook
 environments with an active event loop, image generation automatically runs in a worker thread to
 preserve async parallelism while still exposing a synchronous API. Increase `concurrency_image` to
 drive more parallel image requests.
+
+Deck caching behavior (important when re-running):
+- `deck_builder(..., resume=True)` **skips text generation** if deck card JSON files already exist.
+- The image pipeline respects `resume=True` and **skips image outputs that already exist**, but it will still
+  score/critique any existing candidate images to pick the best final card image.
+- To skip all image work entirely, call `deck_builder(..., images=False)` or run only the steps you need.
 
 If you see `ModuleNotFoundError: No module named 'reportlab'`, install the print dependency:
 
