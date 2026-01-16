@@ -83,6 +83,8 @@ def _generate_images_sync(
     critique_concurrency = runtime_cfg.get("concurrency_text", 4)
     image_timeout_s = _resolve_timeout_seconds(runtime_cfg.get("image_timeout_s"))
     critique_timeout_s = _resolve_timeout_seconds(runtime_cfg.get("critique_timeout_s"))
+    image_retry_limit = int(runtime_cfg.get("image_retry_limit", 0) or 0)
+    critique_retry_limit = int(runtime_cfg.get("critique_retry_limit", 0) or 0)
 
     console.print(f"[cyan]Generating {len(policies)} policy images and {len(developments)} development images.[/cyan]")
     policy_dir = out_dir / "images" / "policy"
@@ -121,6 +123,8 @@ def _generate_images_sync(
         regen_concurrency=concurrency,
         image_timeout_s=image_timeout_s,
         critique_timeout_s=critique_timeout_s,
+        image_retry_limit=image_retry_limit,
+        critique_retry_limit=critique_retry_limit,
     )
 
     candidate_tasks = _build_candidate_tasks(
@@ -160,6 +164,7 @@ def _generate_images_sync(
         concurrency,
         desc="Card image candidates",
         timeout_s=image_timeout_s,
+        retry_limit=image_retry_limit,
     )
     _finalize_best_candidates(
         tasks=candidate_tasks,
@@ -172,6 +177,7 @@ def _generate_images_sync(
         concurrency=critique_concurrency,
         desc="Card image critiques",
         timeout_s=critique_timeout_s,
+        retry_limit=critique_retry_limit,
     )
 
 
@@ -216,6 +222,8 @@ async def generate_images_async(
     critique_concurrency = runtime_cfg.get("concurrency_text", 4)
     image_timeout_s = _resolve_timeout_seconds(runtime_cfg.get("image_timeout_s"))
     critique_timeout_s = _resolve_timeout_seconds(runtime_cfg.get("critique_timeout_s"))
+    image_retry_limit = int(runtime_cfg.get("image_retry_limit", 0) or 0)
+    critique_retry_limit = int(runtime_cfg.get("critique_retry_limit", 0) or 0)
 
     console.print(f"[cyan]Generating {len(policies)} policy images and {len(developments)} development images.[/cyan]")
     policy_dir = out_dir / "images" / "policy"
@@ -254,6 +262,8 @@ async def generate_images_async(
         regen_concurrency=concurrency,
         image_timeout_s=image_timeout_s,
         critique_timeout_s=critique_timeout_s,
+        image_retry_limit=image_retry_limit,
+        critique_retry_limit=critique_retry_limit,
     )
 
     candidate_tasks = _build_candidate_tasks(
@@ -293,6 +303,7 @@ async def generate_images_async(
         concurrency,
         desc="Card image candidates",
         timeout_s=image_timeout_s,
+        retry_limit=image_retry_limit,
     )
     await _finalize_best_candidates_async(
         tasks=candidate_tasks,
@@ -305,6 +316,7 @@ async def generate_images_async(
         concurrency=critique_concurrency,
         desc="Card image critiques",
         timeout_s=critique_timeout_s,
+        retry_limit=critique_retry_limit,
     )
 
 
@@ -471,6 +483,7 @@ def _finalize_best_candidates(
     concurrency: int,
     desc: str,
     timeout_s: float | None = None,
+    retry_limit: int = 0,
 ) -> None:
     if not tasks:
         return
@@ -486,6 +499,7 @@ def _finalize_best_candidates(
             concurrency=concurrency,
             desc=desc,
             timeout_s=timeout_s,
+            retry_limit=retry_limit,
         )
     )
 
@@ -502,6 +516,7 @@ async def _finalize_best_candidates_async(
     concurrency: int,
     desc: str,
     timeout_s: float | None = None,
+    retry_limit: int = 0,
 ) -> None:
     if not tasks:
         return
@@ -516,6 +531,7 @@ async def _finalize_best_candidates_async(
         cache_dir=cache_dir,
         concurrency=concurrency,
         timeout_s=timeout_s,
+        retry_limit=retry_limit,
     )
     _select_best_candidates(tasks, scores)
 
@@ -531,6 +547,7 @@ async def _score_candidates_async(
     cache_dir: Path | None,
     concurrency: int,
     timeout_s: float | None = None,
+    retry_limit: int = 0,
 ) -> list[int]:
     resolved_concurrency = _resolve_concurrency(len(tasks), concurrency)
     return await gather_with_concurrency(
@@ -545,6 +562,7 @@ async def _score_candidates_async(
                 store=store,
                 cache_dir=cache_dir,
                 timeout_s=timeout_s,
+                retry_limit=retry_limit,
             )
             for task in tasks
         ],
@@ -609,6 +627,7 @@ async def _critique_image_task(
     store: bool,
     cache_dir: Path | None,
     timeout_s: float | None,
+    retry_limit: int = 0,
 ) -> int:
     out_path = task["out_path"]
     if not out_path.exists() or out_path.stat().st_size == 0:
@@ -634,18 +653,38 @@ async def _critique_image_task(
         reasoning_effort=reasoning_effort,
         store=store,
     )
-    try:
-        if timeout_s is not None and timeout_s > 0:
-            response = await asyncio.wait_for(client.responses_async(payload), timeout=timeout_s)
-        else:
-            response = await client.responses_async(payload)
-    except asyncio.TimeoutError:
-        console.print(f"[yellow]Image critique timed out for {card.get('id', 'card')}.[/yellow]")
-        return 0
-    except Exception as exc:  # noqa: BLE001 - keep image runs resilient
-        console.print(
-            f"[yellow]Image critique failed for {card.get('id', 'card')}. Reason: {exc}[/yellow]"
-        )
+    attempts = 0
+    response: dict[str, Any] | None = None
+    while attempts <= retry_limit:
+        try:
+            if timeout_s is not None and timeout_s > 0:
+                response = await asyncio.wait_for(client.responses_async(payload), timeout=timeout_s)
+            else:
+                response = await client.responses_async(payload)
+            break
+        except asyncio.TimeoutError:
+            attempts += 1
+            if attempts > retry_limit:
+                console.print(f"[yellow]Image critique timed out for {card.get('id', 'card')}.[/yellow]")
+                return 0
+            console.print(
+                f"[yellow]Image critique timed out for {card.get('id', 'card')}; retrying "
+                f"({attempts}/{retry_limit}).[/yellow]"
+            )
+            await asyncio.sleep(_retry_delay_s(attempts))
+        except Exception as exc:  # noqa: BLE001 - keep image runs resilient
+            attempts += 1
+            if attempts > retry_limit:
+                console.print(
+                    f"[yellow]Image critique failed for {card.get('id', 'card')}. Reason: {exc!r}[/yellow]"
+                )
+                return 0
+            console.print(
+                f"[yellow]Image critique failed for {card.get('id', 'card')}; retrying "
+                f"({attempts}/{retry_limit}). Reason: {exc!r}[/yellow]"
+            )
+            await asyncio.sleep(_retry_delay_s(attempts))
+    if response is None:
         return 0
     if cache_dir:
         client.save_payload(cache_dir, f"image_critique_{card['id']}_{out_path.stem}", payload, response)
@@ -751,6 +790,8 @@ def _prepare_reference_images(
     regen_concurrency: int,
     image_timeout_s: float | None,
     critique_timeout_s: float | None,
+    image_retry_limit: int,
+    critique_retry_limit: int,
 ) -> tuple[list[Path] | None, list[Path] | None]:
     policy_ref_paths = _resolve_reference_paths(reference_policy)
     dev_ref_paths = _resolve_reference_paths(reference_dev)
@@ -817,6 +858,7 @@ def _prepare_reference_images(
             regen_concurrency,
             desc="Reference image candidates",
             timeout_s=image_timeout_s,
+            retry_limit=image_retry_limit,
         )
         _finalize_best_candidates(
             tasks=reference_tasks,
@@ -829,6 +871,7 @@ def _prepare_reference_images(
             concurrency=critique_concurrency,
             desc="Reference image critiques",
             timeout_s=critique_timeout_s,
+            retry_limit=critique_retry_limit,
         )
 
     if policy_ref_paths is None and policy_reference_out is not None:
@@ -897,6 +940,7 @@ def _run_generation_tasks(
     *,
     desc: str,
     timeout_s: float | None = None,
+    retry_limit: int = 0,
 ) -> None:
     if not tasks:
         return
@@ -906,6 +950,7 @@ def _run_generation_tasks(
             concurrency,
             desc=desc,
             timeout_s=timeout_s,
+            retry_limit=retry_limit,
         )
     )
 
@@ -916,6 +961,7 @@ async def _run_generation_tasks_async(
     *,
     desc: str,
     timeout_s: float | None = None,
+    retry_limit: int = 0,
 ) -> None:
     if not tasks:
         return
@@ -929,16 +975,37 @@ async def _run_generation_tasks_async(
 
     async def _run_task(task: dict[str, Any]) -> None:
         async with semaphore:
-            try:
-                thread_task = asyncio.to_thread(_generate_card_images, **task)
-                if timeout_s is not None and timeout_s > 0:
-                    await asyncio.wait_for(thread_task, timeout=timeout_s)
-                else:
-                    await thread_task
-            except asyncio.TimeoutError:
-                console.print("[yellow]Image task timed out; skipping remaining work for that task.[/yellow]")
-            except Exception as exc:  # noqa: BLE001 - best-effort image runs
-                console.print(f"[yellow]Image task failed. Reason: {exc}[/yellow]")
+            attempts = 0
+            while attempts <= retry_limit:
+                try:
+                    thread_task = asyncio.to_thread(_generate_card_images, **task)
+                    if timeout_s is not None and timeout_s > 0:
+                        await asyncio.wait_for(thread_task, timeout=timeout_s)
+                    else:
+                        await thread_task
+                    return
+                except asyncio.TimeoutError:
+                    attempts += 1
+                    if attempts > retry_limit:
+                        console.print(
+                            "[yellow]Image task timed out; skipping remaining work for that task.[/yellow]"
+                        )
+                        return
+                    console.print(
+                        "[yellow]Image task timed out; retrying "
+                        f"({attempts}/{retry_limit}).[/yellow]"
+                    )
+                    await asyncio.sleep(_retry_delay_s(attempts))
+                except Exception as exc:  # noqa: BLE001 - best-effort image runs
+                    attempts += 1
+                    if attempts > retry_limit:
+                        console.print(f"[yellow]Image task failed. Reason: {exc!r}[/yellow]")
+                        return
+                    console.print(
+                        "[yellow]Image task failed; retrying "
+                        f"({attempts}/{retry_limit}). Reason: {exc!r}[/yellow]"
+                    )
+                    await asyncio.sleep(_retry_delay_s(attempts))
 
     coros = [_run_task(task) for task in tasks]
     for coro in tqdm(asyncio.as_completed(coros), total=len(coros), desc=desc):
@@ -1027,3 +1094,7 @@ def _normalize_candidate_count(value: Any, *, batch_size: int = 10) -> int:
     if count <= batch_size:
         return count
     return int(math.ceil(count / batch_size) * batch_size)
+
+
+def _retry_delay_s(attempt: int) -> float:
+    return min(10.0, 1.5 * attempt)

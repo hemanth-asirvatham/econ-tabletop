@@ -50,12 +50,15 @@ Content constraints:
 - Use concrete, realistic phrasing; avoid vague consulting-speak.
 - Keep descriptions accessible to a smart lay audience; avoid niche jargon without quick clarification.
 - Frame developments as observable conditions in the world (what changed, for whom, and how it shows up).
+- Ensure many developments explicitly capture how AI is changing the world (primary or secondary effects), including geopolitics, labor, energy, or information flows.
+- Include occasional feedback or constraint developments tied to prior policy choices (e.g., backlash, implementation drag, political fatigue).
 - If the card mentions a numeric or level parameter (e.g., % unemployment, low/moderate/high fear, dollar amounts), wrap the key value in **bold** (e.g., **10%**, **low**).
 - If effects is non-empty (powerup), include an explicit imperative rule sentence in the description (e.g., "Draw 2 development cards now.").
 - If effects is non-empty, set card_type="power"; otherwise set card_type="standard".
 - If activation.type is conditional, include a brief conditional clause in the description.
 - If supersedes is set, include a plain-English clause in the description explaining what prior development is being replaced (do NOT include the raw card id).
 - impact_score: integer from -5 to 5 (0 allowed). Use mostly positive values; +/-4 and +/-5 should be rare and dramatic, indicating extreme shifts.
+- Treat +3/-3 as already high; reserve +4/-4 for exceptional shifts and +5/-5 for rare, historic breaks.
 - Map impact_score to icons: if >0 set arrows_up=impact_score; if <0 set arrows_down=abs(impact_score); if 0 set both to 0.
 - Make the mapping explicit: impact_score=-3 means arrows_down=3 and arrows_up=0 (three red down arrows).
 - Valence icons: never show both green and red; use only one direction or neutral.
