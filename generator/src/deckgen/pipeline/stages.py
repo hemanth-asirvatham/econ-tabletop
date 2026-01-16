@@ -43,6 +43,10 @@ def generate_stage_cards(
     scenario = resolved.get("scenario", {})
     runtime = resolved.get("runtime", {})
     model_cfg = resolved.get("models", {}).get("text", {})
+    development_model_override = runtime.get("development_model")
+    development_model_cfg = dict(model_cfg)
+    if development_model_override:
+        development_model_cfg["model"] = development_model_override
     prompt_path = runtime.get("prompt_path")
     concurrency_text = runtime.get("concurrency_text", 8)
     tags = taxonomy["tags"]
@@ -95,7 +99,7 @@ def generate_stage_cards(
             )
             blueprint_payload = _build_text_payload(
                 blueprint_prompt,
-                model_cfg,
+                development_model_cfg,
                 STAGE_BLUEPRINT_SCHEMA,
                 name=f"stage{stage_index}_blueprint",
             )
@@ -128,7 +132,7 @@ def generate_stage_cards(
             )
             cards_payload = _build_text_payload(
                 cards_prompt,
-                model_cfg,
+                development_model_cfg,
                 DEVELOPMENT_CARDS_RESPONSE_SCHEMA,
                 name=f"stage{stage_index}_cards",
             )

@@ -55,20 +55,24 @@ Constraints:
 - Keep outcomes mutually exclusive within the stage: avoid duplicate or near-duplicate developments and effects.
 - Keep outcomes grounded and stage-appropriate; avoid sci-fi leaps.
 - Use the simulation outline to maintain an optimistic skew and stage-appropriate progressions.
-- Write concrete, realistic titles/descriptions; avoid vague consulting-speak.
+- Write concrete, realistic titles/descriptions; avoid vague consulting-speak or academic obscurity.
 - Keep descriptions accessible to a smart lay audience: minimize jargon and add a clarifying phrase if a term is niche.
 - Frame each development as a world-state fact (what changed, who is affected, and how it shows up in everyday life).
 - Favor broad, legible titles over overly specific program names; make the core idea instantly understandable.
+- Ensure titles and short descriptions make the core impact obvious in plain language.
 - Ensure many developments explicitly capture how AI is changing the world (primary or secondary effects), including geopolitics, labor, energy, or information flows.
+- When relevant, connect power infrastructure realities (grid upgrades, shortages, fuel mix, pricing) to AI/data-center impacts.
 - Include occasional feedback or constraint developments tied to prior policy choices (e.g., backlash, implementation drag, political fatigue).
 - Include a wide spread of scale and domain (small operational shifts, sector-wide changes, infrastructure or governance impacts).
 - Use 1-3 tags per card from the allowed list.
 - Title: 2-4 words, simple and punchy (no subtitle, no colon).
 - short_description: <= 60 characters; minimalist summary.
-- description: 1 short sentence, <= 140 characters total.
+- description: 1 short sentence, <= 140 characters total (standard cards).
+- For powerups: allow 2 short sentences, <= 180 characters total; first sentence states the world impact, second sentence is an imperative rule.
 - Respect any special_directive in the beat object (e.g., supersedes, conditional, powerup, quantitative_indicator).
 - For supersedes: reference a prior-stage card id when possible (provided in the beat).
 - If supersedes is set, include a plain-English clause in the description explaining what prior development is being replaced (do NOT include the raw card id).
+- Avoid explicit references like "as in the previous card"; phrase supersedes naturally (e.g., "Early adoption stalls as...").
 - For conditional: set activation.type=conditional and include at least one required_policy_tags item.
 - For powerup: include a non-empty effects list with meaningful parameters.
 - For powerup: include an explicit imperative rule sentence in the description (e.g., "Draw 2 development cards now.").

@@ -45,18 +45,22 @@ Output JSON schema:
 Content constraints:
 - Title: 2-4 words, simple and punchy (no subtitle, no colon).
 - Favor broad, plain-language titles that signal a recognizable world-state shift (avoid overly specific program names or insider jargon).
+- Ensure titles and short descriptions make the core impact obvious in plain language.
 - short_description: <= 60 characters; minimalist summary.
-- description: 1 short sentence, <= 140 characters total.
+- description: 1 short sentence, <= 140 characters total (standard cards).
+- For powerups: allow 2 short sentences, <= 180 characters total; first sentence states the world impact, second sentence is an imperative rule.
 - Use concrete, realistic phrasing; avoid vague consulting-speak.
 - Keep descriptions accessible to a smart lay audience; avoid niche jargon without quick clarification.
 - Frame developments as observable conditions in the world (what changed, for whom, and how it shows up).
 - Ensure many developments explicitly capture how AI is changing the world (primary or secondary effects), including geopolitics, labor, energy, or information flows.
+- When relevant, connect power infrastructure realities (grid upgrades, shortages, fuel mix, pricing) to AI/data-center impacts.
 - Include occasional feedback or constraint developments tied to prior policy choices (e.g., backlash, implementation drag, political fatigue).
 - If the card mentions a numeric or level parameter (e.g., % unemployment, low/moderate/high fear, dollar amounts), wrap the key value in **bold** (e.g., **10%**, **low**).
 - If effects is non-empty (powerup), include an explicit imperative rule sentence in the description (e.g., "Draw 2 development cards now.").
 - If effects is non-empty, set card_type="power"; otherwise set card_type="standard".
 - If activation.type is conditional, include a brief conditional clause in the description.
 - If supersedes is set, include a plain-English clause in the description explaining what prior development is being replaced (do NOT include the raw card id).
+- Avoid explicit references like "as in the previous card"; phrase supersedes naturally (e.g., "Early adoption stalls as...").
 - impact_score: integer from -5 to 5 (0 allowed). Use mostly positive values; +/-4 and +/-5 should be rare and dramatic, indicating extreme shifts.
 - Treat +3/-3 as already high; reserve +4/-4 for exceptional shifts and +5/-5 for rare, historic breaks.
 - Map impact_score to icons: if >0 set arrows_up=impact_score; if <0 set arrows_down=abs(impact_score); if 0 set both to 0.

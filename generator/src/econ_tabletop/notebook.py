@@ -130,6 +130,8 @@ def deck_builder(
     image_api: str | None = None,
     image_responses_model: str | None = None,
     outline_model: str | None = None,
+    policy_model: str | None = None,
+    development_model: str | None = None,
     reasoning_effort: str | None = None,
     max_output_tokens: int | None = None,
     temperature: float | None = None,
@@ -173,6 +175,8 @@ def deck_builder(
         image_api: Image API selection ("responses" or "images").
         image_responses_model: Responses API model for image_generation tool calls.
         outline_model: Optional override model for the simulation outline generation.
+        policy_model: Optional override model for policy card generation.
+        development_model: Optional override model for development card generation.
         reasoning_effort: Reasoning effort setting for text model.
         max_output_tokens: Max output tokens for text model.
         temperature: Sampling temperature for text model.
@@ -218,6 +222,8 @@ def deck_builder(
         image_api=image_api,
         image_responses_model=image_responses_model,
         outline_model=outline_model,
+        policy_model=policy_model,
+        development_model=development_model,
         reasoning_effort=reasoning_effort,
         max_output_tokens=max_output_tokens,
         temperature=temperature,
@@ -395,6 +401,8 @@ def _build_config(
     image_api: str | None = None,
     image_responses_model: str | None = None,
     outline_model: str | None = None,
+    policy_model: str | None = None,
+    development_model: str | None = None,
     reasoning_effort: str | None = None,
     max_output_tokens: int | None = None,
     temperature: float | None = None,
@@ -501,6 +509,10 @@ def _build_config(
         runtime["prompt_path"] = prompt_path
     if outline_model is not None:
         runtime["outline_model"] = outline_model
+    if policy_model is not None:
+        runtime["policy_model"] = policy_model
+    if development_model is not None:
+        runtime["development_model"] = development_model
     if runtime:
         overrides["runtime"] = runtime
 
