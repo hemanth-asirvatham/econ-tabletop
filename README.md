@@ -25,11 +25,11 @@ python -m deckgen.cli all --config generator/examples/configs/uae.yaml --out dec
 ### 2) UI
 
 ```bash
-cd ui
+cd generator/src/econ_tabletop/ui
 npm install
 
 # Run the deck server (serves /api + images)
-node --loader ts-node/esm server/index.ts --deck ../decks/baseline
+node --loader ts-node/esm server/index.ts --deck ../../../decks/baseline
 
 # In another terminal, run the web app
 npm run dev
@@ -72,8 +72,7 @@ session = et.run_simulation(deck_dir, npm_install=True)
 
 ### Running the UI from a notebook install
 
-`run_simulation()`/`launch_ui()` needs the **UI source folder** (`ui/`) to start the deck server and Vite app. The
-PyPI/Git install now bundles the UI assets, so you can run it without a local repo checkout:
+`run_simulation()`/`launch_ui()` uses the packaged UI assets, so you can run it without a local repo checkout:
 
 ```python
 %pip install --force-reinstall git+https://github.com/hemanth-asirvatham/econ-tabletop.git@main
@@ -87,7 +86,7 @@ session = et.run_simulation(deck_dir, npm_install=True)
 ```
 
 Notes:
-- You can run this from **any working directory**; the helper will fall back to the packaged `ui/` assets.
+- You can run this from **any working directory**; the helper will fall back to the packaged UI assets.
 - You need **Node.js + npm** installed for the UI (`npm install` will run if `npm_install=True`).
 - If you only want the API server (no Vite UI), use `et.start_deck_server(...)`.
 
@@ -187,21 +186,10 @@ Launch the GUI from a notebook cell:
 ```python
 import econ_tabletop as et
 
-# If you installed from a repo checkout, this will auto-detect ui/
 session = et.launch_ui(deck_dir="decks/baseline", npm_install=True)
 
 # When done:
 # session.stop()
-```
-
-If you installed the package without a local repo checkout, pass the UI directory explicitly:
-
-```python
-session = et.launch_ui(
-    deck_dir="decks/baseline",
-    ui_dir="/path/to/econ-tabletop/ui",
-    npm_install=True,
-)
 ```
 
 You can also start only the deck API server:
