@@ -6,7 +6,6 @@ from typing import Any
 from rich.console import Console
 
 from deckgen.config import resolve_config
-from deckgen.utils.cache import cache_dir_for
 from deckgen.utils.openai_client import OpenAIClient, format_text_input
 from deckgen.utils.prompts import render_prompt
 from deckgen.utils.utility_functions import dummy_image_outline
@@ -33,7 +32,6 @@ def generate_image_outline(
 
     console.print("[cyan]Generating concise image-format outline.[/cyan]")
     client = OpenAIClient()
-    cache_dir = cache_dir_for(out_dir) if runtime.get("cache_requests", False) else None
 
     outline_prompt = render_prompt(
         "image_outline.jinja",
@@ -47,8 +45,6 @@ def generate_image_outline(
     else:
         payload = _build_text_payload(outline_prompt, model_cfg)
         response = client.responses(payload)
-        if cache_dir:
-            client.save_payload(cache_dir, "image_outline", payload, response)
         image_outline = _parse_response_text(response) or ""
 
     if not image_outline:

@@ -134,7 +134,7 @@ Key configurable parameters in the YAML:
 
 - `models.text`: `model`, `reasoning_effort`, `max_output_tokens`, `temperature`, `top_p`, `store`.
 - `models.image`: `api`, `model`, `size`, `quality`, `background`, `reference_policy_image`, `reference_development_image`.
-- `runtime`: `concurrency_text`, `concurrency_image`, `image_candidate_count`, `image_reference_candidate_multiplier`, `image_timeout_s`, `critique_timeout_s`, `resume`, `cache_requests`, `prompt_path`.
+- `runtime`: `concurrency_text`, `concurrency_image`, `image_candidate_count`, `image_reference_candidate_multiplier`, `image_timeout_s`, `critique_timeout_s`, `resume`, `prompt_path`.
 - `deck_sizes`: total policies and per-stage developments.
 - `mix_targets`: balance of positive/negative/conditional/supersedes/powerups/quant indicators.
 - `gameplay_defaults`: parameters surfaced to the UI for play setup.
@@ -148,7 +148,6 @@ Key configurable parameters in the YAML:
 - **Printable PDF**: `deck_dir/print/cards_letter.pdf`.
 - **Resolved config & metadata**: `deck_dir/meta/`.
 - **Validation reports**: `deck_dir/validation/`.
-- **OpenAI request/response cache**: `deck_dir/cache/` when `runtime.cache_requests` is true.
 
 Launch the GUI from a notebook cell:
 
@@ -325,4 +324,3 @@ python -m deckgen.cli print --deck decks/baseline
 
 - The generator uses the OpenAI Responses API for structured outputs, with JSON schema validation.
 - If a model doesn’t support JSON schema, it falls back to JSON mode and then validates.
-- All raw OpenAI request/response payloads are saved under `cache/` for reproducibility.

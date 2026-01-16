@@ -148,7 +148,6 @@ def deck_builder(
     image_retry_limit: int | None = None,
     critique_retry_limit: int | None = None,
     resume: bool = True,
-    cache_requests: bool | None = None,
     prompt_path: str | None = None,
     scenario_name: str | None = None,
     additional_instructions: str | None = None,
@@ -192,7 +191,6 @@ def deck_builder(
         image_retry_limit: Retry limit for image generation timeouts/failures.
         critique_retry_limit: Retry limit for image critique timeouts/failures.
         resume: Whether to resume/cache requests and reuse data.
-        cache_requests: Whether to store OpenAI request/response cache.
         prompt_path: Optional override path for prompt templates.
         scenario_name: Scenario label used in manifests.
         additional_instructions: Extra prompt instruction injected into prompts.
@@ -238,7 +236,6 @@ def deck_builder(
         image_retry_limit=image_retry_limit,
         critique_retry_limit=critique_retry_limit,
         resume=resume,
-        cache_requests=cache_requests,
         prompt_path=prompt_path,
         scenario_name=scenario_name,
         additional_instructions=additional_instructions,
@@ -394,7 +391,6 @@ def _build_config(
     image_retry_limit: int | None = None,
     critique_retry_limit: int | None = None,
     resume: bool | None = None,
-    cache_requests: bool | None = None,
     prompt_path: str | None = None,
     scenario_name: str | None = None,
     additional_instructions: str | None = None,
@@ -479,8 +475,6 @@ def _build_config(
         runtime["critique_retry_limit"] = critique_retry_limit
     if resume is not None:
         runtime["resume"] = resume
-    if cache_requests is not None:
-        runtime["cache_requests"] = cache_requests
     if prompt_path is not None:
         runtime["prompt_path"] = prompt_path
     if outline_model is not None:

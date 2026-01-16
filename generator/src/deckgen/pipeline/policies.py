@@ -10,7 +10,6 @@ from tqdm import tqdm
 
 from deckgen.config import resolve_config
 from deckgen.schemas import POLICY_BLUEPRINT_SCHEMA, POLICY_CARD_SCHEMA, POLICY_CARDS_SCHEMA
-from deckgen.utils.cache import cache_dir_for
 from deckgen.utils.io import write_jsonl
 from deckgen.utils.openai_client import OpenAIClient, format_text_input
 from deckgen.utils.asyncio_utils import run_async
@@ -39,7 +38,6 @@ def generate_policies(
     categories = taxonomy["categories"]
     additional_instructions = scenario.get("additional_instructions", scenario.get("injection", ""))
     client = OpenAIClient()
-    cache_dir = cache_dir_for(out_dir) if runtime.get("cache_requests", False) else None
 
     if client.use_dummy:
         blueprint = dummy_policy_blueprint(count=total, categories=categories, tags=tags)
@@ -65,8 +63,6 @@ def generate_policies(
             name="policy_blueprint",
         )
         blueprint_response = client.responses(blueprint_payload)
-        if cache_dir:
-            client.save_payload(cache_dir, "policy_blueprint", blueprint_payload, blueprint_response)
         blueprint = _parse_response_json(blueprint_response) or {}
         slots = _normalize_slots(blueprint.get("slots", []), total, categories, tags)
 
@@ -89,8 +85,6 @@ def generate_policies(
             name="policy_cards",
         )
         cards_response = client.responses(cards_payload)
-        if cache_dir:
-            client.save_payload(cache_dir, "policy_cards", cards_payload, cards_response)
         response = _parse_response_json(cards_response) or {}
         cards = response.get("cards", [])
 

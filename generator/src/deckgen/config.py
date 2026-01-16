@@ -102,7 +102,6 @@ DEFAULT_CONFIG = {
         "image_retry_limit": 2,
         "critique_retry_limit": 2,
         "resume": True,
-        "cache_requests": True,
         "prompt_path": None,
         "outline_model": None,
     },
