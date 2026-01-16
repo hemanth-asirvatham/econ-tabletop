@@ -27,3 +27,4 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 deckgen = ["prompts/*.jinja"]
+econ_tabletop = ["ui/**", "data/**"]
