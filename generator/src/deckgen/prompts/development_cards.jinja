@@ -27,6 +27,7 @@ Output JSON schema:
       "title": "string",
       "short_description": "string",
       "description": "string",
+      "rule_box_text": "string or null",
       "valence": "positive|negative|mixed",
       "impact_score": 0,
       "arrows_up": 0,
@@ -64,19 +65,23 @@ Constraints:
 - When relevant, connect power infrastructure realities (grid upgrades, shortages, fuel mix, pricing) to AI/data-center impacts.
 - Include occasional feedback or constraint developments tied to prior policy choices (e.g., backlash, implementation drag, political fatigue).
 - Include a wide spread of scale and domain (small operational shifts, sector-wide changes, infrastructure or governance impacts).
+- Include some developments that are straightforward progress or new industry formation, driven by firms or markets rather than policy.
 - Use 1-3 tags per card from the allowed list.
 - Title: 2-4 words, simple and punchy (no subtitle, no colon).
 - short_description: <= 60 characters; minimalist summary.
 - description: 1 short sentence, <= 140 characters total (standard cards).
-- For powerups: allow 2 short sentences, <= 180 characters total; first sentence states the world impact, second sentence is an imperative rule.
+- Always include rule_box_text: use null when not needed.
+- rule_box_text: optional for standard cards; use it for conditional bonuses, nullification clauses, or special scoring notes.
+- For powerups: description is 1 short world-state sentence (<= 140 chars); rule_box_text is required and holds the imperative rule sentence (<= 80 chars).
 - Respect any special_directive in the beat object (e.g., supersedes, conditional, powerup, quantitative_indicator).
 - For supersedes: reference a prior-stage card id when possible (provided in the beat).
 - If supersedes is set, include a plain-English clause in the description explaining what prior development is being replaced (do NOT include the raw card id).
 - Avoid explicit references like "as in the previous card"; phrase supersedes naturally (e.g., "Early adoption stalls as...").
 - For conditional: set activation.type=conditional and include at least one required_policy_tags item.
 - For powerup: include a non-empty effects list with meaningful parameters.
-- For powerup: include an explicit imperative rule sentence in the description (e.g., "Draw 2 development cards now.").
+- For powerup: include an explicit imperative rule sentence in rule_box_text (e.g., "Draw 2 development cards now.").
 - Set card_type="power" for powerups; otherwise use card_type="standard".
+- If card_type="standard" and rule_box_text is used, keep effects empty; use natural-language conditionals (e.g., "If prior policies expanded compute, add **+2** arrows.").
 - For conditional: include a brief conditional clause in the description.
 - Include at least 2 powerup cards per stage; prioritize common powerups:
   - Research acceleration: draw and play 2 development cards from the next stage (DRAW_DEV_NEXT_STAGE_NOW + count 2).
@@ -99,6 +104,8 @@ Constraints:
 - Do NOT include raw tag ids or underscore-separated terms in the description; use natural-language phrasing for conditions.
 - art_prompt must specify an edge-to-edge landscape illustration that fills the entire frame with no empty margins or floating card.
 - art_prompt should be a concise instruction for a horizontal card illustration (no need to include title text here; it will be added later).
+- For power cards, the art_prompt should allow more minimalist, iconographic scenes with extra negative space (still full-bleed inside the card).
+- Include some developments where private-sector coordination, market competition, or operational improvements resolve prior tensions without new policy.
 
 Example development archetypes to inspire breadth (do NOT copy verbatim; keep stage-appropriate):
 - Stage 0/1: "Uplift in Coding Productivity" (two green up arrows), "Public Fear" (**low**) with one red down arrow,
@@ -120,6 +127,7 @@ Example (single card shown):
       "title": "Office Copilots",
       "short_description": "Productivity lifts (**+1.2%**) in service teams.",
       "description": "Copilots speed routine work and lift output per worker.",
+      "rule_box_text": null,
       "valence": "positive",
       "impact_score": 1,
       "arrows_up": 1,

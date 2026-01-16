@@ -122,6 +122,7 @@ def dummy_development_cards(
                 "title": f"Stage {stage_index} {tag.replace('_', ' ').title()} Shift",
                 "short_description": beat.get("beat") or f"Observed shift in {tag.replace('_', ' ')}.",
                 "description": "Grounded development reflecting AI deployment trends and economic impacts.",
+                "rule_box_text": None,
                 "valence": "positive",
                 "impact_score": 1,
                 "arrows_up": 1,
@@ -156,7 +157,7 @@ def dummy_stage_summary(
 def dummy_image_outline() -> str:
     return "\n".join(
         [
-            "- 3:2 horizontal card that fills the frame with a full border.",
+            "- 3:2 horizontal card that fills the frame with a full border; transparent outside rounded corners.",
             "- Title near top; short description near bottom; text is minimal and highly legible.",
             "- Policy cards: no stage/arrows; bottom row with Cost, Time, Political Capital, Category labels.",
             "- Development cards: stage number upper-left; arrow row upper-right; neutral gray line if zero.",
@@ -226,6 +227,7 @@ def dummy_simulation_outline(
             "",
             "6) Card Formatting (policy + development layout, valence iconography)",
             "- Development: stage number upper-left; arrows upper-right (green or red only; neutral gray line if zero, 1-5 row).",
+            "- Optional rule box for conditional notes on development cards; power cards always use the rule box.",
             "- Policy: no stage/arrows; bottom row with Cost, Time, Political Capital, Category labels.",
             "",
             "7) Art Direction (minimalist, lightly impressionist; Victoria 3-style vibe)",

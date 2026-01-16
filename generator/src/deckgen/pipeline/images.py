@@ -74,6 +74,7 @@ def _generate_images_sync(
     critique_model = text_cfg.get("model") or responses_model or "gpt-5.2"
     reference_policy = image_cfg.get("reference_policy_image")
     reference_dev = image_cfg.get("reference_development_image")
+    reference_power = image_cfg.get("reference_power_image")
     resume = runtime_cfg.get("resume", True)
     concurrency = runtime_cfg.get("concurrency_image", 4)
     candidate_count = _normalize_candidate_count(runtime_cfg.get("image_candidate_count", 8))
@@ -94,10 +95,11 @@ def _generate_images_sync(
 
     client = OpenAIClient()
 
-    policy_ref_paths, dev_ref_paths = _prepare_reference_images(
+    policy_ref_paths, dev_ref_paths, power_ref_paths = _prepare_reference_images(
         api=api,
         reference_policy=reference_policy,
         reference_dev=reference_dev,
+        reference_power=reference_power,
         policy_dir=policy_dir,
         dev_dir=dev_dir,
         policies=policies,
@@ -123,34 +125,72 @@ def _generate_images_sync(
         critique_retry_limit=critique_retry_limit,
     )
 
-    candidate_tasks = _build_candidate_tasks(
-        cards=policies,
-        card_type="policy",
-        out_dir=policy_dir,
-        candidate_count=candidate_count,
-        reference_images=policy_ref_paths,
-        client=client,
-        model=model,
-        responses_model=responses_model,
-        api=api,
-        size=size,
-        quality=quality,
-        background=background,
-        resume=resume,
-    ) + _build_candidate_tasks(
-        cards=developments,
-        card_type="development",
-        out_dir=dev_dir,
-        candidate_count=candidate_count,
-        reference_images=dev_ref_paths,
-        client=client,
-        model=model,
-        responses_model=responses_model,
-        api=api,
-        size=size,
-        quality=quality,
-        background=background,
-        resume=resume,
+    standard_devs = [card for card in developments if card.get("card_type") != "power"]
+    power_devs = [card for card in developments if card.get("card_type") == "power"]
+    standard_with_rulebox = [card for card in standard_devs if card.get("rule_box_text")]
+    standard_plain = [card for card in standard_devs if not card.get("rule_box_text")]
+
+    candidate_tasks = (
+        _build_candidate_tasks(
+            cards=policies,
+            card_type="policy",
+            out_dir=policy_dir,
+            candidate_count=candidate_count,
+            reference_images=policy_ref_paths,
+            client=client,
+            model=model,
+            responses_model=responses_model,
+            api=api,
+            size=size,
+            quality=quality,
+            background=background,
+            resume=resume,
+        )
+        + _build_candidate_tasks(
+            cards=standard_plain,
+            card_type="development",
+            out_dir=dev_dir,
+            candidate_count=candidate_count,
+            reference_images=dev_ref_paths,
+            client=client,
+            model=model,
+            responses_model=responses_model,
+            api=api,
+            size=size,
+            quality=quality,
+            background=background,
+            resume=resume,
+        )
+        + _build_candidate_tasks(
+            cards=standard_with_rulebox,
+            card_type="development",
+            out_dir=dev_dir,
+            candidate_count=candidate_count,
+            reference_images=_merge_reference_paths(dev_ref_paths, power_ref_paths),
+            client=client,
+            model=model,
+            responses_model=responses_model,
+            api=api,
+            size=size,
+            quality=quality,
+            background=background,
+            resume=resume,
+        )
+        + _build_candidate_tasks(
+            cards=power_devs,
+            card_type="development",
+            out_dir=dev_dir,
+            candidate_count=candidate_count,
+            reference_images=power_ref_paths,
+            client=client,
+            model=model,
+            responses_model=responses_model,
+            api=api,
+            size=size,
+            quality=quality,
+            background=background,
+            resume=resume,
+        )
     )
 
     _run_generation_tasks(
@@ -207,6 +247,7 @@ async def generate_images_async(
     critique_model = text_cfg.get("model") or responses_model or "gpt-5.2"
     reference_policy = image_cfg.get("reference_policy_image")
     reference_dev = image_cfg.get("reference_development_image")
+    reference_power = image_cfg.get("reference_power_image")
     resume = runtime_cfg.get("resume", True)
     concurrency = runtime_cfg.get("concurrency_image", 4)
     candidate_count = _normalize_candidate_count(runtime_cfg.get("image_candidate_count", 8))
@@ -227,10 +268,11 @@ async def generate_images_async(
 
     client = OpenAIClient()
 
-    policy_ref_paths, dev_ref_paths = _prepare_reference_images(
+    policy_ref_paths, dev_ref_paths, power_ref_paths = _prepare_reference_images(
         api=api,
         reference_policy=reference_policy,
         reference_dev=reference_dev,
+        reference_power=reference_power,
         policy_dir=policy_dir,
         dev_dir=dev_dir,
         policies=policies,
@@ -256,34 +298,72 @@ async def generate_images_async(
         critique_retry_limit=critique_retry_limit,
     )
 
-    candidate_tasks = _build_candidate_tasks(
-        cards=policies,
-        card_type="policy",
-        out_dir=policy_dir,
-        candidate_count=candidate_count,
-        reference_images=policy_ref_paths,
-        client=client,
-        model=model,
-        responses_model=responses_model,
-        api=api,
-        size=size,
-        quality=quality,
-        background=background,
-        resume=resume,
-    ) + _build_candidate_tasks(
-        cards=developments,
-        card_type="development",
-        out_dir=dev_dir,
-        candidate_count=candidate_count,
-        reference_images=dev_ref_paths,
-        client=client,
-        model=model,
-        responses_model=responses_model,
-        api=api,
-        size=size,
-        quality=quality,
-        background=background,
-        resume=resume,
+    standard_devs = [card for card in developments if card.get("card_type") != "power"]
+    power_devs = [card for card in developments if card.get("card_type") == "power"]
+    standard_with_rulebox = [card for card in standard_devs if card.get("rule_box_text")]
+    standard_plain = [card for card in standard_devs if not card.get("rule_box_text")]
+
+    candidate_tasks = (
+        _build_candidate_tasks(
+            cards=policies,
+            card_type="policy",
+            out_dir=policy_dir,
+            candidate_count=candidate_count,
+            reference_images=policy_ref_paths,
+            client=client,
+            model=model,
+            responses_model=responses_model,
+            api=api,
+            size=size,
+            quality=quality,
+            background=background,
+            resume=resume,
+        )
+        + _build_candidate_tasks(
+            cards=standard_plain,
+            card_type="development",
+            out_dir=dev_dir,
+            candidate_count=candidate_count,
+            reference_images=dev_ref_paths,
+            client=client,
+            model=model,
+            responses_model=responses_model,
+            api=api,
+            size=size,
+            quality=quality,
+            background=background,
+            resume=resume,
+        )
+        + _build_candidate_tasks(
+            cards=standard_with_rulebox,
+            card_type="development",
+            out_dir=dev_dir,
+            candidate_count=candidate_count,
+            reference_images=_merge_reference_paths(dev_ref_paths, power_ref_paths),
+            client=client,
+            model=model,
+            responses_model=responses_model,
+            api=api,
+            size=size,
+            quality=quality,
+            background=background,
+            resume=resume,
+        )
+        + _build_candidate_tasks(
+            cards=power_devs,
+            card_type="development",
+            out_dir=dev_dir,
+            candidate_count=candidate_count,
+            reference_images=power_ref_paths,
+            client=client,
+            model=model,
+            responses_model=responses_model,
+            api=api,
+            size=size,
+            quality=quality,
+            background=background,
+            resume=resume,
+        )
     )
 
     await _run_generation_tasks_async(
@@ -425,7 +505,6 @@ def _build_candidate_tasks(
         alias_out_paths: list[Path] = []
         if card_type == "development" and card.get("card_type") == "power":
             alias_out_paths.append(out_dir / f"power_{card['id']}{final_suffix}.png")
-        reference_image = reference_images[0] if reference_images else None
         existing_candidates = (
             _find_existing_candidates(candidate_dir, card["id"], final_suffix)
             if resume
@@ -447,7 +526,6 @@ def _build_candidate_tasks(
                     "alias_out_paths": alias_out_paths,
                     "card_type": card_type,
                     "reference_images": reference_images,
-                    "reference_image": reference_image,
                     "is_reference": is_reference,
                     "client": client,
                     "model": model,
@@ -632,7 +710,7 @@ async def _critique_image_task(
     card = task["card"]
     card_type = task["card_type"]
     is_reference = bool(task.get("is_reference"))
-    reference_image = None if is_reference else task.get("reference_image")
+    reference_images = None if is_reference else task.get("reference_images")
     if client.use_dummy or not client.api_key:
         return int(dummy_image_critique(card=card, card_type=card_type).get("rating", 0))
     prompt = render_prompt(
@@ -640,13 +718,13 @@ async def _critique_image_task(
         prompt_path=prompt_path,
         card=card,
         card_type=card_type,
-        reference_image_provided=bool(reference_image),
+        reference_image_provided=bool(reference_images),
     )
     payload = _build_image_critique_payload(
         prompt=prompt,
         model=model,
         image_path=out_path,
-        reference_image_path=reference_image,
+        reference_image_paths=reference_images,
         reasoning_effort=reasoning_effort,
         store=store,
     )
@@ -705,7 +783,7 @@ def _build_image_critique_payload(
     prompt: str,
     model: str | None,
     image_path: Path,
-    reference_image_path: Path | None,
+    reference_image_paths: list[Path] | None,
     reasoning_effort: str | None,
     store: bool,
 ) -> dict[str, Any]:
@@ -713,8 +791,11 @@ def _build_image_critique_payload(
         {"type": "input_text", "text": prompt},
         {"type": "input_image", "image_url": _encode_image_data_url(image_path)},
     ]
-    if reference_image_path:
-        content.append({"type": "input_image", "image_url": _encode_image_data_url(reference_image_path)})
+    if reference_image_paths:
+        for reference_image_path in reference_image_paths:
+            content.append(
+                {"type": "input_image", "image_url": _encode_image_data_url(reference_image_path)}
+            )
     return {
         "model": model,
         "input": [
@@ -774,6 +855,7 @@ def _prepare_reference_images(
     api: str,
     reference_policy: str | None,
     reference_dev: str | None,
+    reference_power: str | None,
     policy_dir: Path,
     dev_dir: Path,
     policies: list[dict[str, Any]],
@@ -797,13 +879,15 @@ def _prepare_reference_images(
     critique_timeout_s: float | None,
     image_retry_limit: int,
     critique_retry_limit: int,
-) -> tuple[list[Path] | None, list[Path] | None]:
+) -> tuple[list[Path] | None, list[Path] | None, list[Path] | None]:
     policy_ref_paths = _resolve_reference_paths(reference_policy)
     dev_ref_paths = _resolve_reference_paths(reference_dev)
+    power_ref_paths = _resolve_reference_paths(reference_power)
 
     reference_tasks: list[dict[str, Any]] = []
     policy_reference_out: Path | None = None
     dev_reference_out: Path | None = None
+    power_reference_out: Path | None = None
 
     reference_candidate_count = _normalize_candidate_count(
         max(1, candidate_count * max(1, reference_multiplier))
@@ -836,7 +920,10 @@ def _prepare_reference_images(
             )
 
     if dev_ref_paths is None and developments:
-        reference_card = developments[0]
+        reference_card = next(
+            (card for card in developments if card.get("card_type") != "power"),
+            developments[0],
+        )
         dev_reference_out = dev_dir / f"{reference_card['id']}_reference.png"
         if resume and dev_reference_out.exists() and dev_reference_out.stat().st_size > 0:
             dev_ref_paths = [dev_reference_out]
@@ -860,6 +947,36 @@ def _prepare_reference_images(
                     final_suffix="_reference",
                 )
             )
+
+    if power_ref_paths is None and developments:
+        reference_card = next(
+            (card for card in developments if card.get("card_type") == "power"),
+            None,
+        )
+        if reference_card is not None:
+            power_reference_out = dev_dir / f"{reference_card['id']}_power_reference.png"
+            if resume and power_reference_out.exists() and power_reference_out.stat().st_size > 0:
+                power_ref_paths = [power_reference_out]
+            else:
+                reference_tasks.extend(
+                    _build_candidate_tasks(
+                        cards=[reference_card],
+                        card_type="development",
+                        out_dir=dev_dir,
+                        candidate_count=reference_candidate_count,
+                        reference_images=None,
+                        is_reference=True,
+                        client=client,
+                        model=model,
+                        responses_model=responses_model,
+                        api=api,
+                        size=size,
+                        quality=reference_quality,
+                        background=background,
+                        resume=resume,
+                        final_suffix="_power_reference",
+                    )
+                )
 
     if reference_tasks:
         _run_generation_tasks(
@@ -886,8 +1003,10 @@ def _prepare_reference_images(
         policy_ref_paths = [policy_reference_out]
     if dev_ref_paths is None and dev_reference_out is not None:
         dev_ref_paths = [dev_reference_out]
+    if power_ref_paths is None and power_reference_out is not None:
+        power_ref_paths = [power_reference_out]
 
-    return policy_ref_paths, dev_ref_paths
+    return policy_ref_paths, dev_ref_paths, power_ref_paths
 
 
 def _resolve_reference_paths(reference_path: str | None) -> list[Path] | None:
@@ -940,6 +1059,20 @@ def _list_image_files(directory: Path) -> list[Path]:
     if not files:
         console.print(f"[yellow]No reference images found in directory {directory}.[/yellow]")
     return files
+
+
+def _merge_reference_paths(
+    primary: list[Path] | None,
+    secondary: list[Path] | None,
+) -> list[Path] | None:
+    if not primary and not secondary:
+        return None
+    merged: list[Path] = []
+    for group in (primary or [], secondary or []):
+        for path in group:
+            if path not in merged:
+                merged.append(path)
+    return merged or None
 
 
 def _run_generation_tasks(

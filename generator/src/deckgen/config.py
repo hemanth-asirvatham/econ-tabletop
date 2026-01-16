@@ -51,14 +51,14 @@ DEFAULT_CONFIG = {
         ],
     },
     "deck_sizes": {
-        "policies_total": 56,
-        "developments_per_stage": [30, 30, 30, 30, 30],
+        "policies_total": 60,
+        "developments_per_stage": [35, 35, 35, 35, 35],
     },
     "mix_targets": {
         "positive_share": 0.7,
         "supersedes_share": 0.15,
         "conditional_share": 0.15,
-        "powerup_share": 0.1,
+        "powerup_share": 0.2,
         "quantitative_indicator_share": 0.15,
     },
     "gameplay_defaults": {
@@ -90,6 +90,7 @@ DEFAULT_CONFIG = {
             "background": None,
             "reference_policy_image": None,
             "reference_development_image": None,
+            "reference_power_image": None,
         },
     },
     "runtime": {
