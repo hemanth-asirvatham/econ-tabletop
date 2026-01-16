@@ -565,7 +565,6 @@ async def _score_candidates_async(
             for task in tasks
         ],
         timeout=timeout_s,
-        fallback=0,
         progress_desc=progress_desc,
     )
 
@@ -653,6 +652,7 @@ async def _critique_image_task(
     )
     attempts = 0
     response: dict[str, Any] | None = None
+    last_exc: Exception | None = None
     while attempts <= retry_limit:
         try:
             if timeout_s is not None and timeout_s > 0:
@@ -662,9 +662,12 @@ async def _critique_image_task(
             break
         except asyncio.TimeoutError:
             attempts += 1
+            last_exc = asyncio.TimeoutError(
+                f"Image critique timed out for {card.get('id', 'card')}."
+            )
             if attempts > retry_limit:
-                console.print(f"[yellow]Image critique timed out for {card.get('id', 'card')}.[/yellow]")
-                return 0
+                console.print(f"[red]{last_exc}[/red]")
+                raise last_exc
             console.print(
                 f"[yellow]Image critique timed out for {card.get('id', 'card')}; retrying "
                 f"({attempts}/{retry_limit}).[/yellow]"
@@ -672,21 +675,26 @@ async def _critique_image_task(
             await asyncio.sleep(_retry_delay_s(attempts))
         except Exception as exc:  # noqa: BLE001 - keep image runs resilient
             attempts += 1
+            last_exc = exc
             if attempts > retry_limit:
                 console.print(
-                    f"[yellow]Image critique failed for {card.get('id', 'card')}. Reason: {exc!r}[/yellow]"
+                    f"[red]Image critique failed for {card.get('id', 'card')}. "
+                    f"Reason: {exc!r}[/red]"
                 )
-                return 0
+                raise
             console.print(
                 f"[yellow]Image critique failed for {card.get('id', 'card')}; retrying "
                 f"({attempts}/{retry_limit}). Reason: {exc!r}[/yellow]"
             )
             await asyncio.sleep(_retry_delay_s(attempts))
     if response is None:
-        return 0
+        raise RuntimeError(
+            "Image critique returned no response after retries."
+            f" Last error: {last_exc!r}"
+        )
     parsed = _parse_image_critique_response(response)
     if parsed is None:
-        return 0
+        raise ValueError("Image critique response could not be parsed.")
     return int(parsed.get("rating", 0))
 
 
@@ -1070,7 +1078,7 @@ def _resolve_concurrency(task_count: int, concurrency: int) -> int:
     return max(1, min(concurrency, task_count))
 
 
-def _adjust_text_concurrency_for_images(concurrency: int, *, factor: int = 4) -> int:
+def _adjust_text_concurrency_for_images(concurrency: int, *, factor: int = 6) -> int:
     if concurrency <= 0:
         return concurrency
     return max(1, int(math.ceil(concurrency / factor)))
