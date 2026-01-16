@@ -59,13 +59,27 @@ export function Table({
   return (
     <div className="table">
       <div className="table__grid">
-        <Lane title="Face-up Developments" className="lane lane--market lane--faceup">
-          {faceUp.map((dev) => (
+        <Lane title="Development Board" className="lane lane--developments">
+          {[...faceUp, ...dormant].map((dev) => (
             <Card
               key={dev.id}
               card={dev}
               type="development"
               imageBaseUrl={imageBaseUrl}
+              variant="visual"
+              selected={selectedDevId === dev.id}
+              dragPayload={{ kind: "development", id: dev.id }}
+              onClick={() => onSelectDev(dev.id)}
+            />
+          ))}
+          {faceDown.map((dev) => (
+            <Card
+              key={dev.id}
+              card={dev}
+              type="development"
+              imageBaseUrl={imageBaseUrl}
+              variant="visual"
+              faceDown
               selected={selectedDevId === dev.id}
               dragPayload={{ kind: "development", id: dev.id }}
               onClick={() => onSelectDev(dev.id)}
@@ -109,45 +123,26 @@ export function Table({
                   card={policy}
                   type="policy"
                   imageBaseUrl={imageBaseUrl}
+                  variant="visual"
                   selected={selectedPolicyId === policy.id}
+                  dragPayload={{ kind: "policy", id: policy.id }}
                   onClick={() => onSelectPolicy(policy.id)}
                 />
                 <div className="policy-stack__attachments">
                   {(attachments[policy.id] || []).map((dev) => (
-                    <Card key={dev.id} card={dev} type="development" imageBaseUrl={imageBaseUrl} />
+                    <Card
+                      key={dev.id}
+                      card={dev}
+                      type="development"
+                      imageBaseUrl={imageBaseUrl}
+                      variant="compact"
+                      dragPayload={{ kind: "development", id: dev.id }}
+                    />
                   ))}
                 </div>
               </div>
             ))
           )}
-        </Lane>
-
-        <Lane title="Face-down Developments" className="lane lane--market lane--facedown">
-          {faceDown.map((dev) => (
-            <Card
-              key={dev.id}
-              card={dev}
-              type="development"
-              imageBaseUrl={imageBaseUrl}
-              selected={selectedDevId === dev.id}
-              dragPayload={{ kind: "development", id: dev.id }}
-              onClick={() => onSelectDev(dev.id)}
-            />
-          ))}
-        </Lane>
-
-        <Lane title="Dormant Developments" className="lane lane--dormant">
-          {dormant.map((dev) => (
-            <Card
-              key={dev.id}
-              card={dev}
-              type="development"
-              imageBaseUrl={imageBaseUrl}
-              selected={selectedDevId === dev.id}
-              dragPayload={{ kind: "development", id: dev.id }}
-              onClick={() => onSelectDev(dev.id)}
-            />
-          ))}
         </Lane>
       </div>
     </div>

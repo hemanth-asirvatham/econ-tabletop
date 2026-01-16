@@ -7,6 +7,8 @@ type DragPayload = {
   id: string;
 };
 
+type CardVariant = "full" | "visual" | "compact";
+
 type Props = {
   card: PolicyCard | DevelopmentCard;
   type: "policy" | "development";
@@ -14,19 +16,37 @@ type Props = {
   selected?: boolean;
   dragPayload?: DragPayload;
   onClick?: () => void;
+  variant?: CardVariant;
+  faceDown?: boolean;
 };
 
-export function Card({ card, type, imageBaseUrl, selected, dragPayload, onClick }: Props) {
+function renderInlineMarkdown(text: string) {
+  return text
+    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*(.+?)\*/g, "<em>$1</em>");
+}
+
+export function Card({
+  card,
+  type,
+  imageBaseUrl,
+  selected,
+  dragPayload,
+  onClick,
+  variant = "full",
+  faceDown = false,
+}: Props) {
   const [imageVariant, setImageVariant] = useState<"images" | "render">("images");
   const [imageFailed, setImageFailed] = useState(false);
   const imageSrc = useMemo(() => {
-    if (imageFailed) return "";
+    if (imageFailed || faceDown) return "";
     return `${imageBaseUrl}/${imageVariant}/${type}/${card.id}.png`;
-  }, [card.id, imageBaseUrl, imageFailed, imageVariant, type]);
+  }, [card.id, faceDown, imageBaseUrl, imageFailed, imageVariant, type]);
+  const descriptionHtml = useMemo(() => renderInlineMarkdown(card.short_description), [card.short_description]);
 
   return (
     <div
-      className={`card card--${type}${selected ? " card--selected" : ""}`}
+      className={`card card--${type} card--${variant}${faceDown ? " card--facedown" : ""}${selected ? " card--selected" : ""}`}
       onClick={onClick}
       draggable={Boolean(dragPayload)}
       onDragStart={(event) => {
@@ -52,13 +72,27 @@ export function Card({ card, type, imageBaseUrl, selected, dragPayload, onClick 
             }}
             className="card__image"
           />
+        ) : faceDown ? (
+          <div className="card__back">
+            <span>Face-down</span>
+          </div>
         ) : (
           <div className="card__fallback">No image available</div>
         )}
       </div>
-      <div className="card__meta">{type}</div>
-      <div className="card__title">{card.title}</div>
-      <div className="card__body">{card.short_description}</div>
+      {!faceDown && variant === "full" ? (
+        <>
+          <div className="card__meta">{type}</div>
+          <div className="card__title">{card.title}</div>
+          <div className="card__body" dangerouslySetInnerHTML={{ __html: descriptionHtml }} />
+        </>
+      ) : !faceDown && variant === "visual" ? (
+        <div className="card__info">
+          <div className="card__meta">{type}</div>
+          <div className="card__title">{card.title}</div>
+          <div className="card__body" dangerouslySetInnerHTML={{ __html: descriptionHtml }} />
+        </div>
+      ) : null}
     </div>
   );
 }

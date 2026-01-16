@@ -26,6 +26,11 @@ export default function App() {
   const [setupReady, setSetupReady] = useState(false);
 
   const activeDevelopments = useMemo(() => [...state.faceUp, ...state.faceDown], [state.faceUp, state.faceDown]);
+  const stageCount = useMemo(() => Object.keys(state.developmentsByStage).length || 1, [state.developmentsByStage]);
+  const developmentsRemaining = useMemo(() => {
+    const stageCards = state.developmentsByStage[state.stageIndex] || [];
+    return stageCards.length;
+  }, [state.developmentsByStage, state.stageIndex]);
 
   useEffect(() => {
     const saved = loadState();
@@ -115,27 +120,37 @@ export default function App() {
         </section>
       ) : (
         <main className="app__main">
-          <aside className="panel panel--controls">
-            <div className="panel__header">
-              <h2>Round Controls</h2>
-              <p>Deal, draw, and advance the stage.</p>
-            </div>
-            <DeckControls
-              onDeal={() => dispatch({ type: "DEAL_STAGE" })}
-              onDrawRound={() => dispatch({ type: "DRAW_ROUND" })}
-              onPlayPolicy={() => state.selectedPolicyId && dispatch({ type: "PLAY_POLICY", payload: { policyId: state.selectedPolicyId } })}
-              onAttach={() => {
-                if (state.selectedPolicyId && state.selectedDevId) {
-                  dispatch({ type: "ATTACH_DEV", payload: { policyId: state.selectedPolicyId, devId: state.selectedDevId } });
+          <section className="app__topbar">
+            <aside className="panel panel--controls">
+              <div className="panel__header">
+                <h2>Decks & Stage</h2>
+                <p>Draw policies, deal developments, and advance the timeline.</p>
+              </div>
+              <DeckControls
+                stageIndex={state.stageIndex}
+                stageCount={stageCount}
+                policyRemaining={state.policyDeck.length}
+                developmentsRemaining={developmentsRemaining}
+                discardedDevelopments={state.discardedDevelopments}
+                discardedPolicies={state.discardedPolicies}
+                onDealDevelopments={(stageIndex, faceUpCount, faceDownCount) =>
+                  dispatch({ type: "DEAL_DEVELOPMENTS", payload: { stageIndex, faceUpCount, faceDownCount } })
                 }
-              }}
-              onAutoAttach={() => dispatch({ type: "AUTO_ATTACH" })}
-              onAdvance={() => dispatch({ type: "ADVANCE_STAGE" })}
-              onUndo={() => dispatch({ type: "UNDO" })}
-              onRedo={() => dispatch({ type: "REDO" })}
-            />
-            <ScoreHud activeDevelopments={activeDevelopments} />
-          </aside>
+                onDrawPolicies={(count) => dispatch({ type: "DRAW_POLICIES", payload: { count } })}
+                onDiscard={(payload) => dispatch({ type: "DISCARD_CARD", payload })}
+                onAutoAttach={() => dispatch({ type: "AUTO_ATTACH" })}
+                onAdvance={() => dispatch({ type: "ADVANCE_STAGE" })}
+                onUndo={() => dispatch({ type: "UNDO" })}
+                onRedo={() => dispatch({ type: "REDO" })}
+              />
+            </aside>
+            <aside className="panel panel--score">
+              <ScoreHud activeDevelopments={activeDevelopments} />
+            </aside>
+            <aside className="panel panel--log">
+              <EventLog log={state.log} />
+            </aside>
+          </section>
 
           <section className="tabletop">
             <div className="tabletop__header">
@@ -157,10 +172,6 @@ export default function App() {
               onPlayPolicy={(policyId) => dispatch({ type: "PLAY_POLICY", payload: { policyId } })}
             />
           </section>
-
-          <aside className="panel panel--log">
-            <EventLog log={state.log} />
-          </aside>
 
           <section className="panel panel--hand">
             <PlayerHand

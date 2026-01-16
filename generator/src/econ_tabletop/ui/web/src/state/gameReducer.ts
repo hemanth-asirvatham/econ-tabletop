@@ -4,9 +4,12 @@ export type Action =
   | { type: "INIT_DECK"; payload: { manifest: Record<string, unknown>; policies: PolicyCard[]; developmentsByStage: Record<number, DevelopmentCard[]>; settings: GameSettings } }
   | { type: "DEAL_STAGE" }
   | { type: "DRAW_ROUND" }
+  | { type: "DEAL_DEVELOPMENTS"; payload: { stageIndex: number; faceUpCount: number; faceDownCount: number } }
+  | { type: "DRAW_POLICIES"; payload: { count: number } }
   | { type: "PLAY_POLICY"; payload: { policyId: string } }
   | { type: "ATTACH_DEV"; payload: { policyId: string; devId: string } }
   | { type: "AUTO_ATTACH" }
+  | { type: "DISCARD_CARD"; payload: { kind: "policy" | "development"; id: string } }
   | { type: "SELECT_DEV"; payload: { devId: string | null } }
   | { type: "SELECT_POLICY"; payload: { policyId: string | null } }
   | { type: "ADVANCE_STAGE" }
@@ -28,6 +31,8 @@ export function createInitialState(settings: GameSettings): GameState {
     implemented: [],
     hand: [],
     attachments: {},
+    discardedDevelopments: [],
+    discardedPolicies: [],
     log: [],
     selectedDevId: null,
     selectedPolicyId: null,
@@ -111,6 +116,41 @@ export function gameReducer(state: GameState, action: Action): GameState {
       nextState = applyEffectsForDevelopments(nextState, faceUp);
       return nextState;
     }
+    case "DEAL_DEVELOPMENTS": {
+      const snapshot = createSnapshot(state);
+      const stageIndex = Math.max(0, action.payload.stageIndex);
+      const stageCards = state.developmentsByStage[stageIndex] || [];
+      const faceUpCount = Math.max(0, action.payload.faceUpCount);
+      const faceDownCount = Math.max(0, action.payload.faceDownCount);
+      const { faceUp, faceDown } = dealDevelopments(stageCards, faceUpCount, faceDownCount);
+      let nextState: GameState = {
+        ...state,
+        faceUp: [...state.faceUp, ...faceUp],
+        faceDown: [...state.faceDown, ...faceDown],
+        dormant: stageCards.filter((card) => card.activation.type === "conditional"),
+        round: state.round + 1,
+        history: [...state.history, snapshot],
+        future: [],
+        log: [...state.log, `Dealt ${faceUp.length + faceDown.length} developments from stage ${stageIndex}.`],
+      };
+      nextState = applyEffectsForDevelopments(nextState, faceUp);
+      return nextState;
+    }
+    case "DRAW_POLICIES": {
+      const snapshot = createSnapshot(state);
+      const count = Math.max(0, action.payload.count);
+      if (count === 0) return state;
+      const { drawnPolicies, remainingPolicies } = drawPolicies(state.policies, state.policyDeck, count);
+      return {
+        ...state,
+        policyDeck: remainingPolicies,
+        hand: [...state.hand, ...drawnPolicies],
+        round: state.round + 1,
+        history: [...state.history, snapshot],
+        future: [],
+        log: [...state.log, `Drew ${drawnPolicies.length} policy card(s).`],
+      };
+    }
     case "PLAY_POLICY": {
       const snapshot = createSnapshot(state);
       const policy = state.hand.find((item) => item.id === action.payload.policyId);
@@ -170,6 +210,49 @@ export function gameReducer(state: GameState, action: Action): GameState {
       nextState = applyEffectsForDevelopments(nextState, autoTargets);
       return nextState;
     }
+    case "DISCARD_CARD": {
+      const snapshot = createSnapshot(state);
+      if (action.payload.kind === "policy") {
+        const policy = state.policies.find((item) => item.id === action.payload.id);
+        if (!policy) return state;
+        const discardedPolicies = [...state.discardedPolicies, policy];
+        const attached = state.attachments[action.payload.id] || [];
+        const attachments = { ...state.attachments };
+        delete attachments[action.payload.id];
+        const remainingHand = state.hand.filter((item) => item.id !== action.payload.id);
+        const remainingImplemented = state.implemented.filter((item) => item.id !== action.payload.id);
+        const nextState: GameState = {
+          ...state,
+          hand: remainingHand,
+          implemented: remainingImplemented,
+          attachments,
+          discardedPolicies,
+          discardedDevelopments: [...state.discardedDevelopments, ...attached],
+          selectedPolicyId: state.selectedPolicyId === action.payload.id ? null : state.selectedPolicyId,
+          history: [...state.history, snapshot],
+          future: [],
+          log: [...state.log, `Discarded policy ${policy.title}.`],
+        };
+        return nextState;
+      }
+      const dev = findDev(state, action.payload.id);
+      if (!dev) return state;
+      const { attachments, removed } = removeDevFromAttachments(state.attachments, action.payload.id);
+      const discardSet = new Map<string, DevelopmentCard>();
+      [dev, ...removed].forEach((card) => discardSet.set(card.id, card));
+      return {
+        ...state,
+        faceUp: state.faceUp.filter((item) => item.id !== action.payload.id),
+        faceDown: state.faceDown.filter((item) => item.id !== action.payload.id),
+        dormant: state.dormant.filter((item) => item.id !== action.payload.id),
+        attachments,
+        discardedDevelopments: [...state.discardedDevelopments, ...discardSet.values()],
+        selectedDevId: state.selectedDevId === action.payload.id ? null : state.selectedDevId,
+        history: [...state.history, snapshot],
+        future: [],
+        log: [...state.log, `Discarded development ${dev.title}.`],
+      };
+    }
     case "SELECT_DEV":
       return { ...state, selectedDevId: action.payload.devId };
     case "SELECT_POLICY":
@@ -184,6 +267,8 @@ export function gameReducer(state: GameState, action: Action): GameState {
         dormant: [],
         implemented: [],
         attachments: {},
+        discardedDevelopments: [],
+        discardedPolicies: [],
         round: 0,
         roundModifiers: defaultRoundModifiers(),
         history: [...state.history, snapshot],
@@ -228,8 +313,26 @@ function findDev(state: GameState, devId: string): DevelopmentCard | undefined {
   return (
     state.faceUp.find((item) => item.id === devId) ||
     state.faceDown.find((item) => item.id === devId) ||
-    state.dormant.find((item) => item.id === devId)
+    state.dormant.find((item) => item.id === devId) ||
+    Object.values(state.attachments)
+      .flat()
+      .find((item) => item.id === devId)
   );
+}
+
+function removeDevFromAttachments(attachments: Record<string, DevelopmentCard[]>, devId: string) {
+  const updated: Record<string, DevelopmentCard[]> = {};
+  const removed: DevelopmentCard[] = [];
+  Object.entries(attachments).forEach(([policyId, devs]) => {
+    const remaining = devs.filter((dev) => dev.id !== devId);
+    if (remaining.length !== devs.length) {
+      removed.push(...devs.filter((dev) => dev.id === devId));
+    }
+    if (remaining.length > 0) {
+      updated[policyId] = remaining;
+    }
+  });
+  return { attachments: updated, removed };
 }
 
 function createSnapshot(state: GameState): GameStateSnapshot {
