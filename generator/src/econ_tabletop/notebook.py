@@ -35,10 +35,13 @@ class UISession:
 
 
 def find_repo_root(start: Path | None = None) -> Path | None:
-    """Search upward for a repo root containing both generator/ and ui/."""
+    """Search upward for a repo root containing generator/ and packaged UI sources."""
     start_path = (start or Path.cwd()).resolve()
     for parent in [start_path, *start_path.parents]:
-        if (parent / "generator").is_dir() and (parent / "ui").is_dir():
+        if not (parent / "generator").is_dir():
+            continue
+        packaged_ui = parent / "generator" / "src" / "econ_tabletop" / "ui"
+        if packaged_ui.is_dir():
             return parent
     return None
 
@@ -355,7 +358,7 @@ def _resolve_ui_dir(ui_dir: Path | str | None, *, deck_dir: Path | str | None = 
         start_path = _resolve_path(deck_dir) if deck_dir is not None else None
         repo_root = find_repo_root(start=start_path)
         if repo_root is not None:
-            resolved = repo_root / "ui"
+            resolved = repo_root / "generator" / "src" / "econ_tabletop" / "ui"
         else:
             packaged = _get_packaged_ui_dir()
             if packaged is None:

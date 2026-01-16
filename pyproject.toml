@@ -30,15 +30,5 @@ where = ["generator/src"]
 
 [tool.setuptools.package-data]
 "econ_tabletop.data.configs" = ["*.yaml"]
+econ_tabletop = ["ui/**", "data/**"]
 deckgen = ["prompts/*.jinja"]
-
-[tool.setuptools.data-files]
-"econ_tabletop/ui" = [
-  "ui/package.json",
-  "ui/server/*.ts",
-  "ui/web/index.html",
-  "ui/web/vite.config.ts",
-  "ui/web/src/**/*.css",
-  "ui/web/src/**/*.ts",
-  "ui/web/src/**/*.tsx",
-]
