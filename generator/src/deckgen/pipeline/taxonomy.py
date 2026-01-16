@@ -8,7 +8,6 @@ from rich.console import Console
 
 from deckgen.config import resolve_config
 from deckgen.schemas import TAXONOMY_SCHEMA
-from deckgen.utils.cache import cache_dir_for
 from deckgen.utils.io import write_json
 from deckgen.utils.openai_client import OpenAIClient, format_text_input
 from deckgen.utils.prompts import render_prompt
@@ -66,7 +65,6 @@ def generate_taxonomy(config: dict[str, Any], out_dir: Path) -> dict[str, Any]:
     model_cfg = resolved.get("models", {}).get("text", {})
     prompt_path = runtime.get("prompt_path")
     client = OpenAIClient()
-    cache_dir = cache_dir_for(out_dir) if runtime.get("cache_requests", False) else None
     additional_instructions = scenario.get("additional_instructions", scenario.get("injection", ""))
 
     if client.use_dummy:
@@ -89,8 +87,6 @@ def generate_taxonomy(config: dict[str, Any], out_dir: Path) -> dict[str, Any]:
             payload["reasoning"] = {"effort": model_cfg["reasoning_effort"]}
         payload["store"] = model_cfg.get("store", False)
         response = client.responses(payload)
-        if cache_dir:
-            client.save_payload(cache_dir, "taxonomy", payload, response)
         content = _extract_response_text(response)
         taxonomy = _safe_json_loads(content) or {}
 

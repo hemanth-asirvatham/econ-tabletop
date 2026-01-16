@@ -70,5 +70,4 @@ runtime:
   image_retry_limit: 2
   critique_retry_limit: 2
   resume: true
-  cache_requests: true
   prompt_path: null

@@ -16,7 +16,6 @@ from deckgen.schemas import (
     STAGE_BLUEPRINT_SCHEMA,
     STAGE_SUMMARY_SCHEMA,
 )
-from deckgen.utils.cache import cache_dir_for
 from deckgen.utils.io import read_jsonl, write_json, write_jsonl
 from deckgen.utils.openai_client import OpenAIClient, format_text_input
 from deckgen.utils.asyncio_utils import run_async
@@ -51,7 +50,6 @@ def generate_stage_cards(
     stage_counts = resolved["deck_sizes"]["developments_per_stage"]
     additional_instructions = scenario.get("additional_instructions", scenario.get("injection", ""))
     client = OpenAIClient()
-    cache_dir = cache_dir_for(out_dir) if runtime.get("cache_requests", False) else None
 
     all_cards: list[dict[str, Any]] = []
     summaries: list[dict[str, Any]] = []
@@ -102,8 +100,6 @@ def generate_stage_cards(
                 name=f"stage{stage_index}_blueprint",
             )
             blueprint_response = await client.responses_async(blueprint_payload)
-            if cache_dir:
-                client.save_payload(cache_dir, f"stage{stage_index}_blueprint", blueprint_payload, blueprint_response)
             blueprint = _parse_response_json(blueprint_response) or {}
 
         threads = blueprint.get("threads", [])
@@ -137,8 +133,6 @@ def generate_stage_cards(
                 name=f"stage{stage_index}_cards",
             )
             cards_response = await client.responses_async(cards_payload)
-            if cache_dir:
-                client.save_payload(cache_dir, f"stage{stage_index}_cards", cards_payload, cards_response)
             response = _parse_response_json(cards_response) or {}
 
         stage_cards = _normalize_dev_cards(
@@ -205,7 +199,6 @@ def generate_stage_cards(
             scenario=scenario,
             prompt_path=prompt_path,
             model_cfg=model_cfg,
-            cache_dir=cache_dir,
             client=client,
             outline_text=outline_text,
         )
@@ -242,7 +235,6 @@ def _generate_stage_summary(
     scenario: dict[str, Any],
     prompt_path: str | None,
     model_cfg: dict[str, Any],
-    cache_dir: Path | None,
     client: OpenAIClient,
     outline_text: str,
 ) -> dict[str, Any]:
@@ -263,8 +255,6 @@ def _generate_stage_summary(
         name=f"stage{stage_index}_summary",
     )
     summary_response = client.responses(summary_payload)
-    if cache_dir:
-        client.save_payload(cache_dir, f"stage{stage_index}_summary", summary_payload, summary_response)
     return _parse_response_json(summary_response) or {"stage": stage_index, "facts": [], "changes_vs_prior": []}
 
 
@@ -276,7 +266,6 @@ async def _generate_stage_summary_async(
     scenario: dict[str, Any],
     prompt_path: str | None,
     model_cfg: dict[str, Any],
-    cache_dir: Path | None,
     client: OpenAIClient,
     outline_text: str,
 ) -> dict[str, Any]:
@@ -297,8 +286,6 @@ async def _generate_stage_summary_async(
         name=f"stage{stage_index}_summary",
     )
     summary_response = await client.responses_async(summary_payload)
-    if cache_dir:
-        client.save_payload(cache_dir, f"stage{stage_index}_summary", summary_payload, summary_response)
     return _parse_response_json(summary_response) or {"stage": stage_index, "facts": [], "changes_vs_prior": []}
 
 

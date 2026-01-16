@@ -17,7 +17,6 @@ from tqdm import tqdm
 from deckgen.config import resolve_config
 from deckgen.schemas import IMAGE_CRITIQUE_SCHEMA
 from deckgen.utils.asyncio_utils import run_async
-from deckgen.utils.cache import cache_dir_for
 from deckgen.utils.openai_client import OpenAIClient
 from deckgen.utils.parallel import gather_with_concurrency
 from deckgen.utils.prompts import render_prompt
@@ -76,7 +75,6 @@ def _generate_images_sync(
     reference_policy = image_cfg.get("reference_policy_image")
     reference_dev = image_cfg.get("reference_development_image")
     resume = runtime_cfg.get("resume", True)
-    cache_requests = runtime_cfg.get("cache_requests", False)
     concurrency = runtime_cfg.get("concurrency_image", 4)
     candidate_count = _normalize_candidate_count(runtime_cfg.get("image_candidate_count", 8))
     reference_multiplier = runtime_cfg.get("image_reference_candidate_multiplier", 5)
@@ -94,7 +92,6 @@ def _generate_images_sync(
     dev_dir.mkdir(parents=True, exist_ok=True)
     thumbs_dir.mkdir(parents=True, exist_ok=True)
 
-    cache_dir = cache_dir_for(out_dir) if cache_requests else None
     client = OpenAIClient()
 
     policy_ref_paths, dev_ref_paths = _prepare_reference_images(
@@ -118,7 +115,6 @@ def _generate_images_sync(
         size=size,
         reference_quality=reference_quality,
         background=background,
-        cache_dir=cache_dir,
         resume=resume,
         regen_concurrency=concurrency,
         image_timeout_s=image_timeout_s,
@@ -140,7 +136,6 @@ def _generate_images_sync(
         size=size,
         quality=quality,
         background=background,
-        cache_dir=cache_dir,
         resume=resume,
     ) + _build_candidate_tasks(
         cards=developments,
@@ -155,7 +150,6 @@ def _generate_images_sync(
         size=size,
         quality=quality,
         background=background,
-        cache_dir=cache_dir,
         resume=resume,
     )
 
@@ -173,7 +167,6 @@ def _generate_images_sync(
         model=critique_model,
         reasoning_effort=text_cfg.get("reasoning_effort"),
         store=text_cfg.get("store", False),
-        cache_dir=cache_dir,
         concurrency=critique_concurrency,
         desc="Card image critiques",
         timeout_s=critique_timeout_s,
@@ -215,7 +208,6 @@ async def generate_images_async(
     reference_policy = image_cfg.get("reference_policy_image")
     reference_dev = image_cfg.get("reference_development_image")
     resume = runtime_cfg.get("resume", True)
-    cache_requests = runtime_cfg.get("cache_requests", False)
     concurrency = runtime_cfg.get("concurrency_image", 4)
     candidate_count = _normalize_candidate_count(runtime_cfg.get("image_candidate_count", 8))
     reference_multiplier = runtime_cfg.get("image_reference_candidate_multiplier", 5)
@@ -233,7 +225,6 @@ async def generate_images_async(
     dev_dir.mkdir(parents=True, exist_ok=True)
     thumbs_dir.mkdir(parents=True, exist_ok=True)
 
-    cache_dir = cache_dir_for(out_dir) if cache_requests else None
     client = OpenAIClient()
 
     policy_ref_paths, dev_ref_paths = _prepare_reference_images(
@@ -257,7 +248,6 @@ async def generate_images_async(
         size=size,
         reference_quality=reference_quality,
         background=background,
-        cache_dir=cache_dir,
         resume=resume,
         regen_concurrency=concurrency,
         image_timeout_s=image_timeout_s,
@@ -279,7 +269,6 @@ async def generate_images_async(
         size=size,
         quality=quality,
         background=background,
-        cache_dir=cache_dir,
         resume=resume,
     ) + _build_candidate_tasks(
         cards=developments,
@@ -294,7 +283,6 @@ async def generate_images_async(
         size=size,
         quality=quality,
         background=background,
-        cache_dir=cache_dir,
         resume=resume,
     )
 
@@ -312,7 +300,6 @@ async def generate_images_async(
         model=critique_model,
         reasoning_effort=text_cfg.get("reasoning_effort"),
         store=text_cfg.get("store", False),
-        cache_dir=cache_dir,
         concurrency=critique_concurrency,
         desc="Card image critiques",
         timeout_s=critique_timeout_s,
@@ -332,7 +319,6 @@ def _generate_card_images(
     size: str | None,
     quality: str | None,
     background: str | None,
-    cache_dir: Path | None,
     resume: bool,
 ) -> None:
     if not out_paths:
@@ -397,10 +383,6 @@ def _generate_card_images(
             path.write_bytes(base64.b64decode(_DUMMY_PNG_BASE64))
         return
 
-    if cache_dir:
-        cache_name = f"image_{card['id']}_{pending_paths[0].stem}"
-        client.save_payload(cache_dir, cache_name, payload_for_cache, response)
-
     data_list = _extract_image_b64_list(client, response)
     if not data_list:
         data_list = []
@@ -430,7 +412,6 @@ def _build_candidate_tasks(
     size: str | None,
     quality: str | None,
     background: str | None,
-    cache_dir: Path | None,
     resume: bool,
     final_suffix: str = "",
 ) -> list[dict[str, Any]]:
@@ -464,7 +445,6 @@ def _build_candidate_tasks(
                     "size": size,
                     "quality": quality,
                     "background": background,
-                    "cache_dir": cache_dir,
                     "resume": resume,
                 }
             )
@@ -479,7 +459,6 @@ def _finalize_best_candidates(
     model: str | None,
     reasoning_effort: str | None,
     store: bool,
-    cache_dir: Path | None,
     concurrency: int,
     desc: str,
     timeout_s: float | None = None,
@@ -495,7 +474,6 @@ def _finalize_best_candidates(
             model=model,
             reasoning_effort=reasoning_effort,
             store=store,
-            cache_dir=cache_dir,
             concurrency=concurrency,
             desc=desc,
             timeout_s=timeout_s,
@@ -512,7 +490,6 @@ async def _finalize_best_candidates_async(
     model: str | None,
     reasoning_effort: str | None,
     store: bool,
-    cache_dir: Path | None,
     concurrency: int,
     desc: str,
     timeout_s: float | None = None,
@@ -528,7 +505,6 @@ async def _finalize_best_candidates_async(
         model=model,
         reasoning_effort=reasoning_effort,
         store=store,
-        cache_dir=cache_dir,
         concurrency=concurrency,
         timeout_s=timeout_s,
         retry_limit=retry_limit,
@@ -544,7 +520,6 @@ async def _score_candidates_async(
     model: str | None,
     reasoning_effort: str | None,
     store: bool,
-    cache_dir: Path | None,
     concurrency: int,
     timeout_s: float | None = None,
     retry_limit: int = 0,
@@ -560,7 +535,6 @@ async def _score_candidates_async(
                 model=model,
                 reasoning_effort=reasoning_effort,
                 store=store,
-                cache_dir=cache_dir,
                 timeout_s=timeout_s,
                 retry_limit=retry_limit,
             )
@@ -625,7 +599,6 @@ async def _critique_image_task(
     model: str | None,
     reasoning_effort: str | None,
     store: bool,
-    cache_dir: Path | None,
     timeout_s: float | None,
     retry_limit: int = 0,
 ) -> int:
@@ -686,8 +659,6 @@ async def _critique_image_task(
             await asyncio.sleep(_retry_delay_s(attempts))
     if response is None:
         return 0
-    if cache_dir:
-        client.save_payload(cache_dir, f"image_critique_{card['id']}_{out_path.stem}", payload, response)
     parsed = _parse_image_critique_response(response)
     if parsed is None:
         return 0
@@ -785,7 +756,6 @@ def _prepare_reference_images(
     size: str | None,
     reference_quality: str | None,
     background: str | None,
-    cache_dir: Path | None,
     resume: bool,
     regen_concurrency: int,
     image_timeout_s: float | None,
@@ -822,7 +792,6 @@ def _prepare_reference_images(
                 size=size,
                 quality=reference_quality,
                 background=background,
-                cache_dir=cache_dir,
                 resume=resume,
                 final_suffix="_reference",
             )
@@ -846,7 +815,6 @@ def _prepare_reference_images(
                 size=size,
                 quality=reference_quality,
                 background=background,
-                cache_dir=cache_dir,
                 resume=resume,
                 final_suffix="_reference",
             )
@@ -867,7 +835,6 @@ def _prepare_reference_images(
             model=critique_model,
             reasoning_effort=critique_reasoning_effort,
             store=critique_store,
-            cache_dir=cache_dir,
             concurrency=critique_concurrency,
             desc="Reference image critiques",
             timeout_s=critique_timeout_s,
@@ -1051,7 +1018,6 @@ def _build_generation_batches(tasks: list[dict[str, Any]], max_batch_size: int =
                     "size": first.get("size"),
                     "quality": first.get("quality"),
                     "background": first.get("background"),
-                    "cache_dir": first.get("cache_dir"),
                     "resume": first.get("resume", False),
                 }
             )

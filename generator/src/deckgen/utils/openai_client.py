@@ -35,7 +35,9 @@ class OpenAIClient:
         self.project = os.environ.get("OPENAI_PROJECT", "").strip()
         env_dummy = os.environ.get("ECON_TABLETOP_DUMMY_OPENAI", "").strip().lower() in {"1", "true", "yes"}
         self.use_dummy = env_dummy if dummy is None else dummy
-        self.client = httpx.Client(timeout=self._timeout_config())
+        timeout_config = self._timeout_config()
+        self.client = httpx.Client(timeout=timeout_config)
+        self.async_client = httpx.AsyncClient(timeout=timeout_config)
 
     def _timeout_config(self) -> httpx.Timeout:
         def _parse_timeout(value: str | None, *, default: float | None) -> float | None:
@@ -99,17 +101,20 @@ class OpenAIClient:
             else:
                 console.print("[yellow]OPENAI_API_KEY not set. Returning dummy response.[/yellow]")
             return {"output": [{"content": [{"type": "output_text", "text": json.dumps({})}]}]}
-        async with httpx.AsyncClient(timeout=self._timeout_config()) as client:
-            resp = await client.post(f"{self.base_url}/responses", headers=self._headers(), json=payload)
-            try:
-                resp.raise_for_status()
-            except httpx.HTTPStatusError:
-                console.print(
-                    "[red]OpenAI responses request failed.[/red]"
-                    f" Status: {resp.status_code}. Body: {resp.text}"
-                )
-                raise
-            return resp.json()
+        resp = await self.async_client.post(
+            f"{self.base_url}/responses",
+            headers=self._headers(),
+            json=payload,
+        )
+        try:
+            resp.raise_for_status()
+        except httpx.HTTPStatusError:
+            console.print(
+                "[red]OpenAI responses request failed.[/red]"
+                f" Status: {resp.status_code}. Body: {resp.text}"
+            )
+            raise
+        return resp.json()
 
     def images_generate(self, payload: dict[str, Any]) -> dict[str, Any]:
         if self.use_dummy or not self.api_key:
@@ -188,11 +193,6 @@ class OpenAIClient:
             )
             raise
         return resp.json()
-
-    def save_payload(self, cache_dir: Path, name: str, payload: dict[str, Any], response: dict[str, Any]) -> None:
-        cache_dir.mkdir(parents=True, exist_ok=True)
-        (cache_dir / f"{name}.request.json").write_text(json.dumps(payload, indent=2), encoding="utf-8")
-        (cache_dir / f"{name}.response.json").write_text(json.dumps(response, indent=2), encoding="utf-8")
 
     def build_image_responses_payload(
         self,

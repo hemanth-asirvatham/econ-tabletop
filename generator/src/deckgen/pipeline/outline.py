@@ -6,7 +6,6 @@ from typing import Any
 from rich.console import Console
 
 from deckgen.config import resolve_config
-from deckgen.utils.cache import cache_dir_for
 from deckgen.utils.openai_client import OpenAIClient, format_text_input
 from deckgen.utils.prompts import render_prompt
 from deckgen.utils.utility_functions import dummy_simulation_outline
@@ -41,7 +40,6 @@ def generate_simulation_outline(
 
     console.print("[cyan]Starting simulation outline generation.[/cyan]")
     client = OpenAIClient()
-    cache_dir = cache_dir_for(out_dir) if runtime.get("cache_requests", False) else None
 
     outline_prompt = render_prompt(
         "simulation_outline.jinja",
@@ -67,8 +65,6 @@ def generate_simulation_outline(
     else:
         outline_payload = _build_text_payload(outline_prompt, outline_model_cfg)
         outline_response = client.responses(outline_payload)
-        if cache_dir:
-            client.save_payload(cache_dir, "simulation_outline", outline_payload, outline_response)
         outline_text = _parse_response_text(outline_response) or ""
 
     if not outline_text:
