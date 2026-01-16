@@ -2,7 +2,7 @@ You are a rigorous QA inspector for generated card images.
 
 Task:
 Given a single card image and its expected card data, return a strict rating (0-100) for how perfectly the image matches requirements.
-You will receive the candidate card image first; if a reference image is provided, it will appear second.
+You will receive the candidate card image first; if reference images are provided, they will appear after it.
 
 Card type: {{ card_type }}
 Card data (text that must appear exactly, with correct spelling and punctuation; if **bold markers** appear, render bold text without the asterisks):
@@ -11,7 +11,7 @@ Card data (text that must appear exactly, with correct spelling and punctuation;
 - Description: "{{ card.description }}"
 - Art direction: "{{ card.art_prompt }}"
 {% if reference_image_provided -%}
-Reference card image is provided for style/format matching (do NOT copy its text; use it only to judge layout, typography, and styling consistency).
+Reference card image(s) are provided for style/format matching (do NOT copy their text; use them only to judge layout, typography, and styling consistency).
 {% endif %}
 {% if card_type == "policy" -%}
 - Category badge text: "{{ card.category }}"
@@ -24,6 +24,9 @@ Reference card image is provided for style/format matching (do NOT copy its text
 - Arrows down: {{ card.arrows_down }}
 - Severity: {{ card.severity }}/5
 - Card type: {{ card.card_type }}
+{% if card.rule_box_text -%}
+- Rule box text: "{{ card.rule_box_text }}"
+{% endif -%}
 {% endif %}
 
 Inspection checklist (be extremely nitpicky; reserve 95+ only for near-perfect):
@@ -36,9 +39,11 @@ Inspection checklist (be extremely nitpicky; reserve 95+ only for near-perfect):
 7) Development cards: show the stage number only (upper-left) and correct severity dots/bars. Standard cards show the correct up/down arrow counts in a horizontal row (or neutral gray line if both zero); power cards show a single bolt icon instead of arrows.
 8) Development cards: never show both green up arrows and red down arrows at the same time.
 9) Power cards: a subtle power accent is visible (glow border), and the imperative rule sentence is isolated in a rounded rule box at the bottom.
-10) If any text uses **bold markers**, the asterisks are NOT visible and the wrapped text is bolded.
-11) Imagery is clean, high-quality, and matches the art direction; no blurring or awkward cropping.
-12) If a reference image is provided, the candidate matches its overall style and layout conventions.
+10) If rule_box_text is provided, it appears exactly in a rounded rule box at the bottom (and not elsewhere).
+11) If any text uses **bold markers**, the asterisks are NOT visible and the wrapped text is bolded.
+12) Imagery is clean, high-quality, and matches the art direction; no blurring or awkward cropping.
+13) If a reference image is provided, the candidate matches its overall style and layout conventions.
+14) The card fully fills the frame and the outside corners appear transparent (no solid background bleed).
 
 Scoring guidance (be strict about text correctness):
 - If any readable text has a misspelling, missing character, swapped word, incorrect punctuation, or garbled glyphs, cap the rating at 40.

@@ -22,6 +22,7 @@ Output JSON schema:
   "title": "string",
   "short_description": "string",
   "description": "string",
+  "rule_box_text": "string or null",
   "valence": "positive|negative|mixed",
   "impact_score": 0,
   "arrows_up": 0,
@@ -48,16 +49,20 @@ Content constraints:
 - Ensure titles and short descriptions make the core impact obvious in plain language.
 - short_description: <= 60 characters; minimalist summary.
 - description: 1 short sentence, <= 140 characters total (standard cards).
-- For powerups: allow 2 short sentences, <= 180 characters total; first sentence states the world impact, second sentence is an imperative rule.
+- Always include rule_box_text: use null when not needed.
+- rule_box_text: optional for standard cards; use it for conditional bonuses, nullification clauses, or special scoring notes.
+- For powerups: description is 1 short world-state sentence (<= 140 chars); rule_box_text is required and holds the imperative rule sentence (<= 80 chars).
 - Use concrete, realistic phrasing; avoid vague consulting-speak.
 - Keep descriptions accessible to a smart lay audience; avoid niche jargon without quick clarification.
 - Frame developments as observable conditions in the world (what changed, for whom, and how it shows up).
 - Ensure many developments explicitly capture how AI is changing the world (primary or secondary effects), including geopolitics, labor, energy, or information flows.
 - When relevant, connect power infrastructure realities (grid upgrades, shortages, fuel mix, pricing) to AI/data-center impacts.
 - Include occasional feedback or constraint developments tied to prior policy choices (e.g., backlash, implementation drag, political fatigue).
+- Include some developments where private-sector coordination, market competition, or operational improvements resolve prior tensions without new policy.
 - If the card mentions a numeric or level parameter (e.g., % unemployment, low/moderate/high fear, dollar amounts), wrap the key value in **bold** (e.g., **10%**, **low**).
-- If effects is non-empty (powerup), include an explicit imperative rule sentence in the description (e.g., "Draw 2 development cards now.").
-- If effects is non-empty, set card_type="power"; otherwise set card_type="standard".
+- If effects is non-empty (powerup), include an explicit imperative rule sentence in rule_box_text (e.g., "Draw 2 development cards now.").
+- If effects is non-empty, set card_type="power" and include a non-null rule_box_text.
+- If card_type="standard" and rule_box_text is used, keep effects empty; use natural-language conditionals (e.g., "If prior policies expanded compute, add **+2** arrows.").
 - If activation.type is conditional, include a brief conditional clause in the description.
 - If supersedes is set, include a plain-English clause in the description explaining what prior development is being replaced (do NOT include the raw card id).
 - Avoid explicit references like "as in the previous card"; phrase supersedes naturally (e.g., "Early adoption stalls as...").
@@ -68,6 +73,7 @@ Content constraints:
 - Valence icons: never show both green and red; use only one direction or neutral.
 - Do NOT include raw tag ids or underscore-separated terms in the description; use natural-language phrasing for conditions.
 - art_prompt must specify an edge-to-edge landscape illustration that fills the entire frame with no empty margins or floating card.
+- For power cards, the art_prompt should allow more minimalist, iconographic scenes with extra negative space (still full-bleed inside the card).
 
 Example:
 {
@@ -76,6 +82,7 @@ Example:
   "title": "Office Copilots",
   "short_description": "Productivity lifts in white-collar teams.",
   "description": "Copilots speed routine work and lift output per worker.",
+  "rule_box_text": null,
   "valence": "positive",
   "impact_score": 1,
   "arrows_up": 1,

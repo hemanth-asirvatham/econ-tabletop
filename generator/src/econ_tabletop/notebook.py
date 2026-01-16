@@ -143,6 +143,7 @@ def deck_builder(
     image_background: str | None = None,
     reference_policy_image: str | None = None,
     reference_development_image: str | None = None,
+    reference_power_image: str | None = None,
     concurrency_text: int | None = None,
     concurrency_image: int | None = None,
     image_candidate_count: int | None = 8,
@@ -188,6 +189,7 @@ def deck_builder(
         image_background: Image background setting.
         reference_policy_image: Path to a reference policy card image.
         reference_development_image: Path to a reference development card image.
+        reference_power_image: Path to a reference power development card image.
         concurrency_text: Text generation concurrency.
         concurrency_image: Image generation concurrency.
         image_candidate_count: Number of candidate images generated per card.
@@ -235,6 +237,7 @@ def deck_builder(
         image_background=image_background,
         reference_policy_image=reference_policy_image,
         reference_development_image=reference_development_image,
+        reference_power_image=reference_power_image,
         concurrency_text=concurrency_text,
         concurrency_image=concurrency_image,
         image_candidate_count=image_candidate_count,
@@ -414,6 +417,7 @@ def _build_config(
     image_background: str | None = None,
     reference_policy_image: str | None = None,
     reference_development_image: str | None = None,
+    reference_power_image: str | None = None,
     concurrency_text: int | None = None,
     concurrency_image: int | None = None,
     image_candidate_count: int | None = None,
@@ -485,6 +489,8 @@ def _build_config(
         image_model["reference_policy_image"] = reference_policy_image
     if reference_development_image is not None:
         image_model["reference_development_image"] = reference_development_image
+    if reference_power_image is not None:
+        image_model["reference_power_image"] = reference_power_image
     if image_model:
         models["image"] = image_model
     if models:
