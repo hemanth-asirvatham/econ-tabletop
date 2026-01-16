@@ -154,6 +154,7 @@ def generate_stage_cards(
             gather_with_concurrency(
                 concurrency_text,
                 [lambda spec=spec: _generate_stage(spec) for spec in stages_to_generate],
+                progress_desc="Stage card generation",
             )
         )
         for stage_index, stage_cards in results:
@@ -212,6 +213,7 @@ def generate_stage_cards(
                 )
                 for stage_index, stage_cards in stage_cards_by_index.items()
             ],
+            progress_desc="Stage summaries",
         )
     )
     summaries.extend(summary_results)
