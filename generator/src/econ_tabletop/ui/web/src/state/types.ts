@@ -77,6 +77,8 @@ export type GameState = {
   implemented: PolicyCard[];
   hand: PolicyCard[];
   attachments: Record<string, DevelopmentCard[]>;
+  discardedDevelopments: DevelopmentCard[];
+  discardedPolicies: PolicyCard[];
   log: string[];
   selectedDevId: string | null;
   selectedPolicyId: string | null;

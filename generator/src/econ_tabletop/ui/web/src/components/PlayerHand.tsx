@@ -23,6 +23,7 @@ export function PlayerHand({ hand, imageBaseUrl, selectedPolicyId, onSelectPolic
             card={policy}
             type="policy"
             imageBaseUrl={imageBaseUrl}
+            variant="visual"
             selected={selectedPolicyId === policy.id}
             dragPayload={{ kind: "policy", id: policy.id }}
             onClick={() => onSelectPolicy(policy.id)}
