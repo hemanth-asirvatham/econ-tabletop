@@ -527,6 +527,7 @@ async def _finalize_best_candidates_async(
         reasoning_effort=reasoning_effort,
         store=store,
         concurrency=concurrency,
+        progress_desc=desc,
         timeout_s=timeout_s,
         retry_limit=retry_limit,
     )
@@ -542,10 +543,12 @@ async def _score_candidates_async(
     reasoning_effort: str | None,
     store: bool,
     concurrency: int,
+    progress_desc: str | None = None,
     timeout_s: float | None = None,
     retry_limit: int = 0,
 ) -> list[int]:
-    resolved_concurrency = _resolve_concurrency(len(tasks), concurrency)
+    adjusted_concurrency = _adjust_text_concurrency_for_images(concurrency)
+    resolved_concurrency = _resolve_concurrency(len(tasks), adjusted_concurrency)
     return await gather_with_concurrency(
         resolved_concurrency,
         [
@@ -563,6 +566,7 @@ async def _score_candidates_async(
         ],
         timeout=timeout_s,
         fallback=0,
+        progress_desc=progress_desc,
     )
 
 
@@ -1064,6 +1068,12 @@ def _resolve_concurrency(task_count: int, concurrency: int) -> int:
     if concurrency <= 0:
         return task_count
     return max(1, min(concurrency, task_count))
+
+
+def _adjust_text_concurrency_for_images(concurrency: int, *, factor: int = 4) -> int:
+    if concurrency <= 0:
+        return concurrency
+    return max(1, int(math.ceil(concurrency / factor)))
 
 
 def _resolve_timeout_seconds(value: Any) -> float | None:
