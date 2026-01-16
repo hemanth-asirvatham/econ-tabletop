@@ -104,6 +104,8 @@ DEFAULT_CONFIG = {
         "resume": True,
         "prompt_path": None,
         "outline_model": None,
+        "policy_model": None,
+        "development_model": None,
     },
 }
 

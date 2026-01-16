@@ -31,6 +31,10 @@ def generate_policies(
     scenario = resolved.get("scenario", {})
     runtime = resolved.get("runtime", {})
     model_cfg = resolved.get("models", {}).get("text", {})
+    policy_model_override = runtime.get("policy_model")
+    policy_model_cfg = dict(model_cfg)
+    if policy_model_override:
+        policy_model_cfg["model"] = policy_model_override
     prompt_path = runtime.get("prompt_path")
     concurrency_text = runtime.get("concurrency_text", 8)
     total = resolved["deck_sizes"]["policies_total"]
@@ -58,7 +62,7 @@ def generate_policies(
         )
         blueprint_payload = _build_text_payload(
             blueprint_prompt,
-            model_cfg,
+            policy_model_cfg,
             POLICY_BLUEPRINT_SCHEMA,
             name="policy_blueprint",
         )
@@ -80,7 +84,7 @@ def generate_policies(
         )
         cards_payload = _build_text_payload(
             cards_prompt,
-            model_cfg,
+            policy_model_cfg,
             POLICY_CARDS_SCHEMA,
             name="policy_cards",
         )

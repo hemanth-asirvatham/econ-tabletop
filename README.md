@@ -53,11 +53,17 @@ et.deck_builder(
     deck_dir,
     model_text="gpt-5.2",
     model_image="gpt-image-1.5",
+    outline_model=None,
+    policy_model=None,
+    development_model=None,
     concurrency_image=6,
     concurrency_text=6,
     resume=True,
     additional_instructions="Add UAE-specific policy context and examples.",
 )
+
+# Optional: override individual generators.
+# Example: policy_model="gpt-5.2-pro", development_model="gpt-5.2-pro".
 
 # Launch the local GUI for play/testing
 session = et.run_simulation(deck_dir, npm_install=True)
@@ -161,7 +167,7 @@ Key configurable parameters in the YAML:
 
 - `models.text`: `model`, `reasoning_effort`, `max_output_tokens`, `temperature`, `top_p`, `store`.
 - `models.image`: `api`, `model`, `size`, `quality`, `background`, `reference_policy_image`, `reference_development_image`.
-- `runtime`: `concurrency_text`, `concurrency_image`, `image_candidate_count`, `image_reference_candidate_multiplier`, `image_timeout_s`, `critique_timeout_s`, `resume`, `prompt_path`.
+- `runtime`: `concurrency_text`, `concurrency_image`, `image_candidate_count`, `image_reference_candidate_multiplier`, `image_timeout_s`, `critique_timeout_s`, `resume`, `prompt_path`, `outline_model`, `policy_model`, `development_model`.
 - `deck_sizes`: total policies and per-stage developments.
 - `mix_targets`: balance of positive/negative/conditional/supersedes/powerups/quant indicators.
 - `gameplay_defaults`: parameters surfaced to the UI for play setup.
