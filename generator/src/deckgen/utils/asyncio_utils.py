@@ -12,7 +12,12 @@ def run_async(coro: Coroutine[Any, Any, T]) -> T:
     try:
         asyncio.get_running_loop()
     except RuntimeError:
-        return asyncio.run(coro)
+        try:
+            return asyncio.run(coro)
+        except RuntimeError as exc:
+            if "asyncio.run() cannot be called from a running event loop" in str(exc):
+                return _run_async_in_thread(coro)
+            raise
     return _run_async_in_thread(coro)
 
 
