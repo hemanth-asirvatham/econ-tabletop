@@ -426,8 +426,19 @@ def _build_candidate_tasks(
         if card_type == "development" and card.get("card_type") == "power":
             alias_out_paths.append(out_dir / f"power_{card['id']}{final_suffix}.png")
         reference_image = reference_images[0] if reference_images else None
-        for idx in range(candidate_count):
-            candidate_path = candidate_dir / f"{card['id']}{final_suffix}_cand_{idx:02d}.png"
+        existing_candidates = (
+            _find_existing_candidates(candidate_dir, card["id"], final_suffix)
+            if resume
+            else []
+        )
+        if existing_candidates:
+            candidate_paths = existing_candidates
+        else:
+            candidate_paths = [
+                candidate_dir / f"{card['id']}{final_suffix}_cand_{idx:02d}.png"
+                for idx in range(candidate_count)
+            ]
+        for candidate_path in candidate_paths:
             tasks.append(
                 {
                     "card": card,
@@ -449,6 +460,16 @@ def _build_candidate_tasks(
                 }
             )
     return tasks
+
+
+def _find_existing_candidates(candidate_dir: Path, card_id: str, final_suffix: str) -> list[Path]:
+    pattern = f"{card_id}{final_suffix}_cand_*"
+    matches = [
+        path
+        for path in sorted(candidate_dir.glob(pattern))
+        if path.is_file() and path.stat().st_size > 0
+    ]
+    return matches
 
 
 def _finalize_best_candidates(
@@ -777,48 +798,54 @@ def _prepare_reference_images(
     if policy_ref_paths is None and policies:
         reference_card = policies[0]
         policy_reference_out = policy_dir / f"{reference_card['id']}_reference.png"
-        reference_tasks.extend(
-            _build_candidate_tasks(
-                cards=[reference_card],
-                card_type="policy",
-                out_dir=policy_dir,
-                candidate_count=reference_candidate_count,
-                reference_images=None,
-                is_reference=True,
-                client=client,
-                model=model,
-                responses_model=responses_model,
-                api=api,
-                size=size,
-                quality=reference_quality,
-                background=background,
-                resume=resume,
-                final_suffix="_reference",
+        if resume and policy_reference_out.exists() and policy_reference_out.stat().st_size > 0:
+            policy_ref_paths = [policy_reference_out]
+        else:
+            reference_tasks.extend(
+                _build_candidate_tasks(
+                    cards=[reference_card],
+                    card_type="policy",
+                    out_dir=policy_dir,
+                    candidate_count=reference_candidate_count,
+                    reference_images=None,
+                    is_reference=True,
+                    client=client,
+                    model=model,
+                    responses_model=responses_model,
+                    api=api,
+                    size=size,
+                    quality=reference_quality,
+                    background=background,
+                    resume=resume,
+                    final_suffix="_reference",
+                )
             )
-        )
 
     if dev_ref_paths is None and developments:
         reference_card = developments[0]
         dev_reference_out = dev_dir / f"{reference_card['id']}_reference.png"
-        reference_tasks.extend(
-            _build_candidate_tasks(
-                cards=[reference_card],
-                card_type="development",
-                out_dir=dev_dir,
-                candidate_count=reference_candidate_count,
-                reference_images=None,
-                is_reference=True,
-                client=client,
-                model=model,
-                responses_model=responses_model,
-                api=api,
-                size=size,
-                quality=reference_quality,
-                background=background,
-                resume=resume,
-                final_suffix="_reference",
+        if resume and dev_reference_out.exists() and dev_reference_out.stat().st_size > 0:
+            dev_ref_paths = [dev_reference_out]
+        else:
+            reference_tasks.extend(
+                _build_candidate_tasks(
+                    cards=[reference_card],
+                    card_type="development",
+                    out_dir=dev_dir,
+                    candidate_count=reference_candidate_count,
+                    reference_images=None,
+                    is_reference=True,
+                    client=client,
+                    model=model,
+                    responses_model=responses_model,
+                    api=api,
+                    size=size,
+                    quality=reference_quality,
+                    background=background,
+                    resume=resume,
+                    final_suffix="_reference",
+                )
             )
-        )
 
     if reference_tasks:
         _run_generation_tasks(
