@@ -344,15 +344,36 @@ def _resolve_ui_dir(ui_dir: Path | str | None) -> Path:
         resolved = _resolve_path(ui_dir)
     else:
         repo_root = find_repo_root()
-        if repo_root is None:
-            raise FileNotFoundError(
-                "Could not locate the ui/ directory. Pass ui_dir explicitly or run from a repo checkout."
-            )
-        resolved = repo_root / "ui"
+        if repo_root is not None:
+            resolved = repo_root / "ui"
+        else:
+            packaged = _get_packaged_ui_dir()
+            if packaged is None:
+                raise FileNotFoundError(
+                    "Could not locate the ui/ directory. Pass ui_dir explicitly or install a package that bundles UI assets."
+                )
+            resolved = packaged
 
     if not resolved.exists():
         raise FileNotFoundError(f"UI directory not found at {resolved}")
     return resolved
+
+
+def _get_packaged_ui_dir() -> Path | None:
+    try:
+        package_root = files("econ_tabletop")
+    except Exception:
+        return None
+
+    candidate = package_root.joinpath("ui")
+    try:
+        candidate_path = Path(candidate)
+    except TypeError:
+        return None
+
+    if candidate_path.is_dir() and (candidate_path / "package.json").is_file():
+        return candidate_path
+    return None
 
 
 def _merge_env(env: dict[str, str] | None) -> dict[str, str]:

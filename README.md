@@ -64,35 +64,24 @@ session = et.run_simulation(deck_dir, npm_install=True)
 # session.stop()
 ```
 
-### Running the UI from a notebook install (common pitfall)
+### Running the UI from a notebook install
 
-`run_simulation()`/`launch_ui()` needs the **UI source folder** (`ui/`) to start the deck server and Vite app.
-If you installed via pip (e.g., `pip install git+...`), the package **does not** include the UI source, so the helper
-cannot auto-detect it and you'll see:
-
-```
-FileNotFoundError: Could not locate the ui/ directory.
-```
-
-**Fix**: clone the repo locally (or otherwise point to a checkout that contains `ui/`) and pass `ui_dir`:
+`run_simulation()`/`launch_ui()` needs the **UI source folder** (`ui/`) to start the deck server and Vite app. The
+PyPI/Git install now bundles the UI assets, so you can run it without a local repo checkout:
 
 ```python
 %pip install --force-reinstall git+https://github.com/hemanth-asirvatham/econ-tabletop.git@main
 
-# Make sure you have a local checkout that includes /ui
-# Example: git clone https://github.com/hemanth-asirvatham/econ-tabletop.git ~/src/econ-tabletop
-
 import econ_tabletop as et
 
 deck_dir = "/path/to/decks/my_run"
-ui_dir = "/path/to/econ-tabletop/ui"
 
-session = et.run_simulation(deck_dir, ui_dir=ui_dir, npm_install=True)
+session = et.run_simulation(deck_dir, npm_install=True)
 # session.stop()
 ```
 
 Notes:
-- You can run this from **any working directory** as long as `ui_dir` points to the repo checkout.
+- You can run this from **any working directory**; the helper will fall back to the packaged `ui/` assets.
 - You need **Node.js + npm** installed for the UI (`npm install` will run if `npm_install=True`).
 - If you only want the API server (no Vite UI), use `et.start_deck_server(...)`.
 
