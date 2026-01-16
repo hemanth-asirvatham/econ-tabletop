@@ -1,0 +1,28 @@
+{
+  "name": "econ-tabletop-ui",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --config web/vite.config.ts",
+    "build": "vite build --config web/vite.config.ts",
+    "preview": "vite preview --config web/vite.config.ts"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.30",
+    "@types/react": "^18.2.66",
+    "@types/react-dom": "^18.2.21",
+    "typescript": "^5.4.5",
+    "vite": "^5.2.7",
+    "@vitejs/plugin-react": "^4.2.1",
+    "ts-node": "^10.9.2",
+    "express": "^4.19.2",
+    "cors": "^2.8.5",
+    "@types/express": "^4.17.21",
+    "@types/cors": "^2.8.17"
+  }
+}
