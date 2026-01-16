@@ -290,7 +290,7 @@ def start_deck_server(
 ) -> subprocess.Popen:
     """Start the deck API server and return the Popen handle."""
     deck_dir = _resolve_path(deck_dir)
-    resolved_ui_dir = _resolve_ui_dir(ui_dir)
+    resolved_ui_dir = _resolve_ui_dir(ui_dir, deck_dir=deck_dir)
     environment = _merge_env(env)
     environment["PORT"] = str(port)
 
@@ -315,7 +315,7 @@ def launch_ui(
     env: dict[str, str] | None = None,
 ) -> UISession:
     """Launch deck server + Vite dev server for the GUI."""
-    resolved_ui_dir = _resolve_ui_dir(ui_dir)
+    resolved_ui_dir = _resolve_ui_dir(ui_dir, deck_dir=deck_dir)
     environment = _merge_env(env)
 
     if npm_install:
@@ -339,11 +339,12 @@ def launch_ui(
     return UISession(deck_server=deck_server, ui_server=ui_server, deck_url=deck_url, ui_url=ui_url)
 
 
-def _resolve_ui_dir(ui_dir: Path | str | None) -> Path:
+def _resolve_ui_dir(ui_dir: Path | str | None, *, deck_dir: Path | str | None = None) -> Path:
     if ui_dir is not None:
         resolved = _resolve_path(ui_dir)
     else:
-        repo_root = find_repo_root()
+        start_path = _resolve_path(deck_dir) if deck_dir is not None else None
+        repo_root = find_repo_root(start=start_path)
         if repo_root is not None:
             resolved = repo_root / "ui"
         else:
