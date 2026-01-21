@@ -6,10 +6,18 @@ type Props = {
   imageBaseUrl: string;
   selectedPolicyId: string | null;
   onSelectPolicy: (id: string) => void;
+  onInspectPolicy: (card: PolicyCard) => void;
   className?: string;
 };
 
-export function PlayerHand({ hand, imageBaseUrl, selectedPolicyId, onSelectPolicy, className }: Props) {
+export function PlayerHand({
+  hand,
+  imageBaseUrl,
+  selectedPolicyId,
+  onSelectPolicy,
+  onInspectPolicy,
+  className,
+}: Props) {
   return (
     <section className={className ? `hand ${className}` : "hand"}>
       <div className="hand__header">
@@ -26,7 +34,10 @@ export function PlayerHand({ hand, imageBaseUrl, selectedPolicyId, onSelectPolic
             variant="visual"
             selected={selectedPolicyId === policy.id}
             dragPayload={{ kind: "policy", id: policy.id }}
-            onClick={() => onSelectPolicy(policy.id)}
+            onClick={() => {
+              onSelectPolicy(policy.id);
+              onInspectPolicy(policy);
+            }}
           />
         ))}
       </div>

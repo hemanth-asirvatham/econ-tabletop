@@ -2,8 +2,10 @@ You are writing a single Simulation Outline document that will govern all downst
 
 Goal: Produce a detailed, well-structured outline with headings and bullet points (plain text only).
 
-Additional instructions (must be woven into the outline):
-{{ additional_instructions or "(none)" }}
+{% if additional_instructions -%}
+Additional instructions (must be followed carefully and woven into the outline):
+{{ additional_instructions }}
+{% endif -%}
 
 Stages (authoritative definitions):
 {{ stages | tojson }}

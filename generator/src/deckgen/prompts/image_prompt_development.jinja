@@ -1,13 +1,17 @@
 Create a 3:2 horizontal DEVELOPMENT card illustration with baked-in text and full card frame.
 
-Additional instructions: {{ additional_instructions or "(none)" }}
+{% if additional_instructions -%}
+Additional instructions (must be followed carefully): {{ additional_instructions }}
+{% endif -%}
 Locale visuals (optional motifs): {{ locale_visuals | join(", ") }}
 Card format notes (concise): {{ image_outline_text }}
 
 Title (verbatim): "{{ card.title }}"
 Short description (verbatim): "{{ card.short_description }}"
 Description (verbatim): "{{ card.description }}"
+{% if card.rule_box_text -%}
 Rule box text (verbatim): "{{ card.rule_box_text }}"
+{% endif -%}
 Stage label: "{{ card.stage }}"
 Impact score: {{ card.impact_score }} (map to arrow count)
 Arrows up/down: {{ card.arrows_up }} up, {{ card.arrows_down }} down
@@ -19,10 +23,10 @@ Layout & styling:
 - Use a refined tabletop-card layout like a premium board-game card; crisp typography and precise alignment.
 - Keep the layout minimalist: stage number in the upper-left, title near the top, a short-description line under it, and a compact description block nearer the bottom (no repeated titles, no extra labels).
 - If card_type is "power", place the world-state sentence in the description block, and place the imperative rule sentence from rule_box_text into a soft-edged rule box at the very bottom.
-- If rule_box_text is present on a standard card, render the same rule box at the very bottom while keeping the arrow row visible.
-- If rule_box_text is present on a standard card, keep the overall development-card layout and integrate a power-style rule box without changing the rest of the style.
+- If rule_box_text is present on a standard card, render a subtle emphasis box at the very bottom while keeping the arrow row visible.
+- If rule_box_text is present on a standard card, keep the overall development-card layout and integrate a subdued rule box without changing the rest of the style.
 - If rule_box_text is empty or null, do not render a rule box.
-- Render the rule box with rounded corners, a light fill, and subtle border; keep the rule text short and centered.
+- Render the rule box with rounded corners, a light accent fill (slightly distinct from the card background), and a subtle border; set the rule text in slightly heavier weight so it reads as an instruction.
 - If any text includes **double-asterisk markers**, render the wrapped text in bold WITHOUT the asterisks.
 - Place the stage number only (e.g., "2") in the upper-left corner as a small badge.
 - In the upper-right corner, show a horizontal row of minimalist arrow icons (side-by-side, not stacked) for standard cards only. The count must match the impact score magnitude exactly ({{ card.impact_score }}): use green up arrows for positive and red down arrows for negative. If impact score is zero, use a single neutral gray line "—".

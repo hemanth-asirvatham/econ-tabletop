@@ -1,6 +1,8 @@
 Create a 3:2 horizontal POLICY card illustration with baked-in text and full card frame.
 
-Additional instructions: {{ additional_instructions or "(none)" }}
+{% if additional_instructions -%}
+Additional instructions (must be followed carefully): {{ additional_instructions }}
+{% endif -%}
 Locale visuals (optional motifs): {{ locale_visuals | join(", ") }}
 Card format notes (concise): {{ image_outline_text }}
 
