@@ -1,7 +1,9 @@
 You are generating a list of PolicyCard JSON objects using structured outputs.
 
-Additional instructions:
-{{ additional_instructions or "(none)" }}
+{% if additional_instructions -%}
+Additional instructions (must be followed carefully and woven into the cards):
+{{ additional_instructions }}
+{% endif -%}
 
 Tone: {{ scenario_tone }}
 

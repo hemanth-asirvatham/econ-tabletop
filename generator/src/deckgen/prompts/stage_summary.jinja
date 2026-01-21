@@ -1,7 +1,9 @@
 You are summarizing a stage of development cards into compact state facts.
 
-Additional instructions:
-{{ additional_instructions or "(none)" }}
+{% if additional_instructions -%}
+Additional instructions (must be followed carefully and woven into the summary):
+{{ additional_instructions }}
+{% endif -%}
 
 Stage:
 {{ stage | tojson }}

@@ -1,7 +1,9 @@
 You are generating a stage blueprint for development cards.
 
-Additional instructions:
-{{ additional_instructions or "(none)" }}
+{% if additional_instructions -%}
+Additional instructions (must be followed carefully and woven into the blueprint):
+{{ additional_instructions }}
+{% endif -%}
 
 Stage:
 {{ stage | tojson }}

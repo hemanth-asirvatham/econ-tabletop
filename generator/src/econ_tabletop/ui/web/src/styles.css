@@ -611,6 +611,117 @@ body {
   padding-bottom: 6px;
 }
 
+.card-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.85);
+  display: grid;
+  place-items: center;
+  z-index: 50;
+  padding: 32px;
+}
+
+.card-modal__content {
+  width: min(1200px, 90vw);
+  max-height: 90vh;
+  background: rgba(15, 23, 42, 0.98);
+  border-radius: 20px;
+  padding: 24px;
+  display: grid;
+  gap: 18px;
+  box-shadow: 0 30px 80px rgba(15, 23, 42, 0.7);
+}
+
+.card-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.card-modal__header h2 {
+  margin: 6px 0 0;
+  font-size: 24px;
+  color: #f8fafc;
+}
+
+.card-modal__eyebrow {
+  margin: 0;
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+
+.card-modal__body {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 16px;
+}
+
+.card-modal__image-frame {
+  width: 100%;
+  background: rgba(15, 23, 42, 0.6);
+  border-radius: 16px;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 320px;
+}
+
+.card-modal__image-frame img {
+  width: 100%;
+  max-height: 70vh;
+  object-fit: contain;
+  border-radius: 12px;
+}
+
+.card-modal__fallback {
+  color: #e2e8f0;
+  display: grid;
+  gap: 12px;
+  text-align: left;
+}
+
+.card-modal__instruction {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  color: #e0f2fe;
+  font-weight: 600;
+}
+
+.card-modal__hint {
+  margin: 0;
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+.card-modal__nav {
+  border: none;
+  background: rgba(15, 23, 42, 0.6);
+  color: #f8fafc;
+  font-size: 24px;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.card-modal__nav:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.card-modal__nav:not(:disabled):hover {
+  transform: scale(1.05);
+}
+
 .event-log {
   display: grid;
   gap: 12px;

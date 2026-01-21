@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useReducer, useState } from "react";
+import { CardModal } from "./components/CardModal";
 import { DeckControls } from "./components/DeckControls";
 import { EventLog } from "./components/EventLog";
 import { PlayerHand } from "./components/PlayerHand";
@@ -24,6 +25,9 @@ const DECK_BASE_URL = "http://localhost:8787";
 export default function App() {
   const [state, dispatch] = useReducer(gameReducer, createInitialState(DEFAULT_SETTINGS));
   const [setupReady, setSetupReady] = useState(false);
+  const [modalState, setModalState] = useState<{ type: "policy" | "development"; id: string } | null>(
+    null,
+  );
 
   const activeDevelopments = useMemo(() => [...state.faceUp, ...state.faceDown], [state.faceUp, state.faceDown]);
   const stageCount = useMemo(() => Object.keys(state.developmentsByStage).length || 1, [state.developmentsByStage]);
@@ -31,6 +35,35 @@ export default function App() {
     const stageCards = state.developmentsByStage[state.stageIndex] || [];
     return stageCards.length;
   }, [state.developmentsByStage, state.stageIndex]);
+  const policyModalCards = useMemo(() => {
+    const merged = [...state.hand, ...state.implemented];
+    const seen = new Set<string>();
+    return merged.filter((card) => {
+      if (seen.has(card.id)) return false;
+      seen.add(card.id);
+      return true;
+    });
+  }, [state.hand, state.implemented]);
+  const developmentModalCards = useMemo(() => {
+    const merged = [
+      ...state.faceUp,
+      ...state.faceDown,
+      ...state.dormant,
+      ...Object.values(state.attachments).flat(),
+    ];
+    const seen = new Set<string>();
+    return merged.filter((card) => {
+      if (seen.has(card.id)) return false;
+      seen.add(card.id);
+      return true;
+    });
+  }, [state.attachments, state.dormant, state.faceDown, state.faceUp]);
+  const modalCards = modalState?.type === "policy" ? policyModalCards : developmentModalCards;
+  const modalCard = useMemo(() => {
+    if (!modalState) return null;
+    const list = modalState.type === "policy" ? policyModalCards : developmentModalCards;
+    return list.find((card) => card.id === modalState.id) ?? null;
+  }, [developmentModalCards, modalState, policyModalCards]);
 
   useEffect(() => {
     const saved = loadState();
@@ -168,6 +201,8 @@ export default function App() {
               selectedPolicyId={state.selectedPolicyId}
               onSelectDev={(id) => dispatch({ type: "SELECT_DEV", payload: { devId: id } })}
               onSelectPolicy={(id) => dispatch({ type: "SELECT_POLICY", payload: { policyId: id } })}
+              onInspectDev={(card) => setModalState({ type: "development", id: card.id })}
+              onInspectPolicy={(card) => setModalState({ type: "policy", id: card.id })}
               onAttach={(policyId, devId) => dispatch({ type: "ATTACH_DEV", payload: { policyId, devId } })}
               onPlayPolicy={(policyId) => dispatch({ type: "PLAY_POLICY", payload: { policyId } })}
             />
@@ -179,10 +214,20 @@ export default function App() {
               imageBaseUrl={DECK_BASE_URL}
               selectedPolicyId={state.selectedPolicyId}
               onSelectPolicy={(id) => dispatch({ type: "SELECT_POLICY", payload: { policyId: id } })}
+              onInspectPolicy={(card) => setModalState({ type: "policy", id: card.id })}
             />
           </section>
         </main>
       )}
+      {modalState && modalCard ? (
+        <CardModal
+          card={modalCard}
+          cards={modalCards}
+          cardType={modalState.type}
+          imageBaseUrl={DECK_BASE_URL}
+          onClose={() => setModalState(null)}
+        />
+      ) : null}
     </div>
   );
 }

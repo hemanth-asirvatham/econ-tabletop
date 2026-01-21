@@ -19,6 +19,8 @@ type Props = {
   selectedPolicyId: string | null;
   onSelectDev: (id: string) => void;
   onSelectPolicy: (id: string) => void;
+  onInspectDev: (card: DevelopmentCard) => void;
+  onInspectPolicy: (card: PolicyCard) => void;
   onAttach: (policyId: string, devId: string) => void;
   onPlayPolicy: (policyId: string) => void;
 };
@@ -34,6 +36,8 @@ export function Table({
   selectedPolicyId,
   onSelectDev,
   onSelectPolicy,
+  onInspectDev,
+  onInspectPolicy,
   onAttach,
   onPlayPolicy,
 }: Props) {
@@ -69,7 +73,10 @@ export function Table({
               variant="visual"
               selected={selectedDevId === dev.id}
               dragPayload={{ kind: "development", id: dev.id }}
-              onClick={() => onSelectDev(dev.id)}
+              onClick={() => {
+                onSelectDev(dev.id);
+                onInspectDev(dev);
+              }}
             />
           ))}
           {faceDown.map((dev) => (
@@ -126,7 +133,10 @@ export function Table({
                   variant="visual"
                   selected={selectedPolicyId === policy.id}
                   dragPayload={{ kind: "policy", id: policy.id }}
-                  onClick={() => onSelectPolicy(policy.id)}
+                  onClick={() => {
+                    onSelectPolicy(policy.id);
+                    onInspectPolicy(policy);
+                  }}
                 />
                 <div className="policy-stack__attachments">
                   {(attachments[policy.id] || []).map((dev) => (
@@ -137,6 +147,7 @@ export function Table({
                       imageBaseUrl={imageBaseUrl}
                       variant="compact"
                       dragPayload={{ kind: "development", id: dev.id }}
+                      onClick={() => onInspectDev(dev)}
                     />
                   ))}
                 </div>

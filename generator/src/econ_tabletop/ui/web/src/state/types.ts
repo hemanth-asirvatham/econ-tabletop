@@ -30,6 +30,7 @@ export type DevelopmentCard = {
   title: string;
   short_description: string;
   description: string;
+  rule_box_text: string | null;
   valence: "positive" | "negative" | "mixed";
   arrows_up: number;
   arrows_down: number;
