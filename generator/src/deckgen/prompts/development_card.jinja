@@ -57,7 +57,9 @@ Content constraints:
 - Use concrete, realistic phrasing; avoid vague consulting-speak.
 - Keep descriptions accessible to a smart lay audience; avoid niche jargon without quick clarification.
 - Frame developments as observable conditions in the world (what changed, for whom, and how it shows up).
+- Keep most developments purely narrative world-state statements; avoid action-style instructions or dependency clauses unless required by the beat.
 - Ensure many developments explicitly capture how AI is changing the world (primary or secondary effects), including geopolitics, labor, energy, or information flows.
+- Include indirect, real-economy impacts across sectors (healthcare, construction, logistics, education, housing, local services), especially in mid and late stages.
 - When relevant, connect power infrastructure realities (grid upgrades, shortages, fuel mix, pricing) to AI/data-center impacts.
 - Include occasional feedback or constraint developments tied to prior policy choices (e.g., backlash, implementation drag, political fatigue).
 - Include some developments where private-sector coordination, market competition, or operational improvements resolve prior tensions without new policy.
@@ -66,6 +68,7 @@ Content constraints:
 - If effects is non-empty, set card_type="power" and include a non-null rule_box_text.
 - If card_type="standard" and rule_box_text is used, keep effects empty; use natural-language conditionals (e.g., "If prior policies expanded compute, add **+2** arrows.").
 - If activation.type is conditional, include a brief conditional clause in the description.
+- Keep conditional standard cards rare; most standard cards should have rule_box_text null and activation.type=immediate.
 - If supersedes is set, include a plain-English clause in the description explaining what prior development is being replaced (do NOT include the raw card id).
 - Avoid explicit references like "as in the previous card"; phrase supersedes naturally (e.g., "Early adoption stalls as...").
 - impact_score: integer from -5 to 5 (0 allowed). Use mostly positive values; +/-4 and +/-5 should be rare and dramatic, indicating extreme shifts.
