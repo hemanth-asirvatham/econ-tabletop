@@ -61,9 +61,13 @@ Constraints:
 - Write concrete, realistic titles/descriptions; avoid vague consulting-speak or academic obscurity.
 - Keep descriptions accessible to a smart lay audience: minimize jargon and add a clarifying phrase if a term is niche.
 - Frame each development as a world-state fact (what changed, who is affected, and how it shows up in everyday life).
+- Keep most developments purely narrative world-state statements; avoid action-style instructions or dependency clauses unless required by a beat.
 - Favor broad, legible titles over overly specific program names; make the core idea instantly understandable.
 - Ensure titles and short descriptions make the core impact obvious in plain language.
 - Ensure many developments explicitly capture how AI is changing the world (primary or secondary effects), including geopolitics, labor, energy, or information flows.
+- Include indirect, real-economy impacts across sectors (healthcare, construction, logistics, education, housing, local services), especially in mid and late stages.
+- In mid and late stages, include occasional big, paradigm-level shifts in how society functions or how security doctrine evolves, while keeping early stages grounded and near-term.
+- Make sure these big shifts are still understandable to a lay audience and tied back to observable impacts in daily life.
 - When relevant, connect power infrastructure realities (grid upgrades, shortages, fuel mix, pricing) to AI/data-center impacts.
 - Include occasional feedback or constraint developments tied to prior policy choices (e.g., backlash, implementation drag, political fatigue).
 - Include a wide spread of scale and domain (small operational shifts, sector-wide changes, infrastructure or governance impacts).
@@ -84,6 +88,7 @@ Constraints:
 - For powerup: include an explicit imperative rule sentence in rule_box_text (e.g., "Draw 2 development cards now.").
 - Set card_type="power" for powerups; otherwise use card_type="standard".
 - If card_type="standard" and rule_box_text is used, keep effects empty; use natural-language conditionals (e.g., "If prior policies expanded compute, add **+2** arrows.").
+- Keep conditional standard cards rare; most standard cards should have rule_box_text null and activation.type=immediate.
 - For conditional: include a brief conditional clause in the description.
 - Include at least 2 powerup cards per stage; prioritize common powerups:
   - Research acceleration: draw and play 2 development cards from the next stage (DRAW_DEV_NEXT_STAGE_NOW + count 2).
