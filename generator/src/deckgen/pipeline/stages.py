@@ -57,8 +57,8 @@ def generate_stage_cards(
 
     all_cards: list[dict[str, Any]] = []
     summaries: list[dict[str, Any]] = []
-    stages_to_generate: list[dict[str, Any]] = []
     stage_cards_by_index: dict[int, list[dict[str, Any]]] = {}
+    prior_stage_summary: dict[str, Any] | None = None
 
     for stage_index, count in enumerate(stage_counts):
         stage_def = stages[min(stage_index, len(stages) - 1)] if stages else {"id": stage_index}
@@ -75,94 +75,89 @@ def generate_stage_cards(
                 console.print(
                     f"[green]Stage {stage_index} cards already exist; loading from {stage_path}.[/green]"
                 )
-            stage_cards_by_index[stage_index] = stage_cards
-            continue
-        stages_to_generate.append({"index": stage_index, "count": count, "def": stage_def})
-
-    async def _generate_stage(stage_spec: dict[str, Any]) -> tuple[int, list[dict[str, Any]]]:
-        stage_index = stage_spec["index"]
-        count = stage_spec["count"]
-        stage_def = stage_spec["def"]
-        console.print(f"[cyan]Generating stage {stage_index} with {count} development cards.[/cyan]")
-        if client.use_dummy:
-            blueprint = dummy_stage_blueprint(stage=stage_def, tags=tags, target_count=count)
         else:
-            blueprint_prompt = render_prompt(
-                "stage_blueprint.jinja",
-                prompt_path=prompt_path,
-                additional_instructions=additional_instructions,
-                stage=stage_def,
-                tags=tags,
-                mix_targets=resolved.get("mix_targets", {}),
-                target_count=count,
-                outline_text=outline_text,
-            )
-            blueprint_payload = _build_text_payload(
-                blueprint_prompt,
-                development_model_cfg,
-                STAGE_BLUEPRINT_SCHEMA,
-                name=f"stage{stage_index}_blueprint",
-            )
-            blueprint_response = await client.responses_async(blueprint_payload)
-            blueprint = _parse_response_json(blueprint_response) or {}
+            console.print(f"[cyan]Generating stage {stage_index} with {count} development cards.[/cyan]")
+            if client.use_dummy:
+                blueprint = dummy_stage_blueprint(stage=stage_def, tags=tags, target_count=count)
+            else:
+                blueprint_prompt = render_prompt(
+                    "stage_blueprint.jinja",
+                    prompt_path=prompt_path,
+                    additional_instructions=additional_instructions,
+                    stage=stage_def,
+                    prior_stage_summary=prior_stage_summary,
+                    tags=tags,
+                    mix_targets=resolved.get("mix_targets", {}),
+                    target_count=count,
+                    outline_text=outline_text,
+                )
+                blueprint_payload = _build_text_payload(
+                    blueprint_prompt,
+                    development_model_cfg,
+                    STAGE_BLUEPRINT_SCHEMA,
+                    name=f"stage{stage_index}_blueprint",
+                )
+                blueprint_response = client.responses(blueprint_payload)
+                blueprint = _parse_response_json(blueprint_response) or {}
 
-        threads = blueprint.get("threads", [])
-        special_counts = blueprint.get("special_counts", {})
-        prior_card_ids = _prior_stage_card_ids(stage_index, stage_counts)
-        beats = _build_beats(threads, count, prior_card_ids, tags, special_counts)
-        card_ids = [f"dev_s{stage_index}_{i:02d}" for i in range(count)]
+            threads = blueprint.get("threads", [])
+            special_counts = blueprint.get("special_counts", {})
+            prior_card_ids = _prior_stage_card_ids(stage_index, stage_counts)
+            beats = _build_beats(threads, count, prior_card_ids, tags, special_counts)
+            card_ids = [f"dev_s{stage_index}_{i:02d}" for i in range(count)]
 
-        if client.use_dummy:
-            response = dummy_development_cards(
-                card_ids=card_ids,
-                stage_index=stage_index,
-                beats=beats,
-                tags=tags,
-            )
-        else:
-            cards_prompt = render_prompt(
-                "development_cards.jinja",
-                prompt_path=prompt_path,
-                additional_instructions=additional_instructions,
-                stage=stage_def,
-                tags=tags,
-                beats=beats,
-                card_ids=card_ids,
-                outline_text=outline_text,
-            )
-            cards_payload = _build_text_payload(
-                cards_prompt,
-                development_model_cfg,
-                DEVELOPMENT_CARDS_RESPONSE_SCHEMA,
-                name=f"stage{stage_index}_cards",
-            )
-            cards_response = await client.responses_async(cards_payload)
-            response = _parse_response_json(cards_response) or {}
+            if client.use_dummy:
+                response = dummy_development_cards(
+                    card_ids=card_ids,
+                    stage_index=stage_index,
+                    beats=beats,
+                    tags=tags,
+                )
+            else:
+                cards_prompt = render_prompt(
+                    "development_cards.jinja",
+                    prompt_path=prompt_path,
+                    additional_instructions=additional_instructions,
+                    stage=stage_def,
+                    prior_stage_summary=prior_stage_summary,
+                    tags=tags,
+                    beats=beats,
+                    card_ids=card_ids,
+                    outline_text=outline_text,
+                )
+                cards_payload = _build_text_payload(
+                    cards_prompt,
+                    development_model_cfg,
+                    DEVELOPMENT_CARDS_RESPONSE_SCHEMA,
+                    name=f"stage{stage_index}_cards",
+                )
+                cards_response = client.responses(cards_payload)
+                response = _parse_response_json(cards_response) or {}
 
-        stage_cards = _normalize_dev_cards(
-            response.get("cards", []),
-            count,
-            stage_index,
-            tags,
-            beats,
+            stage_cards = _normalize_dev_cards(
+                response.get("cards", []),
+                count,
+                stage_index,
+                tags,
+                beats,
+            )
+            for idx, card in enumerate(stage_cards):
+                card["id"] = card_ids[idx]
+                card["stage"] = stage_index
+                card.setdefault("art_prompt", "")
+        stage_cards_by_index[stage_index] = stage_cards
+        summary = _generate_stage_summary(
+            stage_index=stage_index,
+            stage_def=stage_def,
+            stage_cards=stage_cards,
+            scenario=scenario,
+            prompt_path=prompt_path,
+            model_cfg=model_cfg,
+            client=client,
+            outline_text=outline_text,
         )
-        for idx, card in enumerate(stage_cards):
-            card["id"] = card_ids[idx]
-            card["stage"] = stage_index
-            card.setdefault("art_prompt", "")
-        return stage_index, stage_cards
-
-    if stages_to_generate:
-        console.print("[cyan]Generating development cards in parallel across stages.[/cyan]")
-        results = run_async(
-            gather_with_concurrency(
-                concurrency_text,
-                [lambda spec=spec: _generate_stage(spec) for spec in stages_to_generate],
-                progress_desc="Stage card generation",
-            )
-        )
-        for stage_index, stage_cards in results:
-            stage_cards_by_index[stage_index] = stage_cards
+        summaries.append(summary)
+        prior_stage_summary = summary
 
     cards_needing_prompts: list[dict[str, Any]] = []
     for stage_index, count in enumerate(stage_counts):
@@ -192,35 +187,6 @@ def generate_stage_cards(
                 [lambda card=card: asyncio.to_thread(_render_prompt, card) for card in cards_needing_prompts],
             )
         )
-
-    console.print("[cyan]Generating stage summaries in parallel.[/cyan]")
-
-    async def _summary_task(stage_index: int, stage_cards: list[dict[str, Any]]) -> dict[str, Any]:
-        stage_def = stages[min(stage_index, len(stages) - 1)] if stages else {"id": stage_index}
-        return await _generate_stage_summary_async(
-            stage_index=stage_index,
-            stage_def=stage_def,
-            stage_cards=stage_cards,
-            scenario=scenario,
-            prompt_path=prompt_path,
-            model_cfg=model_cfg,
-            client=client,
-            outline_text=outline_text,
-        )
-
-    summary_results = run_async(
-        gather_with_concurrency(
-            concurrency_text,
-            [
-                lambda stage_index=stage_index, stage_cards=stage_cards: _summary_task(
-                    stage_index, stage_cards
-                )
-                for stage_index, stage_cards in stage_cards_by_index.items()
-            ],
-            progress_desc="Stage summaries",
-        )
-    )
-    summaries.extend(summary_results)
 
     for stage_index, stage_cards in stage_cards_by_index.items():
         _ensure_card_types(stage_cards)

@@ -120,13 +120,14 @@ def _draw_text_card(
 
     canvas.setFont("Helvetica", 7)
     if label == "POLICY":
-        political_capital = int(card.get("political_capital", 0) or 0)
+        impact_rating = int(card.get("impact_rating", 0) or 0)
         cost = card.get("cost", {}) or {}
-        budget = int(cost.get("budget_level", 0) or 0)
-        complexity = int(cost.get("implementation_complexity", 0) or 0)
-        canvas.drawString(x + 8, y + 28, f"COMPLEX {_score_row(complexity)}")
+        budget = int(cost.get("budget_cost", cost.get("budget_level", 0)) or 0)
+        if budget > 4:
+            budget = 4
+        canvas.drawString(x + 8, y + 28, f"IMPACT {_score_row(impact_rating)}")
         canvas.drawString(x + 8, y + 18, f"BUDGET {_score_row(budget)}")
-        canvas.drawString(x + 8, y + 8, f"POL CAP {_score_row(political_capital)}")
+        canvas.drawString(x + 8, y + 8, f"TIME {card.get('timeline', {}).get('time_to_impact', '')}")
     if label == "DEVELOPMENT":
         severity = int(card.get("severity", 0) or 0)
         canvas.drawString(x + 8, y + 8, f"SEVERITY {_score_row(severity)}")

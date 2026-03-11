@@ -9,7 +9,7 @@ POLICY_CARD_SCHEMA = {
         "category",
         "cost",
         "timeline",
-        "political_capital",
+        "impact_rating",
         "tags",
         "addresses_tags",
         "side_effect_tags",
@@ -28,10 +28,9 @@ POLICY_CARD_SCHEMA = {
         "cost": {
             "type": "object",
             "additionalProperties": False,
-            "required": ["budget_level", "implementation_complexity", "notes"],
+            "required": ["budget_cost", "notes"],
             "properties": {
-                "budget_level": {"type": "integer", "minimum": 1, "maximum": 5},
-                "implementation_complexity": {"type": "integer", "minimum": 1, "maximum": 5},
+                "budget_cost": {"type": "integer", "minimum": 1, "maximum": 4},
                 "notes": {"type": "string"},
             },
         },
@@ -42,15 +41,15 @@ POLICY_CARD_SCHEMA = {
             "properties": {
                 "time_to_launch": {
                     "type": "string",
-                    "enum": ["IMMEDIATE", "WEEKS", "MONTHS", "1-2Y", "3-5Y"],
+                    "enum": ["NOW", "MONTHS", "1-2Y", "3-5Y"],
                 },
                 "time_to_impact": {
                     "type": "string",
-                    "enum": ["IMMEDIATE", "WEEKS", "MONTHS", "1-2Y", "3-5Y"],
+                    "enum": ["NOW", "MONTHS", "1-2Y", "3-5Y"],
                 },
             },
         },
-        "political_capital": {"type": "integer", "minimum": 1, "maximum": 5},
+        "impact_rating": {"type": "integer", "minimum": 1, "maximum": 5},
         "tags": {"type": "array", "items": {"type": "string"}},
         "addresses_tags": {"type": "array", "items": {"type": "string"}},
         "side_effect_tags": {"type": "array", "items": {"type": "string"}},

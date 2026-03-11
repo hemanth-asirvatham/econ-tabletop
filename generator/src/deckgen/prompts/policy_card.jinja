@@ -24,15 +24,14 @@ Output JSON schema:
   "description": "string",
   "category": "string",
   "cost": {
-    "budget_level": 1,
-    "implementation_complexity": 1,
+    "budget_cost": 1,
     "notes": "string"
   },
   "timeline": {
-    "time_to_launch": "IMMEDIATE|WEEKS|MONTHS|1-2Y|3-5Y",
-    "time_to_impact": "IMMEDIATE|WEEKS|MONTHS|1-2Y|3-5Y"
+    "time_to_launch": "NOW|MONTHS|1-2Y|3-5Y",
+    "time_to_impact": "NOW|MONTHS|1-2Y|3-5Y"
   },
-  "political_capital": 1,
+  "impact_rating": 1,
   "tags": ["string"],
   "addresses_tags": ["string"],
   "side_effect_tags": ["string"],
@@ -44,61 +43,39 @@ Output JSON schema:
 }
 
 Content constraints:
-- Title: 2-4 words, simple and punchy (no subtitle, no colon).
-- short_description: <= 60 characters; minimalist summary.
-- description: 1 short sentence, <= 140 characters total.
-- Use concrete, actionable policy language with a clear lever and target.
-- Favor broad, legible titles that capture the policy lever without being overly specific or bureaucratic.
-- Titles should make the policy topic obvious to a lay reader (e.g., "Power Line Upgrades" not "Transmission Optimization").
-- Ensure titles and short descriptions make the policy action and target unmistakable at a glance.
-- Keep descriptions accessible to a smart lay audience; avoid niche jargon without quick clarification.
-- Ensure policy content extends beyond AI-adjacent levers into general economic and geopolitical realities influenced by AI:
-  healthcare delivery, construction productivity, logistics, housing affordability, trade resilience, and critical infrastructure.
-- Keep policy descriptions focused on the broader story and visible real-economy effects, not technical implementation details.
-- Allow some policy framing to reflect broader societal or security shifts (e.g., civil defense modernization, strategic stability measures),
-  especially in mid and late stages, while keeping titles and descriptions concrete and legible.
-- If the card mentions a numeric parameter (e.g., dollars, %, headcount, unemployment), wrap the key value in **bold** (e.g., **$250B**, **10%**).
-- Include explicit costs or tradeoffs in some descriptions (e.g., budgetary burden, energy price impacts, reduced openness).
-- When relevant, make power-infrastructure and data-center impacts explicit and realistic.
-- political_capital reflects political effort/consensus required (1=easy win, 5=highly contentious).
-- Use 4-5 only for truly contentious, nationwide, or rights-limiting policies; 3 is already a high bar.
-- Set political_capital across LOW/MED/HIGH (1-2 low, 3 medium, 4-5 high) and avoid always choosing the same level.
+- Title: 2-4 words, simple and plain-language.
+- short_description: <= 60 characters.
+- description: 1-2 short sentences, <= 180 characters total.
+- Keep the card tangible and easy to explain to a lay audience.
+- Prefer policies that change visible conditions in the economy over narrow technical controls.
+- budget_cost must be 1-4 and should reflect stage-budget scarcity.
+- impact_rating must be 1-5 and reflect expected upside if executed well.
+- cost.notes should describe the main tradeoff in simple language.
+- Avoid reactive phrasing like "If X happens" or "Response to Y".
 - art_prompt must specify an edge-to-edge landscape illustration that fills the entire frame with no empty margins or floating card.
-
-Example policy archetypes to inspire breadth (do NOT copy verbatim; make them distinct and realistic):
-- Sovereign Compute Initiative (e.g., invest **$250B** in domestic data centers; allow multiple variants at different values).
-- Power Infrastructure Investment.
-- Offensive Cyber Capabilities.
-- Audit Training Data.
-- Ban Automation in X (specific sector or occupation).
-- Universal Basic Income (**$X** per month).
-- Wealth Tax (**X%**).
-- AI Company Tax.
-- Targeted employment schemes.
 
 Example:
 {
   "id": "policy_labor_reskill_vouchers",
-  "title": "Reskilling Vouchers",
-  "short_description": "Fast retraining support for displaced workers.",
-  "description": "Offer short-course vouchers tied to local employer demand.",
-  "category": "Macro",
+  "title": "Training Vouchers",
+  "short_description": "Fast retraining for displaced workers.",
+  "description": "Give adults short-course vouchers tied to local hiring demand so layoffs turn into faster re-entry.",
+  "category": "Workforce",
   "cost": {
-    "budget_level": 3,
-    "implementation_complexity": 3,
-    "notes": "Public-private partnerships reduce fiscal burden."
+    "budget_cost": 2,
+    "notes": "Works quickly, but results depend on local training quality."
   },
   "timeline": {
     "time_to_launch": "MONTHS",
     "time_to_impact": "1-2Y"
   },
-  "political_capital": 3,
-  "tags": ["workforce_reskilling", "employment_transition"],
-  "addresses_tags": ["job_displacement", "skills_mismatch"],
-  "side_effect_tags": ["fiscal_burden"],
+  "impact_rating": 3,
+  "tags": ["skills_transition", "job_reallocation"],
+  "addresses_tags": ["job_reallocation", "unemployment_spike"],
+  "side_effect_tags": ["tax_base_pressure"],
   "prerequisites_policy_tags": [],
-  "synergy_policy_tags": ["apprenticeship_expansion"],
+  "synergy_policy_tags": ["income_support"],
   "role_restrictions": [],
-  "art_prompt": "Edge-to-edge horizontal illustration of diverse adults in a modern training lab, laptops and tools, fills the entire landscape frame, clear space top-left for text, no readable text.",
-  "flavor_quote": "“A fast bridge to the next job is the best safety net.”"
+  "art_prompt": "Edge-to-edge horizontal illustration of a modern training center with adult learners, no readable text.",
+  "flavor_quote": "\"A labor shock is easier to survive when the next job is visible.\""
 }

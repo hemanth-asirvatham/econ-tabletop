@@ -14,6 +14,14 @@ function isDevelopmentCard(card: PolicyCard | DevelopmentCard): card is Developm
   return "stage" in card;
 }
 
+function budgetCost(card: PolicyCard) {
+  return card.cost?.budget_cost ?? card.cost?.budget_level ?? 2;
+}
+
+function impactRating(card: PolicyCard) {
+  return card.impact_rating ?? card.political_capital ?? 3;
+}
+
 export function CardModal({ card, cards, cardType, imageBaseUrl, onClose }: Props) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [imageVariant, setImageVariant] = useState<"images" | "render">("images");
@@ -65,6 +73,9 @@ export function CardModal({ card, cards, cardType, imageBaseUrl, onClose }: Prop
   const canGoNext = activeIndex < cards.length - 1;
   const developmentInstruction =
     isDevelopmentCard(activeCard) && activeCard.rule_box_text ? activeCard.rule_box_text : null;
+  const policyMeta = !isDevelopmentCard(activeCard)
+    ? [`$${budgetCost(activeCard)}`, activeCard.timeline.time_to_launch, `Impact ${impactRating(activeCard)}`, activeCard.category]
+    : null;
 
   return (
     <div className="card-modal" onClick={onClose}>
@@ -119,6 +130,13 @@ export function CardModal({ card, cards, cardType, imageBaseUrl, onClose }: Prop
             →
           </button>
         </div>
+        {policyMeta ? (
+          <div className="card-modal__meta-row">
+            {policyMeta.map((item) => (
+              <span key={item}>{item}</span>
+            ))}
+          </div>
+        ) : null}
         {developmentInstruction ? (
           <p className="card-modal__instruction">{developmentInstruction}</p>
         ) : (

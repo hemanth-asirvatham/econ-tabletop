@@ -69,6 +69,7 @@ DEFAULT_CONFIG = {
         "hand_size_start": 10,
         "policy_draw_per_round": 5,
         "max_policies_per_player_per_round": 3,
+        "budget_per_stage": 5,
         "players_default": 4,
     },
     "models": {

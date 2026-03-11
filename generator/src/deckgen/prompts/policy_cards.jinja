@@ -32,15 +32,14 @@ Output JSON schema:
       "description": "string",
       "category": "string",
       "cost": {
-        "budget_level": 1,
-        "implementation_complexity": 1,
+        "budget_cost": 1,
         "notes": "string"
       },
       "timeline": {
-        "time_to_launch": "IMMEDIATE|WEEKS|MONTHS|1-2Y|3-5Y",
-        "time_to_impact": "IMMEDIATE|WEEKS|MONTHS|1-2Y|3-5Y"
+        "time_to_launch": "NOW|MONTHS|1-2Y|3-5Y",
+        "time_to_impact": "NOW|MONTHS|1-2Y|3-5Y"
       },
-      "political_capital": 1,
+      "impact_rating": 1,
       "tags": ["string"],
       "addresses_tags": ["string"],
       "side_effect_tags": ["string"],
@@ -59,75 +58,67 @@ Constraints:
 - Keep policies mutually exclusive: each card should represent a distinct lever, target, or mechanism without overlapping other cards.
 - Avoid near-duplicates by varying instruments, stakeholders, and implementation mechanisms across the set.
 - Categories and tags must come from the allowed lists.
-- Use 1-3 tags per card; addresses_tags must overlap with the card tags.
-- Use grounded, policy-relevant language; avoid sci-fi or sensationalism.
-- Write crisp, concrete titles/descriptions; avoid vague consulting-speak or insider jargon.
-- Keep descriptions accessible to a smart lay audience and a high-level policymaker: minimize jargon and add a clarifying phrase if a term is niche.
-- Favor broad, legible titles that capture the policy lever without over-specific program names.
-- Titles should make the policy topic obvious to a lay reader (e.g., "Power Line Upgrades" not "Transmission Optimization").
-- Ensure titles and short descriptions make the policy action and target unmistakable at a glance.
-- Title: 2-4 words, simple and punchy (no subtitle, no colon).
-- short_description: <= 60 characters; minimalist summary.
-- description: 1 short sentence, <= 140 characters total.
-- Ensure MECE coverage across categories and themes from the slots.
-- Use the simulation outline to keep policy variety and stage relevance coherent.
-- Include a broad mix of policy scale (pilot programs, national reforms, cross-border coordination) and domain (compute, workforce,
-  AI safety, macro, finance, R&D, public-sector modernization, industrial policy, standards).
-- Ensure policy coverage extends beyond AI-adjacent levers into general economic and geopolitical realities influenced by AI:
-  healthcare delivery, construction productivity, logistics, housing affordability, trade resilience, and critical infrastructure.
-- Keep policy descriptions focused on the broader story and visible real-economy effects, not technical implementation details.
-- Allow some policy framing to reflect broader societal or security shifts (e.g., civil defense modernization, strategic stability measures),
-  especially in mid and late stages, while keeping titles and descriptions concrete and legible.
-- When relevant, make power-infrastructure and data-center impacts explicit and realistic.
-- political_capital reflects political effort/consensus required (1=easy win, 5=highly contentious).
-- Use 4-5 only for truly contentious, nationwide, or rights-limiting policies; 3 is already a high bar.
-- Distribute cost and political capital across LOW/MED/HIGH (1-2 low, 3 medium, 4-5 high) without clustering; include easy wins and heavy lifts.
-- If the card mentions a numeric parameter (e.g., dollars, %, headcount, unemployment), wrap the key value in **bold** (e.g., **$250B**, **10%**).
-- Ensure some descriptions include explicit costs or tradeoffs that affect gameplay occasionally (budget strain, energy price impact, compliance burden).
-- Ensure at least a few cards mirror concrete policy archetypes (e.g., compute procurement initiative, retraining vouchers, AGI tax policy,
-  AI audit liability regime, cross-border chip export coordination).
-- art_prompt should be a concise instruction for a horizontal card illustration (no need to include title text here; it will be added later).
+- Use 1-3 tags per card; addresses_tags should point to the main world problems or opportunities this policy would most naturally affect.
+- Write in plain language for a smart lay audience. A policymaker should recognize the lever immediately, and a non-expert should understand what it does.
+- Favor broader, tangible interventions over technical compliance machinery unless the slot clearly calls for a technical safeguard.
+- Keep the focus on the lived economy: jobs, prices, business conditions, services, housing, trade, power, logistics, and public trust.
+- Make each card legible at a glance:
+  - title: 2-4 words, concrete and plain-language.
+  - short_description: <= 60 characters, one crisp line.
+  - description: 1-2 short sentences, <= 180 characters total.
+- Do not write titles like "If X Happens..." or "Response To Y". These are policy options, not reactive instructions.
+- Include a wide mix of scale and domain: local pilots, public procurement, national programs, tax changes, trade measures, labor supports, energy or housing moves, and institutional reforms.
+- Ensure several cards are easy wins and several are expensive, high-impact bets.
+- budget_cost is the gameplay purchase price and must be a real constraint:
+  - Use integers 1-4 only.
+  - A stage budget of 5 should force meaningful tradeoffs.
+  - Include many 1-2 cost cards, a healthy number of 3 cost cards, and a smaller set of 4 cost cards.
+- impact_rating is the expected upside if the policy is executed well:
+  - 1 = narrow or local effect.
+  - 3 = meaningful national or system effect.
+  - 5 = rare, agenda-defining intervention.
+- time_to_launch captures how quickly the policy can realistically get started; time_to_impact captures when people would feel the result.
+- cost.notes should mention the main tradeoff in simple language: budget strain, slower permitting elsewhere, higher bills, political backlash, uneven take-up, or implementation drag.
+- Keep prerequisites_policy_tags and synergy_policy_tags sparse. Most policies should stand alone.
+- role_restrictions should usually be empty unless a scenario specifically calls for role-based play.
+- Ensure at least a few cards mirror concrete archetypes in a broader, more readable form:
+  - sovereign compute buildout
+  - power and grid upgrades
+  - training vouchers or wage insurance
+  - audit or liability rules for high-risk AI
+  - automation limits in a sensitive sector
+  - household cash support
+  - tax policy aimed at AI windfalls
+  - public employment or transition programs
+- art_prompt should be a concise instruction for a horizontal card illustration and should match the broad policy story, not internal mechanics.
 - art_prompt must specify an edge-to-edge landscape illustration that fills the entire frame with no empty margins or floating card.
-- Keep descriptions under ~140 characters.
-
-Example policy archetypes to inspire breadth (do NOT copy verbatim; make them distinct and realistic):
-- Sovereign Compute Initiative (e.g., invest **$250B** in domestic data centers; allow multiple variants at different values).
-- Power Infrastructure Investment.
-- Offensive Cyber Capabilities.
-- Audit Training Data.
-- Ban Automation in X (specific sector or occupation).
-- Universal Basic Income (**$X** per month).
-- Wealth Tax (**X%**).
-- AI Company Tax.
-- Targeted employment schemes.
 
 Example (single card shown):
 {
   "cards": [
     {
       "id": "policy_labor_reskill_vouchers",
-      "title": "Reskilling Vouchers",
-      "short_description": "Fast retraining support for displaced workers.",
-      "description": "Offer short-course vouchers tied to local employer demand.",
-      "category": "Macro",
+      "title": "Training Vouchers",
+      "short_description": "Fast retraining for displaced workers.",
+      "description": "Give adults short-course vouchers tied to local hiring demand so layoffs turn into faster re-entry.",
+      "category": "Workforce",
       "cost": {
-        "budget_level": 3,
-        "implementation_complexity": 3,
-        "notes": "Public-private partnerships reduce fiscal burden."
+        "budget_cost": 2,
+        "notes": "Works quickly, but results depend on local training quality."
       },
       "timeline": {
         "time_to_launch": "MONTHS",
         "time_to_impact": "1-2Y"
       },
-      "political_capital": 3,
-      "tags": ["workforce_reskilling", "employment_transition"],
-      "addresses_tags": ["job_displacement", "skills_mismatch"],
-      "side_effect_tags": ["fiscal_burden"],
+      "impact_rating": 3,
+      "tags": ["skills_transition", "job_reallocation"],
+      "addresses_tags": ["job_reallocation", "unemployment_spike"],
+      "side_effect_tags": ["tax_base_pressure"],
       "prerequisites_policy_tags": [],
-      "synergy_policy_tags": ["apprenticeship_expansion"],
+      "synergy_policy_tags": ["income_support"],
       "role_restrictions": [],
-      "art_prompt": "Edge-to-edge horizontal illustration of a modern training lab with diverse adult learners, fills the entire landscape frame, no readable text.",
-      "flavor_quote": "\"A fast bridge to the next job is the best safety net.\""
+      "art_prompt": "Edge-to-edge horizontal illustration of a modern training center with adult learners, classroom screens, and practical workshop equipment, no readable text.",
+      "flavor_quote": "\"A labor shock is easier to survive when the next job is visible.\""
     }
   ]
 }

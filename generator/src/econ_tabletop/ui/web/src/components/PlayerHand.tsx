@@ -21,8 +21,8 @@ export function PlayerHand({
   return (
     <section className={className ? `hand ${className}` : "hand"}>
       <div className="hand__header">
-        <h3>Player Hand</h3>
-        <p>Drag a policy card into the table center to implement it.</p>
+        <h3>Policy hand</h3>
+        <p>Drag a card onto the policy table to spend budget and put it into play.</p>
       </div>
       <div className="hand__cards">
         {hand.map((policy) => (

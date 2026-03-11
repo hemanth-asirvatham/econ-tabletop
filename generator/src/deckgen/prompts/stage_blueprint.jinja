@@ -8,6 +8,11 @@ Additional instructions (must be followed carefully and woven into the blueprint
 Stage:
 {{ stage | tojson }}
 
+{% if prior_stage_summary -%}
+Prior stage summary:
+{{ prior_stage_summary | tojson }}
+{% endif -%}
+
 Simulation outline:
 {{ outline_text }}
 
@@ -38,34 +43,35 @@ Output JSON schema:
 }
 
 Constraints:
-- Progress gradually from Stage 0 realism toward later stages.
-- Use the simulation outline to keep stage differentiation, narrative continuity, and optimistic bias consistent.
-- Ensure beats include a mix of near-term incremental shifts and longer-term escalations appropriate to the stage.
-- Ensure a mix of quantitative indicators, institutional shifts, geopolitics, labor, and safety/security.
-- Include some beats where market dynamics, firms, or civil society resolve pressures without new policy.
-- Keep beat phrasing plain-language and legible; avoid overly specific program names or insider jargon.
-- Frame beats as observable world-state changes (what changed, for whom, and how it manifests).
-- Include a few powerup-style beats that explicitly describe acceleration or deceleration effects (e.g., research acceleration,
-  compute bottlenecks, regulatory slowdowns) suitable for draw/limit modifiers.
-- Make powerup beats grounded in realistic levers; tie them to the stage story (not abstract game mechanics).
-- Avoid duplicate beats across threads.
-- Use valence_target=positive or negative for most threads; only use mixed for neutral beats (no red/green arrow icons).
-- Produce thread target_counts that sum to {{ target_count }} (or as close as possible).
+- Build the stage around clear world stories, not around rule interactions.
+- Most beats should be observable changes in daily life, business conditions, public services, or geopolitics.
+- Keep the stage grounded in this stage's time horizon and capability profile.
+- If a prior stage summary is provided, make this stage feel like a natural continuation, escalation, or correction.
+- Use 4-7 threads with distinct domains so the stage does not collapse into one theme.
+- Include beats across households, labor, firms, energy, infrastructure, security, and public institutions when stage-appropriate.
+- Powerups and conditionals are a minority. They should be memorable exceptions, not the default structure.
+- Prefer beats phrased like "Insurance claims close faster" or "Grid queues lengthen" over abstract labels.
+- Include some beats where markets, firms, or social adaptation ease earlier pressures without new policy.
+- Quantitative beats should describe an understandable signal such as unemployment, prices, wait times, or throughput.
+- Produce special_counts that keep the deck mostly narrative:
+  - conditionals should usually be low.
+  - powerups should usually be 2-4 per stage.
+  - supersedes should show natural evolution, not total reversal.
 
 Example:
 {
   "threads": [
     {
-      "thread_id": "labor_market_polarization",
-      "beat_plan": ["AI copilots raise top-tier productivity", "mid-skill squeeze intensifies"],
-      "target_count": 2,
-      "valence_target": "negative"
+      "thread_id": "labor_transition",
+      "beat_plan": ["Office work speeds up", "Entry-level hiring weakens", "New service jobs stabilize some cities"],
+      "target_count": 3,
+      "valence_target": "mixed"
     }
   ],
   "special_counts": {
     "supersedes": 1,
     "conditional": 1,
-    "powerups": 1,
-    "quantitative_indicators": 1
+    "powerups": 2,
+    "quantitative_indicators": 2
   }
 }

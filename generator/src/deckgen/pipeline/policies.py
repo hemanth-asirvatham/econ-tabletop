@@ -184,11 +184,11 @@ def _normalize_policy_cards(
                 "id": f"policy_{idx:03d}",
                 "title": f"{tag.replace('_', ' ').title()} Initiative",
                 "short_description": f"Targeted action on {tag.replace('_', ' ')}.",
-                "description": "A grounded policy initiative aligned with the scenario context.",
+                "description": "A grounded policy option that changes visible economic conditions.",
                 "category": category,
-                "cost": {"budget_level": 3, "implementation_complexity": 3, "notes": "Balanced fiscal impact."},
+                "cost": {"budget_cost": 2, "notes": "Moderate cost with manageable delivery risks."},
                 "timeline": {"time_to_launch": "MONTHS", "time_to_impact": "1-2Y"},
-                "political_capital": 3,
+                "impact_rating": 3,
                 "tags": [tag],
                 "addresses_tags": [tag],
                 "side_effect_tags": [],
@@ -202,8 +202,30 @@ def _normalize_policy_cards(
     for card in normalized:
         if card.get("category") not in categories:
             card["category"] = categories[0]
-        if "political_capital" not in card:
-            card["political_capital"] = 3
+        cost = card.get("cost") or {}
+        if "budget_cost" not in cost:
+            legacy_budget = cost.get("budget_level", 2)
+            try:
+                legacy_budget = int(legacy_budget)
+            except (TypeError, ValueError):
+                legacy_budget = 2
+            cost["budget_cost"] = max(1, min(4, legacy_budget))
+        cost["notes"] = str(cost.get("notes") or "Visible benefits come with budget and delivery tradeoffs.")
+        card["cost"] = cost
+        if "impact_rating" not in card:
+            legacy_impact = card.get("political_capital", 3)
+            try:
+                legacy_impact = int(legacy_impact)
+            except (TypeError, ValueError):
+                legacy_impact = 3
+            card["impact_rating"] = max(1, min(5, legacy_impact))
+        timeline = card.get("timeline") or {}
+        launch = str(timeline.get("time_to_launch") or "MONTHS").upper()
+        impact = str(timeline.get("time_to_impact") or "1-2Y").upper()
+        normalize_time = {"IMMEDIATE": "NOW", "WEEKS": "MONTHS"}
+        timeline["time_to_launch"] = normalize_time.get(launch, launch if launch in {"NOW", "MONTHS", "1-2Y", "3-5Y"} else "MONTHS")
+        timeline["time_to_impact"] = normalize_time.get(impact, impact if impact in {"NOW", "MONTHS", "1-2Y", "3-5Y"} else "1-2Y")
+        card["timeline"] = timeline
         card_tags = card.get("tags") or [tags[0]]
         card["tags"] = [tag for tag in card_tags if tag in tags] or [tags[0]]
         if not card.get("addresses_tags"):

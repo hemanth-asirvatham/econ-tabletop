@@ -29,8 +29,8 @@ Required sections (use these headings verbatim):
 4) Development Card Variety & Examples
 5) Powerup/Conditional Mechanics Guidance
 6) Card Formatting (policy + development layout, valence iconography)
-7) Art Direction (minimalist, lightly impressionist; Victoria 3-style vibe)
-8) Generation Guardrails (optimism bias, realism, stage progression)
+7) Art Direction
+8) Generation Guardrails
 
 Stage subsection template (repeat for each stage):
 ### Stage <N>: <Name>
@@ -38,119 +38,61 @@ Stage subsection template (repeat for each stage):
 - Capability profile:
 - World state:
 - AI role:
+- What everyday life feels like:
 - Key constraints & risks:
-- Data center + power conditions:
-- Public sentiment/legitimacy:
+- Public mood:
 - Policy focus (bulleted list):
 - Development focus (bulleted list):
 - Power dynamics (bulleted list):
-- Example policy cards (3+ examples, each with Title + 1-2 sentence summary + tags):
-- Example development cards (3+ examples with Title + short description + valence arrows, include at least one powerup or conditional):
+- Example policy cards (4+ examples, each with Title + 1-2 sentence summary + tags):
+- Example development cards (5+ examples with Title + short description + valence arrows, include at least one powerup or conditional):
 - Art notes for this stage:
 
 Constraints:
 - Use plain text only (no JSON). The output must be a single cohesive document.
-- Be thorough: aim for 3-5 bullets in each focus list and 2-3 bullets in constraints/power conditions/sentiment.
-- Explicitly describe valence iconography: impact score from -5 to 5 (0 allowed) mapped to a horizontal row of arrows. Positive = green up arrows, negative = red down arrows, zero = neutral gray line; never show both red and green at once. Provide a clear example (e.g., +3 = "↑ ↑ ↑", -2 = "↓ ↓").
-- Clarify the impact scale: +3/-3 already indicates a high impact; reserve +4/-4 for exceptional shifts and +5/-5 for rare, historic breaks.
-- Ensure most development examples are positive/optimistic, with some mixed or negative for balance.
-- Make policy examples diverse in scale and instrument (pilots, national programs, cross-border coordination, regulation, incentives, procurement).
-- Keep stage progression realistic and increasingly advanced; include smaller near-term outcomes/policies and larger longer-term ones with clear throughlines.
-- Ensure stage sections connect: outcomes, policies, and powerups should feel related across stages (early precursors -> mid-stage expansions -> late-stage shifts).
-- Build a long-range, coherent AI/AGI storyline: start with smaller-scale shifts today and extend through transformative, society-wide changes later.
-- Include substantial realism about private-sector adaptation: many developments should show markets, firms, or civil society resolving pressures without new policy.
-- Reflect additional instructions when provided (e.g., UAE localization).
-- Keep examples accessible to a smart lay audience, minimizing jargon with brief clarification where needed.
-- Policies should be understandable to a high-level policymaker; avoid technocratic jargon.
-- Titles and descriptions should be plain-language and legible; avoid overly narrow program names or insider acronyms.
-- Development examples should read like world-state facts (what changed, who is affected, and how it shows up).
-- Keep development examples largely narrative and non-instructional: the vast majority should be straightforward world-state statements.
-- Limit conditional clauses and action-style instructions to a small minority; reserve most "rule box" language for power cards only.
-- Include developments that highlight AI-driven shifts in geopolitics, labor markets, energy demand, and information integrity.
-- Ensure the AI story connects to the broader economy: healthcare, construction, logistics, education, housing, and local services should show indirect or second-order impacts, especially in mid and late stages.
-- Balance near-term and long-term realism: show how some problems resolve as business and society adapt without new policy.
-- Keep the simulation centered on the real economy people experience: prices, jobs, services, infrastructure, trade, and everyday institutions.
-- Avoid overly technical framing; prefer human-scale narratives that remain plausible and grounded.
-- Capture a broader world-evolution arc driven by AI: societal norms, security doctrines, and institutions may shift even when AI is only an indirect driver.
-- In mid and late stages, include occasional big, paradigm-level developments (e.g., new defense doctrines, shifts in deterrence or strategic stability, novel governance models), while keeping early stages concrete and near-term.
-- Maintain a mix of positive and negative shifts; some negative developments should plausibly resolve in later stages as adaptation catches up.
-- In "Card Formatting", specify a minimalist layout that fills the full landscape frame:
-  - Development cards: stage number only in the upper-left; arrow row upper-right (green up or red down only, or neutral gray line if zero); title near top, short description near bottom.
-  - Power development cards: replace the arrow row with a single bolt icon in the upper-right; include a soft-edged rule box at the bottom containing the imperative rule sentence; keep the world-state sentence above the box.
-  - Some standard development cards may include an optional rule box (for conditional bonuses or nullification); keep arrows for these.
-  - Policy cards: NO stage badge or arrows; title near top, short description near bottom; a bottom row showing Cost, Time, Political Capital, Category with small icons and short labels (low/med/high; time label verbatim).
-  - Keep text minimal, readable, and high-contrast; no extra labels.
-  - Card background should be transparent outside rounded corners (no solid background beyond the card edge).
-- In "Powerup/Conditional Mechanics Guidance", explicitly list common powerups and require at least 2 per stage (research acceleration drawing next-stage cards; research slowdown removing highest-impact cards; policy bandwidth shifts).
-- Emphasize powerups should be grounded in reality and integrated with the stage narrative (not random gamey effects).
-- For powerup descriptions, require a clear world-state sentence plus a distinct imperative rule sentence (used for the rule box).
-- Use a mix of powerups: some simple and small, others large but gated by prerequisites, high political capital, or prior developments.
-- Include some guidance for feedback costs: high political-capital policies can trigger conditional developments (backlash, coalition strain, implementation fatigue).
-- Keep powerups simple and legible; avoid chains of dependencies or complex multi-step effects.
-- In "Overview" and/or "Powerup/Conditional Mechanics Guidance", explicitly state default gameplay parameters:
-  - Policies: **10** dealt at start, **5** more after each stage; max **3** policies played per stage.
-  - Developments: **5** per stage (3 face-up, 2 face-down); face-down cards flip at next stage, then deal 5 more (powerups may adjust).
-- Note default deck sizing: **60** policy cards total; **35** development cards per stage with ~**20%** power cards (approximate).
-- Ensure the outline notes the GUI must support manual dragging/drawing from decks and flexible dealing to accommodate powerups and house rules.
-- The outline should articulate a simple gameplay loop that preserves realism and elegance: most turns reveal clear world-state updates, while powerups/conditionals are occasional and memorable, not the norm.
+- Make the simulation readable as an educational narrative for non-experts.
+- The outline should explain how AI changes the economy in ways people can picture: hiring, wages, prices, public services, housing, energy, logistics, care, trust, and security.
+- Most development examples should be world-state statements, not reactive instructions.
+- Only a minority of developments should depend on prior policies, and those dependencies should be broad and easy to interpret.
+- Avoid over-technical framing and avoid cards that sound like bureaucratic nonsense.
+- Keep early stages concrete and current. Later stages can become more transformative, but still must feel like a believable continuation.
+- Include substantial realism about private-sector and civil-society adaptation. Some problems should improve without new policy.
+- Ensure policy examples cover a broad field range, not just compute, power, and infrastructure.
+- Make policy examples tangible, lay-readable, and action-oriented.
+- Include small, medium, and large policy moves.
+- Explicitly define the budget gameplay:
+  - Each stage gives players a budget of **$5** in policy spending.
+  - Policy cards cost **$1** to **$4**.
+  - The deck should force tradeoffs between one large move and multiple smaller moves.
+- Explicitly state the default gameplay flow:
+  - Policies: **10** dealt at start, **5** more after each stage, max **3** played per stage.
+  - Developments: **5** per stage with **3** face-up and **2** face-down; the face-down cards flip at the next stage, then another 5 are dealt.
+- Ensure the GUI notes support manual dragging, manual dealing, and house rules even while the default flow is automated.
+- Powerups should be occasional, grounded, and easy to execute at the table.
+- Include at least 2 powerup concepts per stage, but keep powerups well below half of the stage examples.
+- Clarify valence iconography: positive = green up arrows, negative = red down arrows, zero = neutral gray line; never show both directions at once.
+- Clarify that +3/-3 is already a major shift; reserve +4/-4 and +5/-5 for exceptional breaks.
+- In Card Formatting:
+  - Development cards: stage number upper-left; arrow row upper-right; title near top; short description near bottom; optional rule box only when needed.
+  - Power development cards: bolt icon upper-right; world-state sentence above; imperative rule sentence in a bottom rule box.
+  - Policy cards: no stage badge or arrows; show title, short description, and a bottom row with Cost, Time, Impact, Category.
+- The outline should make clear that simply reading the full deck should teach someone several plausible ways AI could reshape the economy.
 
 Example policy archetypes to inspire breadth (do NOT copy verbatim; use as guidance):
-- Sovereign Compute Initiative (e.g., invest **$250B** in domestic data centers; allow multiple variants at different values).
-- Power Infrastructure Investment.
-- Offensive Cyber Capabilities.
-- Audit Training Data.
-- Ban Automation in X (specific sector or occupation).
-- Universal Basic Income (**$X** per month).
-- Wealth Tax (**X%**).
-- AI Company Tax.
-- Targeted employment schemes.
+- Sovereign compute initiative
+- Power infrastructure investment
+- Offensive cyber capabilities
+- Audit training data
+- Ban automation in a sensitive sector
+- Universal basic income
+- Wealth tax
+- AI company tax
+- Targeted employment schemes
+- Housing permitting reform
+- Public clinic modernization
+- Logistics modernization
 
 Example development archetypes to inspire breadth (do NOT copy verbatim; keep stage-appropriate):
-- Stage 0/1: "Uplift in Coding Productivity" (two green up arrows), "Public Fear" (**low**) with one red down arrow,
-  "Lowered Language Barriers" (one green up arrow).
-- Stage 2/3: "Companionship for Elderly" (one green up arrow), "Rising Energy Costs" (one red down arrow),
-  "AI Research Acceleration" (powerup: draw **2** cards from next stage),
-  "Fully Automated Computer-Based Work" (three green up arrows),
-  "Job Loss" (**10%** unemployment in cognitive labor),
-  "Autonomous Vehicles" (two green up arrows),
-  "Export Control" (powerup: nullify best policy relying on foreign semi flows).
-- Late stages: "Commonplace Personal Robotics" (three green up arrows), "Novel Medical Research" (positive).
-
-Include in the appropriate sections a few example card snippets that mirror the card prompts:
-- Policy example: Reskilling Vouchers (short description + 1-sentence description + tags).
-- Development example: Office Copilots (short description + 1-sentence description + impact score + arrows).
-
-Example output (truncated):
-# Simulation Outline
-1) Overview
-- This simulation explores staged AI diffusion across the economy...
-
-2) Stage-by-Stage Outline
-### Stage 0: Stage 0
-- Time horizon: today / near-term
-- Capability profile: Frontier models as copilots
-- World state: Early productivity gains appear in office workflows...
-- AI role: Assistive copilots and analytics accelerators.
-- Policy focus:
-  - Workforce reskilling
-  - Safety standards
-  - Public-sector pilots
-- Development focus:
-  - Productivity nudges
-  - Labor shifts
-  - Compute availability
-- Power dynamics:
-  - Compute bottlenecks can reduce next-round dev draws (MODIFY_DEV_DRAW_NEXT_ROUND -1).
-  - Pilots can unlock conditional cards tied to public-sector tags.
-- Example policy cards:
-  - Reskilling Vouchers — Targeted vouchers for mid-career workers. Tags: workforce_reskilling
-  - AI Audit Liability Regime — Mandatory audits for high-risk models. Tags: safety_standards
-  - Compute Procurement Sandbox — Government pre-buys compute capacity for SMEs. Tags: compute_access
-- Example development cards:
-  - Office Copilots — Early productivity gains (+1.2%); Impact score: +1. Tags: productivity_growth
-  - Public Service Copilot Rollout — Case backlog drops 15%; Impact score: +3. Powerup: DRAW_DEV_NOW +1.
-  - Chip Supply Pinch — Deployment delays in regulated sectors; Impact score: -1. Conditional: requires compute_policy tags.
-- Art notes for this stage: Minimalist office skyline, muted teal and sand palette.
-
-3) Policy Variety & Examples
-- Principles: ...
+- Stage 0/1: coding productivity improves, public fear stays **low**, language barriers fall, permit backlogs shrink, entry-level hiring softens.
+- Stage 2/3: elder care improves, energy costs rise, AI research accelerates, white-collar unemployment reaches **10%**, autonomous logistics expand.
+- Late stages: personal robotics become common, medical discovery speeds up, strategic doctrine changes, local service delivery reorganizes.

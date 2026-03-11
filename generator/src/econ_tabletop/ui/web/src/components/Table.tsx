@@ -11,7 +11,6 @@ type DragPayload = {
 type Props = {
   faceUp: DevelopmentCard[];
   faceDown: DevelopmentCard[];
-  dormant: DevelopmentCard[];
   implemented: PolicyCard[];
   attachments: Record<string, DevelopmentCard[]>;
   imageBaseUrl: string;
@@ -28,7 +27,6 @@ type Props = {
 export function Table({
   faceUp,
   faceDown,
-  dormant,
   implemented,
   attachments,
   imageBaseUrl,
@@ -54,17 +52,25 @@ export function Table({
       if (payload && (payload.kind === "policy" || payload.kind === "development")) {
         return payload;
       }
-    } catch (error) {
+    } catch {
       return null;
     }
     return null;
   }
 
   return (
-    <div className="table">
-      <div className="table__grid">
-        <Lane title="Development Board" className="lane lane--developments">
-          {[...faceUp, ...dormant].map((dev) => (
+    <div className="board">
+      <section className="board__column board__column--developments">
+        <div className="board__section-header">
+          <div>
+            <p className="board__eyebrow">World board</p>
+            <h3>Active developments</h3>
+          </div>
+          <span className="board__count">{faceUp.length}</span>
+        </div>
+        <div className="board__card-grid">
+          {faceUp.length === 0 ? <div className="board__empty">No developments are active yet.</div> : null}
+          {faceUp.map((dev) => (
             <Card
               key={dev.id}
               card={dev}
@@ -79,24 +85,22 @@ export function Table({
               }}
             />
           ))}
-          {faceDown.map((dev) => (
-            <Card
-              key={dev.id}
-              card={dev}
-              type="development"
-              imageBaseUrl={imageBaseUrl}
-              variant="visual"
-              faceDown
-              selected={selectedDevId === dev.id}
-              dragPayload={{ kind: "development", id: dev.id }}
-              onClick={() => onSelectDev(dev.id)}
-            />
-          ))}
-        </Lane>
+        </div>
+      </section>
 
-        <Lane
-          title="Policy Center"
-          className="lane lane--policy"
+      <section className="board__column board__column--policy">
+        <div className="board__section-header">
+          <div>
+            <p className="board__eyebrow">Policy table</p>
+            <h3>Implemented responses</h3>
+          </div>
+          <span className="board__count">{implemented.length}</span>
+        </div>
+        <div
+          className={`policy-dropzone${policyDropActive ? " policy-dropzone--active" : ""}`}
+          onDragOver={(event) => event.preventDefault()}
+          onDragEnter={() => setPolicyDropActive(true)}
+          onDragLeave={() => setPolicyDropActive(false)}
           onDrop={(event) => {
             const payload = readPayload(event);
             if (payload?.kind === "policy") {
@@ -104,12 +108,9 @@ export function Table({
             }
             setPolicyDropActive(false);
           }}
-          onDragEnter={() => setPolicyDropActive(true)}
-          onDragLeave={() => setPolicyDropActive(false)}
-          isActive={policyDropActive}
         >
           {implemented.length === 0 ? (
-            <div className="lane__empty">Drag policies here to implement them.</div>
+            <div className="board__empty">Drag a policy here to spend budget and put it into play.</div>
           ) : (
             implemented.map((policy) => (
               <div
@@ -154,43 +155,33 @@ export function Table({
               </div>
             ))
           )}
-        </Lane>
-      </div>
-    </div>
-  );
-}
+        </div>
+      </section>
 
-function Lane({
-  title,
-  children,
-  onDrop,
-  onDragEnter,
-  onDragLeave,
-  isActive,
-  className,
-}: {
-  title: string;
-  children: React.ReactNode;
-  onDrop?: (event: React.DragEvent) => void;
-  onDragEnter?: () => void;
-  onDragLeave?: () => void;
-  isActive?: boolean;
-  className?: string;
-}) {
-  return (
-    <section className={`${className ?? "lane"}${isActive ? " lane--active" : ""}`}>
-      <div className="lane__header">
-        <h3>{title}</h3>
-      </div>
-      <div
-        onDragOver={(event) => event.preventDefault()}
-        onDrop={onDrop}
-        onDragEnter={onDragEnter}
-        onDragLeave={onDragLeave}
-        className="lane__body"
-      >
-        {children}
-      </div>
-    </section>
+      <section className="board__column board__column--forecast">
+        <div className="board__section-header">
+          <div>
+            <p className="board__eyebrow">Forecast</p>
+            <h3>Face-down queue</h3>
+          </div>
+          <span className="board__count">{faceDown.length}</span>
+        </div>
+        <div className="board__forecast-grid">
+          {faceDown.length === 0 ? <div className="board__empty">No face-down cards are waiting to flip.</div> : null}
+          {faceDown.map((dev) => (
+            <Card
+              key={dev.id}
+              card={dev}
+              type="development"
+              imageBaseUrl={imageBaseUrl}
+              variant="visual"
+              faceDown
+              selected={selectedDevId === dev.id}
+              onClick={() => onSelectDev(dev.id)}
+            />
+          ))}
+        </div>
+      </section>
+    </div>
   );
 }

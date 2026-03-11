@@ -8,12 +8,16 @@ type DragPayload = {
 };
 
 type Props = {
+  started: boolean;
   stageIndex: number;
   stageCount: number;
   policyRemaining: number;
   developmentsRemaining: number;
+  budgetRemaining: number;
+  budgetTotal: number;
   discardedDevelopments: DevelopmentCard[];
   discardedPolicies: PolicyCard[];
+  onStartGame: () => void;
   onDealDevelopments: (stageIndex: number, faceUpCount: number, faceDownCount: number) => void;
   onDrawPolicies: (count: number) => void;
   onDiscard: (payload: DragPayload) => void;
@@ -40,12 +44,16 @@ function readPayload(event: React.DragEvent): DragPayload | null {
 }
 
 export function DeckControls({
+  started,
   stageIndex,
   stageCount,
   policyRemaining,
   developmentsRemaining,
+  budgetRemaining,
+  budgetTotal,
   discardedDevelopments,
   discardedPolicies,
+  onStartGame,
   onDealDevelopments,
   onDrawPolicies,
   onDiscard,
@@ -57,7 +65,7 @@ export function DeckControls({
   const [devStage, setDevStage] = useState(stageIndex);
   const [devTotal, setDevTotal] = useState(5);
   const [devFaceDown, setDevFaceDown] = useState(2);
-  const [policyDraw, setPolicyDraw] = useState(3);
+  const [policyDraw, setPolicyDraw] = useState(5);
   const faceUpCount = useMemo(() => Math.max(0, devTotal - devFaceDown), [devTotal, devFaceDown]);
   const discardCount = discardedDevelopments.length + discardedPolicies.length;
 
@@ -67,31 +75,83 @@ export function DeckControls({
 
   return (
     <div className="controls">
-      <div className="controls__stage">
-        <span>Stage</span>
-        <strong>
-          {stageIndex + 1} / {stageCount}
-        </strong>
+      <div className="controls__hero">
+        <div>
+          <p className="controls__eyebrow">Stage controls</p>
+          <h2>{started ? `Stage ${stageIndex + 1} of ${stageCount}` : "Load the deck, then start the simulation"}</h2>
+          <p>
+            {started
+              ? "Policies stay in play across stages. Face-down developments flip forward automatically when you advance."
+              : "The default start deals 10 policies and 5 developments (3 face-up, 2 face-down)."}
+          </p>
+        </div>
+        <div className="controls__budget">
+          <span>Stage budget</span>
+          <strong>
+            ${budgetRemaining} / ${budgetTotal}
+          </strong>
+        </div>
       </div>
-      <div className="controls__decks">
-        <details className="deck">
-          <summary className="deck__summary">
-            <span className="deck__label">Development Deck</span>
-            <span className="deck__meta">{developmentsRemaining} remaining</span>
-          </summary>
-          <div className="deck__panel">
-            <label>
-              Stage to deal
-              <input
-                type="number"
-                min={0}
-                max={Math.max(0, stageCount - 1)}
-                value={devStage}
-                onChange={(event) => setDevStage(Number(event.target.value))}
-              />
-            </label>
-            <label>
-              Total cards
+
+      <div className="controls__actions">
+        {!started ? (
+          <button className="btn btn--primary" onClick={onStartGame}>
+            Start simulation
+          </button>
+        ) : (
+          <button className="btn btn--primary" onClick={onAdvance}>
+            Advance to next stage
+          </button>
+        )}
+        <button className="btn btn--secondary" onClick={onAutoAttach} disabled={!started}>
+          Auto-attach conditionals
+        </button>
+        <button className="btn btn--ghost" onClick={onUndo}>
+          Undo
+        </button>
+        <button className="btn btn--ghost" onClick={onRedo}>
+          Redo
+        </button>
+      </div>
+
+      <div className="controls__manual">
+        <div className="controls__panel">
+          <div className="controls__panel-header">
+            <span>Policy deck</span>
+            <strong>{policyRemaining} remaining</strong>
+          </div>
+          <label className="field">
+            <span>Cards to draw</span>
+            <input
+              type="number"
+              min={0}
+              value={policyDraw}
+              onChange={(event) => setPolicyDraw(Math.max(0, Number(event.target.value)))}
+            />
+          </label>
+          <button className="btn btn--secondary" onClick={() => onDrawPolicies(policyDraw)} disabled={!started}>
+            Draw policies
+          </button>
+        </div>
+
+        <div className="controls__panel">
+          <div className="controls__panel-header">
+            <span>Development deck</span>
+            <strong>{developmentsRemaining} remaining</strong>
+          </div>
+          <label className="field">
+            <span>Stage to deal</span>
+            <input
+              type="number"
+              min={0}
+              max={Math.max(0, stageCount - 1)}
+              value={devStage}
+              onChange={(event) => setDevStage(Number(event.target.value))}
+            />
+          </label>
+          <div className="controls__inline-fields">
+            <label className="field">
+              <span>Total</span>
               <input
                 type="number"
                 min={0}
@@ -103,8 +163,8 @@ export function DeckControls({
                 }}
               />
             </label>
-            <label>
-              Face-down
+            <label className="field">
+              <span>Face-down</span>
               <input
                 type="number"
                 min={0}
@@ -115,42 +175,19 @@ export function DeckControls({
                 }}
               />
             </label>
-            <div className="deck__row">
-              <span>Face-up</span>
-              <strong>{faceUpCount}</strong>
-            </div>
-            <button
-              className="btn btn--primary btn--chip"
-              onClick={() => onDealDevelopments(devStage, faceUpCount, devFaceDown)}
-            >
-              Deal Developments
-            </button>
           </div>
-        </details>
-
-        <details className="deck">
-          <summary className="deck__summary">
-            <span className="deck__label">Policy Deck</span>
-            <span className="deck__meta">{policyRemaining} remaining</span>
-          </summary>
-          <div className="deck__panel">
-            <label>
-              Cards to draw
-              <input
-                type="number"
-                min={0}
-                value={policyDraw}
-                onChange={(event) => setPolicyDraw(Math.max(0, Number(event.target.value)))}
-              />
-            </label>
-            <button className="btn btn--primary btn--chip" onClick={() => onDrawPolicies(policyDraw)}>
-              Draw Policies
-            </button>
-          </div>
-        </details>
+          <p className="controls__microcopy">Manual deal: {faceUpCount} face-up, {devFaceDown} face-down.</p>
+          <button
+            className="btn btn--secondary"
+            onClick={() => onDealDevelopments(devStage, faceUpCount, devFaceDown)}
+            disabled={!started}
+          >
+            Deal developments
+          </button>
+        </div>
 
         <div
-          className="deck deck--discard"
+          className="controls__panel controls__panel--discard"
           onDragOver={(event) => event.preventDefault()}
           onDrop={(event) => {
             const payload = readPayload(event);
@@ -159,38 +196,20 @@ export function DeckControls({
             }
           }}
         >
-          <div className="deck__summary">
-            <span className="deck__label">Discard</span>
-            <span className="deck__meta">{discardCount} cards</span>
+          <div className="controls__panel-header">
+            <span>Discard</span>
+            <strong>{discardCount} cards</strong>
           </div>
-          <div className="deck__panel deck__panel--discard">
-            <strong>Discarded cards</strong>
-            <ul>
-              {discardedPolicies.map((policy) => (
-                <li key={policy.id}>{policy.title}</li>
-              ))}
-              {discardedDevelopments.map((dev) => (
-                <li key={dev.id}>{dev.title}</li>
-              ))}
-            </ul>
+          <p className="controls__microcopy">Drag any policy or development card here to remove it from play.</p>
+          <div className="controls__discard-list">
+            {discardedPolicies.map((policy) => (
+              <span key={policy.id}>{policy.title}</span>
+            ))}
+            {discardedDevelopments.map((dev) => (
+              <span key={dev.id}>{dev.title}</span>
+            ))}
           </div>
         </div>
-      </div>
-      <div className="controls__actions">
-        <button className="btn btn--chip" onClick={onAutoAttach}>
-          Auto-attach
-        </button>
-        <button className="btn btn--chip" onClick={onAdvance}>
-          Advance Stage
-        </button>
-      </div>
-      <div className="controls__history">
-        <button className="btn btn--ghost btn--chip" onClick={onUndo}>
-          Undo
-        </button>
-        <button className="btn btn--ghost btn--chip" onClick={onRedo}>
-          Redo
-        </button>
       </div>
     </div>
   );

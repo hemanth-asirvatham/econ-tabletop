@@ -89,6 +89,7 @@ Notes:
 - You can run this from **any working directory**; the helper will fall back to the packaged UI assets.
 - You need **Node.js + npm** installed for the UI (`npm install` will run if `npm_install=True`).
 - If you only want the API server (no Vite UI), use `et.start_deck_server(...)`.
+- Current default play flow is: 10 starting policies, 5 more after each stage, 3 policies max per stage, and a $5 stage budget.
 
 If you only want to generate without printable PDFs, you can skip the print step:
 
@@ -169,7 +170,7 @@ Key configurable parameters in the YAML:
 - `runtime`: `concurrency_text`, `concurrency_image`, `image_candidate_count`, `image_reference_candidate_multiplier`, `image_timeout_s`, `critique_timeout_s`, `resume`, `prompt_path`, `outline_model`, `policy_model`, `development_model`.
 - `deck_sizes`: total policies and per-stage developments.
 - `mix_targets`: balance of positive/negative/conditional/supersedes/powerups/quant indicators.
-- `gameplay_defaults`: parameters surfaced to the UI for play setup.
+- `gameplay_defaults`: parameters surfaced to the UI for play setup, including stage budget (`budget_per_stage`).
 - `scenario`: tone, locale visuals, and any additional instructions.
 
 ### Output locations and saved artifacts

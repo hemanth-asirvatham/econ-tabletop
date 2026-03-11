@@ -5,15 +5,16 @@ export type PolicyCard = {
   description: string;
   category: string;
   cost: {
-    budget_level: number;
-    implementation_complexity: number;
+    budget_cost?: number;
+    budget_level?: number;
     notes: string;
   };
   timeline: {
     time_to_launch: string;
     time_to_impact: string;
   };
-  political_capital: number;
+  impact_rating?: number;
+  political_capital?: number;
   tags: string[];
   addresses_tags: string[];
   side_effect_tags: string[];
@@ -70,11 +71,11 @@ export type GameState = {
   round: number;
   policies: PolicyCard[];
   developmentsByStage: Record<number, DevelopmentCard[]>;
+  developmentDrawIndexByStage: Record<number, number>;
   deckOrder: string[];
   policyDeck: string[];
   faceUp: DevelopmentCard[];
   faceDown: DevelopmentCard[];
-  dormant: DevelopmentCard[];
   implemented: PolicyCard[];
   hand: PolicyCard[];
   attachments: Record<string, DevelopmentCard[]>;
@@ -85,6 +86,8 @@ export type GameState = {
   selectedPolicyId: string | null;
   roundModifiers: RoundModifiers;
   triggeredDevEffects: string[];
+  budgetSpentThisStage: number;
+  policiesPlayedThisStage: string[];
   history: GameStateSnapshot[];
   future: GameStateSnapshot[];
   settings: GameSettings;
@@ -99,6 +102,7 @@ export type GameSettings = {
   devFacedownPerRound: number;
   policyDrawPerRound: number;
   maxPoliciesPerRound: number;
+  budgetPerStage: number;
 };
 
 export type GameStateSnapshot = Omit<GameState, "history" | "future">;
